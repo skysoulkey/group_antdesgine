@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.umi/
+src/.umi/
+.cache/
+*.local
+.DS_Store
