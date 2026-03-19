@@ -1,149 +1,167 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Card, Col, DatePicker, Input, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import { Button, Card, Input, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
 const { Text } = Typography;
-const { RangePicker } = DatePicker;
 
-interface LogRecord {
-  id: number;
-  logType: 'login' | 'operation' | 'system';
-  operator: string;
-  action: string;
-  module: string;
-  ip: string;
+const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+
+// ── 登录日志 ──────────────────────────────────────────────────────
+interface LoginLog {
+  id: string;
+  loginTime: string;
+  username: string;
+  role: string;
+  loginIp: string;
   country: string;
-  result: 'success' | 'failed';
-  createdAt: string;
+  result: '成功' | '失败';
 }
 
-const mockLogs: LogRecord[] = Array.from({ length: 30 }, (_, i) => ({
-  id: i + 1,
-  logType: (['login', 'operation', 'system', 'login', 'operation'] as const)[i % 5],
-  operator: ['Miya', 'Admin', 'Jack', 'Lisa', 'Tom'][i % 5],
-  action: [
-    '用户登录',
-    '创建企业',
-    '修改角色权限',
-    '用户退出',
-    '下拨资金',
-    '修改密码',
-    '导出数据',
-    '删除角色',
-  ][i % 8],
-  module: ['用户管理', '企业管理', '角色管理', '集团金融', '系统设置'][i % 5],
-  ip: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
+const loginLogs: LoginLog[] = Array.from({ length: 20 }, (_, i) => ({
+  id: `LL${String(i + 1).padStart(7, '0')}`,
+  loginTime: `2025-11-${String(i + 1).padStart(2, '0')} ${String(8 + (i % 14)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
+  username: ['Miya', 'Admin', 'Jack', 'Lisa', 'Tom'][i % 5],
+  role: ['集团管理员', '公司管理员', '平台管理员'][i % 3],
+  loginIp: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
   country: ['🇸🇬 新加坡', '🇨🇳 中国', '🇺🇸 美国', '🇬🇧 英国'][i % 4],
-  result: i % 6 === 0 ? 'failed' : 'success',
-  createdAt: `2025-11-${String(1 + (i % 30)).padStart(2, '0')} ${String(8 + (i % 14)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
+  result: i % 6 === 0 ? '失败' : '成功',
 }));
 
-const logTypeMap = {
-  login: { label: '登录日志', color: 'blue' },
-  operation: { label: '操作日志', color: 'green' },
-  system: { label: '系统日志', color: 'orange' },
-} as const;
+// ── 操作日志 ──────────────────────────────────────────────────────
+interface OperationLog {
+  id: string;
+  operateTime: string;
+  username: string;
+  operation: string;
+  module: string;
+  operateIp: string;
+  result: '成功' | '失败';
+}
+
+const operationLogs: OperationLog[] = Array.from({ length: 24 }, (_, i) => ({
+  id: `OL${String(i + 1).padStart(7, '0')}`,
+  operateTime: `2025-11-${String(i + 1).padStart(2, '0')} ${String(9 + (i % 12)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
+  username: ['Miya', 'Admin', 'Jack', 'Lisa', 'Tom'][i % 5],
+  operation: ['创建企业', '修改角色权限', '下拨资金', '导出数据', '修改密码', '删除角色', '用户权限变更', '系统配置更新'][i % 8],
+  module: ['用户管理', '企业管理', '角色管理', '集团金融', '系统设置'][i % 5],
+  operateIp: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
+  result: i % 8 === 0 ? '失败' : '成功',
+}));
 
 const SystemLogsPage: React.FC = () => {
-  const [logType, setLogType] = useState<string>('');
-  const [searchVal, setSearchVal] = useState('');
+  const [loginSearch, setLoginSearch] = useState('');
+  const [opSearch, setOpSearch] = useState('');
 
-  const filtered = mockLogs.filter((d) => {
-    const matchType = !logType || d.logType === logType;
-    const matchSearch =
-      !searchVal ||
-      d.operator.includes(searchVal) ||
-      d.action.includes(searchVal) ||
-      d.ip.includes(searchVal);
-    return matchType && matchSearch;
+  const filteredLogin = loginLogs.filter((r) => {
+    const kw = loginSearch.toLowerCase();
+    return !kw || r.username.toLowerCase().includes(kw) || r.loginIp.includes(kw);
   });
 
-  const columns: ColumnsType<LogRecord> = [
+  const filteredOp = operationLogs.filter((r) => {
+    const kw = opSearch.toLowerCase();
+    return !kw || r.username.toLowerCase().includes(kw) || r.operation.includes(kw) || r.operateIp.includes(kw);
+  });
+
+  const loginColumns: ColumnsType<LoginLog> = [
+    { title: '登录时间', dataIndex: 'loginTime', width: 170 },
+    { title: '账号', dataIndex: 'username', width: 100 },
     {
-      title: '日志类型',
-      dataIndex: 'logType',
-      width: 100,
-      render: (v: LogRecord['logType']) => (
-        <Tag color={logTypeMap[v].color}>{logTypeMap[v].label}</Tag>
-      ),
+      title: '角色', dataIndex: 'role', width: 120,
+      render: (v) => <Tag color="geekblue">{v}</Tag>,
     },
-    { title: '操作人', dataIndex: 'operator', width: 90 },
-    { title: '操作行为', dataIndex: 'action' },
-    { title: '所属模块', dataIndex: 'module', width: 110 },
     {
-      title: 'IP 地址',
-      dataIndex: 'ip',
-      width: 160,
+      title: '登录IP', dataIndex: 'loginIp', width: 200,
       render: (v, r) => (
         <Space direction="vertical" size={0}>
           <Text style={{ fontFamily: 'monospace' }}>{v}</Text>
-          <Text type="secondary" style={{ fontSize: 11 }}>
-            {r.country}
-          </Text>
+          <Text type="secondary" style={{ fontSize: 11 }}>{r.country}</Text>
         </Space>
       ),
     },
     {
-      title: '结果',
-      dataIndex: 'result',
-      width: 80,
-      render: (v) =>
-        v === 'success' ? (
-          <Tag color="success">成功</Tag>
-        ) : (
-          <Tag color="error">失败</Tag>
-        ),
+      title: '结果', dataIndex: 'result', width: 80,
+      render: (v) => <Tag color={v === '成功' ? 'success' : 'error'}>{v}</Tag>,
     },
-    { title: '时间', dataIndex: 'createdAt', width: 170 },
+    {
+      title: '操作', width: 80, fixed: 'right' as const,
+      render: () => <Button type="link" size="small" style={{ padding: 0 }}>详情</Button>,
+    },
   ];
 
-  return (
-    <Card bordered={false} style={{ borderRadius: 8 }}>
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col>
-          <Select
-            placeholder="日志类型"
-            value={logType || undefined}
-            onChange={setLogType}
-            allowClear
-            style={{ width: 130 }}
-            options={[
-              { label: '登录日志', value: 'login' },
-              { label: '操作日志', value: 'operation' },
-              { label: '系统日志', value: 'system' },
-            ]}
-          />
-        </Col>
-        <Col>
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder="搜索操作人、行为、IP"
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            allowClear
-            style={{ width: 240 }}
-          />
-        </Col>
-        <Col>
-          <RangePicker style={{ width: 280 }} />
-        </Col>
-      </Row>
+  const opColumns: ColumnsType<OperationLog> = [
+    { title: '操作时间', dataIndex: 'operateTime', width: 170 },
+    { title: '账号', dataIndex: 'username', width: 100 },
+    { title: '操作行为', dataIndex: 'operation', width: 140 },
+    { title: '所属模块', dataIndex: 'module', width: 110 },
+    {
+      title: '操作IP', dataIndex: 'operateIp', width: 160,
+      render: (v) => <Text style={{ fontFamily: 'monospace' }}>{v}</Text>,
+    },
+    {
+      title: '结果', dataIndex: 'result', width: 80,
+      render: (v) => <Tag color={v === '成功' ? 'success' : 'error'}>{v}</Tag>,
+    },
+  ];
 
-      <Table
-        columns={columns}
-        dataSource={filtered}
-        rowKey="id"
-        scroll={{ x: 900 }}
-        pagination={{
-          total: filtered.length,
-          pageSize: 15,
-          showTotal: (total) => `总共 ${total} 条日志`,
-        }}
-        size="middle"
-      />
-    </Card>
-  );
+  const tabItems = [
+    {
+      key: 'login',
+      label: '登录日志',
+      children: (
+        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+          <Space style={{ marginBottom: 16 }}>
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="账号名 / 登录IP"
+              value={loginSearch}
+              onChange={(e) => setLoginSearch(e.target.value)}
+              allowClear
+              style={{ width: 240 }}
+            />
+          </Space>
+          <Table
+            columns={loginColumns}
+            dataSource={filteredLogin}
+            rowKey="id"
+            size="middle"
+            scroll={{ x: 800 }}
+            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          />
+        </Card>
+      ),
+    },
+    {
+      key: 'operation',
+      label: '操作日志',
+      children: (
+        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+          <Space style={{ marginBottom: 16 }}>
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="账号名 / 操作 / IP"
+              value={opSearch}
+              onChange={(e) => setOpSearch(e.target.value)}
+              allowClear
+              style={{ width: 240 }}
+            />
+          </Space>
+          <Table
+            columns={opColumns}
+            dataSource={filteredOp}
+            rowKey="id"
+            size="middle"
+            scroll={{ x: 900 }}
+            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          />
+        </Card>
+      ),
+    },
+  ];
+
+  return <Tabs items={tabItems} type="card" />;
 };
 
 export default SystemLogsPage;

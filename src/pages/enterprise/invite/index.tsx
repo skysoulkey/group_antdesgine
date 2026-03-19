@@ -1,162 +1,185 @@
-import { useState } from 'react';
-import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message, Space, Tooltip } from 'antd';
-import { SearchOutlined, KeyOutlined, PlusOutlined, CopyOutlined } from '@ant-design/icons';
+import { KeyOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Card, Col, DatePicker, Form, Input, Modal, Row, Select, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import { message } from 'antd';
+import React, { useState } from 'react';
 
-const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
-interface InviteCode {
-  id: number;
-  code: string;
-  status: 'unused' | 'used' | 'expired';
-  usedCount: number;
-  maxUses: number;
-  usedBy: string;
-  expiredAt: string;
-  generatedBy: string;
-  createdAt: string;
+const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+
+interface InviteRecord {
+  id: string;
+  inviteTime: string;
+  authCode: string;
+  codeExpiry: string;
+  inviteStatus: '已接受' | '未接受';
+  codeStatus: '有效' | '无效';
+  invitedCount: number;
 }
 
-const statusMap = {
-  unused:  { label: '未使用', color: 'blue' },
-  used:    { label: '已使用', color: 'success' },
-  expired: { label: '已过期', color: 'default' },
-} as const;
-
-const randomCode = (i: number) => `INV-${(10000000 + i * 137).toString(16).toUpperCase().slice(0, 8)}`;
-
-const mockData: InviteCode[] = Array.from({ length: 15 }, (_, i) => ({
-  id: i + 1,
-  code: randomCode(i + 1),
-  status: (['unused', 'used', 'expired'] as const)[i % 3],
-  usedCount: i % 3 === 1 ? 1 : 0,
-  maxUses: 1,
-  usedBy: i % 3 === 1 ? ['hey Enterprise', 'Nova Corp', 'Flash Inc'][i % 3] : '',
-  expiredAt: `2025-12-${String(1 + (i % 28)).padStart(2, '0')} 23:59:59`,
-  generatedBy: ['Admin', 'SuperAdmin'][i % 2],
-  createdAt: `2025-11-${String(1 + (i % 28)).padStart(2, '0')} 09:${String(i % 60).padStart(2, '0')}:00`,
+const mockData: InviteRecord[] = Array.from({ length: 18 }, (_, i) => ({
+  id: `INV${String(i + 1).padStart(7, '0')}`,
+  inviteTime: `2025-1${(i % 2) + 0}-${String(i + 1).padStart(2, '0')} 12:23:23`,
+  authCode: String(82894 + i * 137),
+  codeExpiry: `2025-${String(5 + (i % 7)).padStart(2, '0')}-${String(i + 1).padStart(2, '0')} 14:23:13`,
+  inviteStatus: i % 3 === 0 ? '未接受' : '已接受',
+  codeStatus: i % 4 === 3 ? '无效' : '有效',
+  invitedCount: i % 3 === 0 ? 0 : 1 + (i % 3),
 }));
 
-export default function EnterpriseInvite() {
+const EnterpriseInvitePage: React.FC = () => {
   const [data, setData] = useState(mockData);
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [inviteStatus, setInviteStatus] = useState<string | undefined>();
+  const [searchCode, setSearchCode] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const filtered = data.filter(r => {
-    const kw = search.toLowerCase();
+  const filtered = data.filter((r) => {
+    const kw = searchCode.trim();
     return (
-      (!kw || r.code.toLowerCase().includes(kw) || r.usedBy.toLowerCase().includes(kw)) &&
-      (!statusFilter || r.status === statusFilter)
+      (!kw || r.authCode.includes(kw)) &&
+      (!inviteStatus || r.inviteStatus === inviteStatus)
     );
   });
 
+  const acceptedCount = data.filter((r) => r.inviteStatus === '已接受').length;
+  const pendingCount = data.filter((r) => r.inviteStatus === '未接受').length;
+
   const handleGenerate = () => {
-    form.validateFields().then(values => {
-      const newCodes: InviteCode[] = Array.from({ length: values.count }, (_, i) => ({
-        id: Date.now() + i,
-        code: randomCode(Date.now() + i),
-        status: 'unused',
-        usedCount: 0,
-        maxUses: values.maxUses || 1,
-        usedBy: '',
-        expiredAt: values.expiredAt ? values.expiredAt.format('YYYY-MM-DD') + ' 23:59:59' : '2025-12-31 23:59:59',
-        generatedBy: 'Admin',
-        createdAt: new Date().toISOString().slice(0, 19).replace('T', ' '),
-      }));
-      setData([...newCodes, ...data]);
+    form.validateFields().then((values) => {
+      const expiry = values.codeExpiry
+        ? values.codeExpiry.format('YYYY-MM-DD HH:mm:ss')
+        : new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 19).replace('T', ' ');
+
+      const newRecord: InviteRecord = {
+        id: `INV${String(Date.now()).slice(-7)}`,
+        inviteTime: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        authCode: values.authCode,
+        codeExpiry: expiry,
+        inviteStatus: '未接受',
+        codeStatus: '有效',
+        invitedCount: 0,
+      };
+      setData([newRecord, ...data]);
       setModalOpen(false);
       form.resetFields();
-      message.success(`成功生成 ${values.count} 个邀请码`);
+      message.success('邀请码已生成');
     });
   };
 
-  const handleVoid = (record: InviteCode) => {
-    setData(prev => prev.map(r => r.id === record.id ? { ...r, status: 'expired' as const } : r));
-    message.success('邀请码已作废');
-  };
-
-  const columns: ColumnsType<InviteCode> = [
+  const columns: ColumnsType<InviteRecord> = [
+    { title: '邀请时间', dataIndex: 'inviteTime', width: 170 },
     {
-      title: '邀请码', dataIndex: 'code', width: 180,
-      render: v => (
-        <Space>
-          <Text code strong>{v}</Text>
-          <Tooltip title="复制邀请码">
-            <Button type="text" size="small" icon={<CopyOutlined />}
-              onClick={() => { navigator.clipboard.writeText(v); message.success('已复制'); }} />
-          </Tooltip>
-        </Space>
-      ),
+      title: '企业认证码', dataIndex: 'authCode', width: 130,
+      render: (v) => <Text strong style={{ fontFamily: 'monospace', color: '#1677ff' }}>{v}</Text>,
+    },
+    { title: '认证码有效期', dataIndex: 'codeExpiry', width: 170 },
+    {
+      title: '邀请状态', dataIndex: 'inviteStatus', width: 100,
+      render: (v) => <Tag color={v === '已接受' ? 'success' : 'processing'}>{v}</Tag>,
     },
     {
-      title: '使用状态', dataIndex: 'status', width: 100,
-      render: v => <Tag color={statusMap[v as keyof typeof statusMap].color}>{statusMap[v as keyof typeof statusMap].label}</Tag>,
+      title: '认证码状态', dataIndex: 'codeStatus', width: 100,
+      render: (v) => <Tag color={v === '有效' ? 'blue' : 'default'}>{v}</Tag>,
     },
-    {
-      title: '使用次数', key: 'uses', width: 100, align: 'center',
-      render: (_, r) => `${r.usedCount} / ${r.maxUses}`,
-    },
-    { title: '使用企业', dataIndex: 'usedBy', render: v => v || <Text type="secondary">—</Text> },
-    {
-      title: '过期时间', dataIndex: 'expiredAt', width: 180,
-      render: (v, r) => <Text type={r.status === 'expired' ? 'danger' : undefined}>{v}</Text>,
-    },
-    { title: '生成人', dataIndex: 'generatedBy', width: 110 },
-    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
-    {
-      title: '操作', key: 'action', width: 90, fixed: 'right',
-      render: (_, r) => r.status === 'unused'
-        ? <Button type="link" size="small" danger onClick={() => handleVoid(r)}>作废</Button>
-        : <Text type="secondary">—</Text>,
-    },
+    { title: '邀请企业数', dataIndex: 'invitedCount', width: 90, align: 'right' },
   ];
 
   return (
-    <Card bordered={false}>
-      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <KeyOutlined style={{ color: '#1677ff', fontSize: 18 }} />
-          <Text style={{ fontSize: 16, fontWeight: 600 }}>邀请企业</Text>
-        </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
-          生成邀请码
-        </Button>
-      </div>
-      <Row gutter={16} style={{ marginBottom: 16 }}>
-        <Col>
-          <Input prefix={<SearchOutlined />} placeholder="搜索邀请码 / 企业名称"
-            value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
+    <div>
+      {/* 统计卡片 */}
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1677ff18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <KeyOutlined style={{ fontSize: 20, color: '#1677ff' }} />
+              </div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>邀请记录</Text>
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414' }}>{data.length}</div>
+            <div style={{ marginTop: 6, fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+              已接受 <Text strong style={{ color: '#52c41a' }}>{acceptedCount}</Text>
+              &nbsp;·&nbsp;
+              未接受 <Text strong style={{ color: '#fa8c16' }}>{pendingCount}</Text>
+            </div>
+          </Card>
         </Col>
-        <Col>
-          <Select placeholder="使用状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 130 }}
-            options={[{ label: '未使用', value: 'unused' }, { label: '已使用', value: 'used' }, { label: '已过期', value: 'expired' }]} />
-        </Col>
-        <Col><RangePicker style={{ width: 280 }} /></Col>
       </Row>
-      <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1100 }}
-        pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
 
-      <Modal title="生成邀请码" open={modalOpen} onOk={handleGenerate}
-        onCancel={() => { setModalOpen(false); form.resetFields(); }} width={480}>
-        <Form form={form} layout="vertical" style={{ marginTop: 16 }}
-          initialValues={{ count: 1, maxUses: 1 }}>
-          <Form.Item label="生成数量" name="count" rules={[{ required: true, message: '请输入数量' }]}>
-            <InputNumber min={1} max={100} style={{ width: '100%' }} placeholder="请输入生成数量" />
+      {/* 筛选 + 表格 */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <Space wrap>
+            <Input
+              placeholder="请输入企业认证码"
+              value={searchCode}
+              onChange={(e) => setSearchCode(e.target.value)}
+              allowClear
+              style={{ width: 200 }}
+            />
+            <Select
+              placeholder="邀请状态"
+              value={inviteStatus}
+              onChange={setInviteStatus}
+              allowClear
+              style={{ width: 130 }}
+              options={[
+                { value: '已接受', label: `已接受 (${acceptedCount})` },
+                { value: '未接受', label: `未接受 (${pendingCount})` },
+              ]}
+            />
+          </Space>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+            生成邀请码
+          </Button>
+        </div>
+
+        <Table
+          columns={columns}
+          dataSource={filtered}
+          rowKey="id"
+          size="middle"
+          pagination={{ pageSize: 10, showTotal: (t) => `总共 ${t} 个项目` }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+        />
+      </Card>
+
+      {/* 生成邀请码弹窗 */}
+      <Modal
+        title="生成邀请码"
+        open={modalOpen}
+        onOk={handleGenerate}
+        onCancel={() => { setModalOpen(false); form.resetFields(); }}
+        width={440}
+        okText="确 定"
+        cancelText="取 消"
+      >
+        <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="企业认证码"
+            name="authCode"
+            rules={[{ required: true, message: '请输入企业认证码' }]}
+          >
+            <Input placeholder="请输入企业认证码" maxLength={20} />
           </Form.Item>
-          <Form.Item label="最大使用次数" name="maxUses" rules={[{ required: true, message: '请输入最大使用次数' }]}>
-            <InputNumber min={1} max={100} style={{ width: '100%' }} placeholder="默认每码使用1次" />
-          </Form.Item>
-          <Form.Item label="有效期至" name="expiredAt">
-            <DatePicker style={{ width: '100%' }} placeholder="请选择过期日期" />
-          </Form.Item>
-          <Form.Item label="备注" name="remark">
-            <Input.TextArea rows={3} placeholder="请输入备注（可选）" />
+          <Form.Item
+            label="认证码有效期至"
+            name="codeExpiry"
+            rules={[{ required: true, message: '请选择有效期' }]}
+            extra="默认7天有效期"
+          >
+            <DatePicker
+              showTime
+              style={{ width: '100%' }}
+              placeholder="请选择有效期截止时间"
+            />
           </Form.Item>
         </Form>
       </Modal>
-    </Card>
+    </div>
   );
-}
+};
+
+export default EnterpriseInvitePage;

@@ -1,0 +1,177 @@
+# 集团公司管理系统 · 视觉规范
+
+> 本文档为系统统一视觉标准，所有页面开发须遵循以下规范，保证视觉一致性。
+
+---
+
+## 一、颜色规范
+
+### 1.1 品牌色 / 语义色
+
+| 名称 | 色值 | 用途 |
+|------|------|------|
+| Primary（主色） | `#1677ff` | 链接、主按钮、KPI 数值高亮、图标 |
+| Success（成功） | `#52c41a` | 正常状态、盈利、收益、已完成 |
+| Warning（警告） | `#faad14` | 待处理、排名金色、注意项 |
+| Error（错误） | `#ff4d4f` | 亏损、失败、撤回、错误提示 |
+| Purple（紫色） | `#722ed1` | 持股估值、辅助强调 |
+| Cyan（青色） | `#13c2c2` | 股份相关数据 |
+| Orange（橙色） | `#fa8c16` | 彩票、运营类数据 |
+| Pink（粉色） | `#eb2f96` | 佣金收益类 |
+
+### 1.2 文字色
+
+| 层级 | 色值 | 用途 |
+|------|------|------|
+| 主文字 | `#141414` | 大数值、表格正文主列 |
+| 次要文字 | `rgba(0,0,0,0.65)` | 表格一般列、标签文字 |
+| 辅助文字 | `rgba(0,0,0,0.55)` | KPI 卡片指标名称 |
+| 弱提示文字 | `rgba(0,0,0,0.45)` | 子指标 label、时间戳 |
+| 最弱文字 | `rgba(0,0,0,0.35)` | 占位符、禁用态 |
+
+### 1.3 背景色
+
+| 名称 | 色值 | 用途 |
+|------|------|------|
+| 页面背景 | `#f0f2f5` | body / Layout 背景 |
+| 卡片背景 | `#ffffff` | Card / Modal 背景 |
+| 表格斑马纹 | `#fafafa` | 奇偶行交替背景 |
+
+---
+
+## 二、字体规范
+
+| 层级 | fontSize | fontWeight | letterSpacing | 使用场景 |
+|------|----------|------------|---------------|---------|
+| KPI 大数值 | 28px | 700 | -1px | 仪表盘核心指标数值 |
+| 图表卡片数值 | 26px | 700 | -0.5px | 折线图卡片顶部数值 |
+| 双值卡片数值 | 24px | 700 | — | 下拨/调回金额 |
+| 卡片标题 | 16px | 700 | — | 表格卡片标题、区块标题 |
+| 指标名称 | 14px | 500 | — | KPI 卡片 label、列表标签 |
+| 正文默认 | 14px | 400 | — | 表格正文、按钮、描述 |
+| 子指标数值 | 13px | 600 | — | KPI 卡片底部子数值 |
+| 子指标 label | 12px | 400 | — | KPI 卡片底部标签、时间戳 |
+| 辅助说明 | 12px | 400 | — | 数据更新时间、提示文字 |
+
+---
+
+## 三、卡片规范
+
+```
+borderRadius:  12px
+boxShadow:     0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)
+hover shadow:  0 4px 20px rgba(0,0,0,0.10)
+bodyPadding:   20px 24px（KPI卡片、图表卡片）
+               0 0 8px（含表格的卡片）
+border:        none（bordered={false}）
+```
+
+---
+
+## 四、间距规范
+
+| 名称 | 值 | 用途 |
+|------|----|------|
+| 页面内边距 | 24px | Content 区 margin |
+| 卡片组间距 | 16px | Row gutter / 行间 marginTop |
+| 卡片内边距 | 20px 24px | Card body padding |
+| 分隔线间距 | 10px | KPI 卡片内 Divider margin |
+| 子项行间距 | 4px | KPI 卡片子数据 rowGap |
+| 工具栏间距 | 12px | 顶部工具栏元素间 gap |
+
+---
+
+## 五、Icon 规范
+
+每种业务含义对应唯一图标，不重复使用。
+
+| 业务含义 | Icon | 组件名 |
+|---------|------|--------|
+| 公司 / 总资产 | 🏦 | `BankOutlined` |
+| 企业（认证企业） | 🌳 | `ApartmentOutlined` |
+| 持股估值 | 📈 | `StockOutlined` |
+| 股份盈亏 | 💹 | `FundOutlined` |
+| 税费收益 | 📒 | `AccountBookOutlined` |
+| 彩票盈亏 | 🎁 | `GiftOutlined` |
+| 佣金收益 | 💰 | `MoneyCollectOutlined` |
+| 佣金支出 | ➖ | `MinusCircleOutlined` |
+| 资金下拨 | ↑ | `RiseOutlined` |
+| 资金调回 | ↓ | `FallOutlined` |
+| 成员总数 | 👥 | `TeamOutlined` |
+| 参与成员 | 👤+ | `UsergroupAddOutlined` |
+| 活跃成员 | ⚡ | `ThunderboltOutlined` |
+| 钱包 | 👛 | `WalletOutlined` |
+| 通知 | 🔔 | `BellOutlined` |
+| 设置 | ⚙️ | `SettingOutlined` |
+| 仪表盘 | 📊 | `DashboardOutlined` |
+| 排行榜 | 🏆 | `TrophyOutlined` |
+
+---
+
+## 六、状态 Tag 规范
+
+使用 Ant Design `<Tag>` 的语义色，不自定义背景色。
+
+| 状态 | color | 适用场景 |
+|------|-------|---------|
+| `success` | 绿色 | 正常、已完成、持股中、已结算 |
+| `processing` | 蓝色 | 审核中、进行中 |
+| `warning` | 橙色 | 待处理、待结算 |
+| `default` | 灰色 | 已退出、已关闭 |
+| `error` | 红色 | 失败、已撤回 |
+
+---
+
+## 七、表格规范
+
+- 表头字色：Ant Design 默认（`rgba(0,0,0,0.88)`）
+- 表格正文：`color: #141414`（主列）/ `rgba(0,0,0,0.65)`（次要列）
+- **不使用** `<Text type="secondary">` 或自定义蓝色高亮正文
+- 金额列：`fontWeight: 600, color: #141414`
+- 操作列：`type="link"` 按钮，默认蓝色 `#1677ff`，特殊场景可用紫色 `#722ed1`
+- 斑马纹：奇偶行交替，偶数行 `background: #fafafa`（CSS class `.table-row-light td`）
+- 排名前三：使用 `TrophyOutlined`（`color: #faad14`），4-5 名显示数字，文字色统一 `rgba(0,0,0,0.65)`
+
+---
+
+## 八、折线图规范（@ant-design/plots v2）
+
+```tsx
+// 标准配置
+const chartCfg = (data) => ({
+  data,
+  xField: 'date',
+  yField: 'value',
+  shape: 'smooth',   // 平滑曲线
+  point: {},          // 显示数据点，hover 有 tooltip
+  height: 220,        // 仪表盘图表固定高度
+  autoFit: true,
+  // 注意：不传 line 属性，避免 v2 渲染双线 bug
+});
+```
+
+> **重要**：@ant-design/plots v2 中传入 `line: { style: {...} }` 会触发 CONFIG_SHAPE 处理，
+> 生成额外 line 子 mark，导致渲染双条线。**始终省略 `line` 属性**。
+
+---
+
+## 九、布局规范
+
+### 整体结构
+```
+Sider（固定，dark 主题，width=220，collapsed=80）
+  └─ Logo 区（64px 高）
+  └─ Menu（一级有 icon，二级无 icon）
+Header（sticky，高度 64px，白色背景）
+  └─ 左：Breadcrumb
+  └─ 右：余额 + BellOutlined（Badge）
+Content（margin: 24px）
+  └─ 页面内容
+```
+
+### 响应式断点（Ant Design Grid）
+| 场景 | Col 配置 |
+|------|---------|
+| KPI 卡片（4列） | `xs={24} sm={12} xl={6}` |
+| 图表卡片（2列） | `xs={24} lg={12}` |
+| 全宽表格 | `span={24}` |

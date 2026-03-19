@@ -1,164 +1,199 @@
-import { useState } from 'react';
-import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography, Button } from 'antd';
-import { SearchOutlined, RiseOutlined, ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { ArrowDownOutlined, ArrowUpOutlined, SearchOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Card,
+  Col,
+  Input,
+  Row,
+  Select,
+  Space,
+  Table,
+  Tabs,
+  Tag,
+  Typography,
+} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import React, { useState } from 'react';
 
-const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
-interface ShareholdingRecord {
-  id: number;
-  recordId: string;
-  company: string;
-  targetEnterprise: string;
-  shareRatio: string;
-  investedAmount: string;
-  currentValuation: string;
-  unrealizedPnl: string;
-  pnlRate: string;
-  currency: 'USDT' | 'PEA';
-  status: 'active' | 'exited' | 'pending';
-  investedAt: string;
-}
-
-const statusMap = {
-  active:  { label: '持仓中', color: 'success' },
-  exited:  { label: '已退出', color: 'default' },
-  pending: { label: '待确认', color: 'processing' },
-} as const;
-
-const COMPANIES = ['UU Talk', 'Hey Talk', '炸雷第一波'];
 const ENTERPRISES = ['hey', 'wow', 'boom', 'flash', 'nova'];
 
-const mockData: ShareholdingRecord[] = Array.from({ length: 15 }, (_, i) => {
+// ── 入股清单数据 ──────────────────────────────────────────────────
+interface HoldingRow {
+  id: string;
+  enterpriseId: string;
+  enterpriseName: string;
+  ratio: string;
+  valuation: string;
+  totalAsset: string;
+  revenue: string;
+  currency: string;
+  updatedAt: string;
+  status: string;
+}
+
+const holdingData: HoldingRow[] = Array.from({ length: 12 }, (_, i) => {
   const invested = 50000 + i * 12500;
   const pnlRate = ((i % 7) - 3) * 8;
-  const valuation = invested * (1 + pnlRate / 100);
-  const pnl = valuation - invested;
+  const valuation = (invested * (1 + pnlRate / 100)).toFixed(2);
   return {
-    id: i + 1,
-    recordId: `SH2025${String(1120001 + i).padStart(7, '0')}`,
-    company: COMPANIES[i % COMPANIES.length],
-    targetEnterprise: ENTERPRISES[i % ENTERPRISES.length],
-    shareRatio: (5 + (i % 10) * 2.5).toFixed(2),
-    investedAmount: invested.toFixed(2),
-    currentValuation: valuation.toFixed(2),
-    unrealizedPnl: (pnl >= 0 ? '+' : '') + pnl.toFixed(2),
-    pnlRate: (pnlRate >= 0 ? '+' : '') + pnlRate.toFixed(2),
-    currency: 'USDT',
-    status: (['active', 'exited', 'pending'] as const)[i % 3],
-    investedAt: `2025-0${1 + (i % 9)}-${String(1 + (i % 28)).padStart(2, '0')} 10:00:00`,
+    id: `SH${String(i + 1).padStart(5, '0')}`,
+    enterpriseId: `ENT${10000 + i}`,
+    enterpriseName: ENTERPRISES[i % 5],
+    ratio: `${(5 + (i % 10) * 2.5).toFixed(2)}%`,
+    valuation: Number(valuation).toLocaleString() + '.00',
+    totalAsset: `${(200000 + i * 30000).toLocaleString()}.00`,
+    revenue: i % 3 === 0 ? `-${(1000 + i * 200)}.00` : `${(3000 + i * 1500).toLocaleString()}.00`,
+    currency: i % 2 === 0 ? 'USDT' : 'PEA',
+    updatedAt: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')}`,
+    status: i % 4 === 3 ? '已退出' : '持股中',
   };
 });
 
-export default function CompanyShareholding() {
-  const [search, setSearch] = useState('');
-  const [companyFilter, setCompanyFilter] = useState<string | undefined>();
-  const [statusFilter, setStatusFilter] = useState<string | undefined>();
+// ── 股份交易数据 ──────────────────────────────────────────────────
+interface TradeRow { id: string; direction: string; tradeTime: string; amount: string; enterpriseName: string; shareRatio: string; expenditure: string; income: string; status: string }
+const tradeData: TradeRow[] = Array.from({ length: 8 }, (_, i) => ({
+  id: `TR${String(i + 1).padStart(5, '0')}`,
+  direction: i % 2 === 0 ? '买入' : '卖出',
+  tradeTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} 14:${String(i * 7).padStart(2, '0')}:00`,
+  amount: `${(5000 + i * 2000).toLocaleString()}.00`,
+  enterpriseName: ENTERPRISES[i % 5],
+  shareRatio: `${(5 + i * 2).toFixed(2)}%`,
+  expenditure: i % 2 === 0 ? `${(5000 + i * 2000).toLocaleString()}.00` : '0.00',
+  income: i % 2 !== 0 ? `${(5000 + i * 2000).toLocaleString()}.00` : '0.00',
+  status: '已完成',
+}));
 
-  const filtered = mockData.filter(r => {
+// ── 投资分红数据 ──────────────────────────────────────────────────
+interface DivRow { id: string; appName: string; game: string; startTime: string; endTime: string; members: number; totalInvest: string; totalDividend: string; totalProfit: string; status: string }
+const divData: DivRow[] = Array.from({ length: 8 }, (_, i) => ({
+  id: `DIV${String(i + 1).padStart(5, '0')}`,
+  appName: ['UU Talk', 'Hey Talk', 'Star Game'][i % 3],
+  game: ['百家乐', '龙虎斗', '骰子'][i % 3],
+  startTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} 10:00:00`,
+  endTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} 22:00:00`,
+  members: 12 + i * 3,
+  totalInvest: `${(10000 + i * 3000).toLocaleString()}.00`,
+  totalDividend: `${(8000 + i * 2500).toLocaleString()}.00`,
+  totalProfit: i % 3 === 1 ? `-${(500 + i * 100).toLocaleString()}.00` : `${(1500 + i * 800).toLocaleString()}.00`,
+  status: ['正常', '审核中', '已结算'][i % 3],
+}));
+
+// ── 主组件 ────────────────────────────────────────────────────────
+const CompanyShareholding: React.FC = () => {
+  const [search, setSearch] = useState('');
+  const [currency, setCurrency] = useState<string | undefined>();
+  const [enterprise, setEnterprise] = useState<string | undefined>();
+
+  const filteredHoldings = holdingData.filter((r) => {
     const kw = search.toLowerCase();
     return (
-      (!kw || r.recordId.toLowerCase().includes(kw) || r.targetEnterprise.toLowerCase().includes(kw)) &&
-      (!companyFilter || r.company === companyFilter) &&
-      (!statusFilter || r.status === statusFilter)
+      (!kw || r.enterpriseName.toLowerCase().includes(kw) || r.enterpriseId.includes(kw)) &&
+      (!currency || r.currency === currency) &&
+      (!enterprise || r.enterpriseName === enterprise)
     );
   });
 
-  const totalValuation = mockData.reduce((s, r) => s + Number(r.currentValuation), 0);
-  const totalInvested = mockData.reduce((s, r) => s + Number(r.investedAmount), 0);
-  const totalPnl = totalValuation - totalInvested;
-
-  const statsCards = [
-    { label: '总持股估值（USDT）', value: totalValuation, color: '#1677ff' },
-    { label: '累计投入（USDT）', value: totalInvested, color: '#fa8c16' },
-    { label: '未实现盈亏（USDT）', value: totalPnl, color: totalPnl >= 0 ? '#52c41a' : '#ff4d4f' },
+  const holdingColumns: ColumnsType<HoldingRow> = [
+    { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
+    { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
+    { title: '持股比例', dataIndex: 'ratio', width: 90, align: 'right' },
+    { title: '持股估值', dataIndex: 'valuation', width: 130, align: 'right', render: (v, r) => <Text strong style={{ color: '#1677ff' }}>{v} {r.currency}</Text> },
+    { title: '企业总资产', dataIndex: 'totalAsset', width: 130, align: 'right' },
+    { title: '股份收益', dataIndex: 'revenue', width: 120, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a', fontWeight: 600 }}>{v}</Text> },
+    { title: '货币单位', dataIndex: 'currency', width: 80 },
+    { title: '更新时间', dataIndex: 'updatedAt', width: 110 },
+    { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '持股中' ? 'success' : 'default'}>{v}</Tag> },
+    {
+      title: '操作', width: 160, fixed: 'right' as const,
+      render: () => (
+        <Space size={0}>
+          <Button type="link" size="small" style={{ padding: '0 4px' }}>股份交易</Button>
+          <Button type="link" size="small" style={{ padding: '0 4px' }}>投资分红</Button>
+        </Space>
+      ),
+    },
   ];
 
-  const columns: ColumnsType<ShareholdingRecord> = [
-    { title: '记录编号', dataIndex: 'recordId', width: 170, render: v => <Text code style={{ fontSize: 12 }}>{v}</Text> },
-    { title: '持股公司', dataIndex: 'company', render: v => <Text strong>{v}</Text> },
-    { title: '标的企业', dataIndex: 'targetEnterprise', width: 120, render: v => <Text strong>{v}</Text> },
-    { title: '持股比例', dataIndex: 'shareRatio', width: 100, align: 'right', render: v => `${v}%` },
+  const tradeColumns: ColumnsType<TradeRow> = [
+    { title: '交易方向', dataIndex: 'direction', width: 90, render: (v) => <Tag color={v === '买入' ? 'success' : 'error'}>{v}</Tag> },
+    { title: '交易时间', dataIndex: 'tradeTime', width: 170 },
+    { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
+    { title: '交易金额', dataIndex: 'amount', width: 130, align: 'right' },
+    { title: '持有股份', dataIndex: 'shareRatio', width: 90, align: 'right' },
+    { title: '股东支出', dataIndex: 'expenditure', width: 120, align: 'right' },
+    { title: '股东收入', dataIndex: 'income', width: 120, align: 'right' },
+    { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color="success">{v}</Tag> },
+  ];
+
+  const divColumns: ColumnsType<DivRow> = [
+    { title: '应用名称', dataIndex: 'appName', width: 100 },
+    { title: '游戏', dataIndex: 'game', width: 80 },
+    { title: '发起时间', dataIndex: 'startTime', width: 170 },
+    { title: '完成时间', dataIndex: 'endTime', width: 170 },
+    { title: '参与成员', dataIndex: 'members', width: 80, align: 'right' },
+    { title: '总投资', dataIndex: 'totalInvest', width: 130, align: 'right' },
+    { title: '总分红', dataIndex: 'totalDividend', width: 130, align: 'right' },
+    { title: '总盈亏', dataIndex: 'totalProfit', width: 130, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a', fontWeight: 600 }}>{v}</Text> },
+    { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '正常' ? 'success' : v === '审核中' ? 'processing' : 'default'}>{v}</Tag> },
+  ];
+
+  // 汇总统计
+  const totalValuation = holdingData.reduce((s, r) => s + parseFloat(r.valuation.replace(/,/g, '')), 0);
+  const totalRevenue   = holdingData.reduce((s, r) => s + parseFloat(r.revenue.replace(/,/g, '').replace('-', '')), 0);
+
+  const tabItems = [
     {
-      title: '投入金额', dataIndex: 'investedAmount', width: 160, align: 'right',
-      render: (v, r) => `${Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} ${r.currency}`,
-    },
-    {
-      title: '当前估值', dataIndex: 'currentValuation', width: 160, align: 'right',
-      render: (v, r) => (
-        <Text strong style={{ color: '#1677ff' }}>
-          {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
-        </Text>
+      key: 'holding',
+      label: '入股清单',
+      children: (
+        <div>
+          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+            {[
+              { label: '持股估值合计（USDT）', value: totalValuation.toLocaleString(undefined, { maximumFractionDigits: 0 }), color: '#1677ff', icon: <ArrowUpOutlined /> },
+              { label: '股份收益合计（USDT）', value: totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 }), color: '#52c41a', icon: <ArrowUpOutlined /> },
+              { label: '持股企业数', value: `${holdingData.filter(r => r.status === '持股中').length} 家`, color: '#722ed1', icon: null },
+            ].map((s) => (
+              <Col xs={24} sm={8} key={s.label}>
+                <Card bordered={false} style={{ textAlign: 'center', borderRadius: 8 }}>
+                  <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 6 }}>{s.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</div>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+          <Space style={{ marginBottom: 16 }} wrap>
+            <Input prefix={<SearchOutlined />} placeholder="企业名称 / 企业ID" value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 220 }} />
+            <Select placeholder="货币单位" value={currency} onChange={setCurrency} allowClear style={{ width: 110 }}
+              options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]} />
+            <Select placeholder="企业名称" value={enterprise} onChange={setEnterprise} allowClear style={{ width: 140 }}
+              options={ENTERPRISES.map((e) => ({ value: e, label: e }))} />
+          </Space>
+          <Table columns={holdingColumns} dataSource={filteredHoldings} rowKey="id" size="middle"
+            scroll={{ x: 1200 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }} />
+        </div>
       ),
     },
     {
-      title: '未实现盈亏', dataIndex: 'unrealizedPnl', width: 160, align: 'right',
-      render: (v, r) => {
-        const isPositive = !r.unrealizedPnl.startsWith('-');
-        return (
-          <Text strong style={{ color: isPositive ? '#52c41a' : '#ff4d4f' }}>
-            {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />}
-            {' '}{Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
-          </Text>
-        );
-      },
+      key: 'trade',
+      label: '股份交易',
+      children: (
+        <Table columns={tradeColumns} dataSource={tradeData} rowKey="id" size="middle"
+          scroll={{ x: 900 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }} />
+      ),
     },
     {
-      title: '收益率', dataIndex: 'pnlRate', width: 90, align: 'right',
-      render: v => {
-        const isPos = !String(v).startsWith('-');
-        return <Text style={{ color: isPos ? '#52c41a' : '#ff4d4f' }}>{v}%</Text>;
-      },
-    },
-    {
-      title: '状态', dataIndex: 'status', width: 90,
-      render: v => <Tag color={statusMap[v as keyof typeof statusMap].color}>{statusMap[v as keyof typeof statusMap].label}</Tag>,
-    },
-    { title: '投入时间', dataIndex: 'investedAt', width: 170 },
-    {
-      title: '操作', key: 'action', width: 80, fixed: 'right',
-      render: () => <Button type="link" size="small">详情</Button>,
+      key: 'dividend',
+      label: '投资分红',
+      children: (
+        <Table columns={divColumns} dataSource={divData} rowKey="id" size="middle"
+          scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }} />
+      ),
     },
   ];
 
-  return (
-    <div>
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        {statsCards.map(item => (
-          <Col xs={24} sm={8} key={item.label}>
-            <Card bordered={false} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>{item.label}</div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: item.color }}>
-                {item.value.toLocaleString('en', { minimumFractionDigits: 2 })}
-              </div>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-      <Card bordered={false}>
-        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <RiseOutlined style={{ color: '#1677ff', fontSize: 18 }} />
-          <Text style={{ fontSize: 16, fontWeight: 600 }}>公司持股</Text>
-        </div>
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col>
-            <Input prefix={<SearchOutlined />} placeholder="搜索记录编号 / 企业名称"
-              value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
-          </Col>
-          <Col>
-            <Select placeholder="持股公司" value={companyFilter} onChange={setCompanyFilter} allowClear
-              style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
-          </Col>
-          <Col>
-            <Select placeholder="状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 130 }}
-              options={[{ label: '持仓中', value: 'active' }, { label: '已退出', value: 'exited' }, { label: '待确认', value: 'pending' }]} />
-          </Col>
-          <Col><RangePicker style={{ width: 280 }} /></Col>
-        </Row>
-        <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1400 }}
-          pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
-      </Card>
-    </div>
-  );
-}
+  return <Tabs items={tabItems} type="card" />;
+};
+
+export default CompanyShareholding;
