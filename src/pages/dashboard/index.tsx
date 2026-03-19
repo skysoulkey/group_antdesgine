@@ -1,325 +1,160 @@
-import {
-  ApartmentOutlined,
-  ArrowDownOutlined,
-  ArrowUpOutlined,
-  BankOutlined,
-  RiseOutlined,
-  TeamOutlined,
-  WalletOutlined,
-} from '@ant-design/icons';
-import {
-  Button,
-  Card,
-  Col,
-  Row,
-  Segmented,
-  Space,
-  Statistic,
-  Table,
-  Tag,
-  Typography,
-} from 'antd';
+import { BankOutlined } from '@ant-design/icons';
+import { Line } from '@ant-design/plots';
+import { Button, Card, Col, Row, Statistic, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'umi';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-// 模拟折线图（用简单 SVG 代替 echarts，避免额外依赖）
-const SimpleLine: React.FC<{ data: number[]; color: string; height?: number }> = ({
+// 折线图数据生成
+function makeDays(values: number[]) {
+  const days = ['3/13', '3/14', '3/15', '3/16', '3/17', '3/18', '3/19'];
+  return values.map((v, i) => ({ date: days[i], value: v }));
+}
+
+const balanceData = makeDays([158000, 162000, 155000, 178000, 170000, 182000, 178283]);
+const holdingData = makeDays([820000, 890000, 870000, 950000, 920000, 1010000, 1023450]);
+const profitData = makeDays([12, -8, 25, -15, 30, 18, -5]);
+const flowData = makeDays([23000, 31000, 27000, 42000, 38000, 45000, 39800]);
+
+const lineConfig = (data: { date: string; value: number }[]) => ({
   data,
-  color,
-  height = 60,
-}) => {
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const width = 300;
-  const pad = 4;
-  const points = data
-    .map((v, i) => {
-      const x = pad + (i / (data.length - 1)) * (width - pad * 2);
-      const y = height - pad - ((v - min) / range) * (height - pad * 2);
-      return `${x},${y}`;
-    })
-    .join(' ');
-  return (
-    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none">
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-      <polyline
-        points={`${pad},${height} ${points} ${width - pad},${height}`}
-        fill={color}
-        opacity="0.1"
-      />
-    </svg>
-  );
-};
+  xField: 'date',
+  yField: 'value',
+  shape: 'smooth',
+  point: {},
+  height: 200,
+  autoFit: true,
+});
 
-const mockRevenue7 = [12000, 18000, 14500, 22000, 19500, 25000, 23400];
-const mockShib7 = [8000, 11000, 9500, 13000, 12000, 15000, 14200];
-const mockPea7 = [5000, 7000, 6500, 9000, 8000, 10500, 9800];
+interface TopCompany {
+  ranking: number;
+  masterId: string;
+  masterNickname: string;
+  cumulativeProfit: string;
+  companyId: string;
+  companyName: string;
+  certEnterprises: number;
+  members: number;
+}
 
-const topCompanies = [
-  { rank: 1, name: 'UU Talk', revenue: '234,234.00', currency: 'USDT', change: 12.5 },
-  { rank: 2, name: 'Hey Talk', revenue: '198,021.50', currency: 'USDT', change: -3.2 },
-  { rank: 3, name: '炸雷第一波', revenue: '156,890.00', currency: 'USDT', change: 8.1 },
-  { rank: 4, name: 'Cyber Bot', revenue: '123,450.00', currency: 'USDT', change: 5.4 },
-  { rank: 5, name: 'Star Tech', revenue: '98,320.00', currency: 'USDT', change: -1.8 },
-];
-
-const topColumns: ColumnsType<(typeof topCompanies)[0]> = [
-  {
-    title: '排名',
-    dataIndex: 'rank',
-    width: 60,
-    render: (v) => {
-      const colors = ['#f5222d', '#fa8c16', '#fadb14', '#595959', '#595959'];
-      return (
-        <span style={{ fontWeight: 700, color: colors[v - 1], fontSize: 16 }}>{v}</span>
-      );
-    },
-  },
-  { title: '公司名称', dataIndex: 'name' },
-  {
-    title: '收益（USDT）',
-    dataIndex: 'revenue',
-    align: 'right',
-    render: (v) => <Text strong style={{ color: '#1677ff' }}>{v}</Text>,
-  },
-  {
-    title: '较昨日',
-    dataIndex: 'change',
-    align: 'right',
-    render: (v) =>
-      v >= 0 ? (
-        <Text style={{ color: '#52c41a' }}>
-          <ArrowUpOutlined /> {v}%
-        </Text>
-      ) : (
-        <Text style={{ color: '#ff4d4f' }}>
-          <ArrowDownOutlined /> {Math.abs(v)}%
-        </Text>
-      ),
-  },
+const topData: TopCompany[] = [
+  { ranking: 1, masterId: 'U10023', masterNickname: '陈总', cumulativeProfit: '234,234.00', companyId: 'C001', companyName: 'UU Talk', certEnterprises: 12, members: 348 },
+  { ranking: 2, masterId: 'U10089', masterNickname: '李总', cumulativeProfit: '198,021.50', companyId: 'C002', companyName: 'Hey Talk', certEnterprises: 8, members: 210 },
+  { ranking: 3, masterId: 'U10145', masterNickname: '王总', cumulativeProfit: '156,890.00', companyId: 'C003', companyName: '炸雷第一波', certEnterprises: 6, members: 178 },
+  { ranking: 4, masterId: 'U10201', masterNickname: '张总', cumulativeProfit: '123,450.00', companyId: 'C004', companyName: 'Cyber Bot', certEnterprises: 4, members: 132 },
+  { ranking: 5, masterId: 'U10267', masterNickname: '刘总', cumulativeProfit: '98,320.00', companyId: 'C005', companyName: 'Star Tech', certEnterprises: 3, members: 98 },
 ];
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const [chartTab, setChartTab] = useState<string>('USDT');
 
-  const chartDataMap: Record<string, number[]> = {
-    USDT: mockRevenue7,
-    SHIB: mockShib7,
-    PEA: mockPea7,
-  };
-
-  const chartColorMap: Record<string, string> = {
-    USDT: '#1677ff',
-    SHIB: '#fa8c16',
-    PEA: '#52c41a',
-  };
+  const topColumns: ColumnsType<TopCompany> = [
+    {
+      title: '总贡献排名',
+      dataIndex: 'ranking',
+      width: 90,
+      render: (v) => {
+        const colors = ['#f5222d', '#fa8c16', '#fadb14', '#595959', '#595959'];
+        return <span style={{ fontWeight: 700, color: colors[v - 1], fontSize: 15 }}>{v}</span>;
+      },
+    },
+    { title: '公司主ID', dataIndex: 'masterId', width: 90 },
+    { title: '公司主昵称', dataIndex: 'masterNickname', width: 100 },
+    {
+      title: '公司累计盈利',
+      dataIndex: 'cumulativeProfit',
+      width: 130,
+      render: (v) => <Text strong style={{ color: '#1677ff' }}>{v}</Text>,
+    },
+    { title: '公司ID', dataIndex: 'companyId', width: 80 },
+    { title: '公司名称', dataIndex: 'companyName' },
+    { title: '认证企业', dataIndex: 'certEnterprises', width: 80, align: 'right' },
+    { title: '企业成员', dataIndex: 'members', width: 80, align: 'right' },
+    {
+      title: '操作',
+      width: 80,
+      fixed: 'right',
+      render: (_, r) => (
+        <Button type="link" size="small" onClick={() => navigate(`/company/detail/${r.companyId}`)}>
+          公司详情
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <div>
       {/* 顶部统计卡片 */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 8 }}>
+        <Col xs={24} sm={8}>
+          <Card bordered={false}>
             <Statistic
-              title={
-                <Space>
-                  <ApartmentOutlined style={{ color: '#1677ff' }} />
-                  <span>下辖企业</span>
-                </Space>
-              }
+              title="集团余额（USDT）"
+              value="178,283.09"
+              valueStyle={{ color: '#1677ff', fontSize: 24 }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card bordered={false}>
+            <Statistic
+              title="下辖公司资产（USDT）"
+              value="1,023,450.00"
+              valueStyle={{ color: '#52c41a', fontSize: 24 }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card bordered={false}>
+            <Statistic
+              title="下辖企业数量"
               value={248}
               suffix="家"
-              valueStyle={{ color: '#1677ff' }}
+              valueStyle={{ color: '#fa8c16', fontSize: 24 }}
             />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                今日新增 <Text style={{ color: '#52c41a' }}>+3</Text>
-              </Text>
-            </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 8 }}>
-            <Statistic
-              title={
-                <Space>
-                  <RiseOutlined style={{ color: '#52c41a' }} />
-                  <span>下辖企业盈亏</span>
-                </Space>
-              }
-              value="234,234.00"
-              suffix="USDT"
-              valueStyle={{ color: '#52c41a' }}
-            />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                昨日 <Text style={{ color: '#52c41a' }}>+12.5%</Text>
-              </Text>
-            </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 8 }}>
-            <Statistic
-              title={
-                <Space>
-                  <TeamOutlined style={{ color: '#fa8c16' }} />
-                  <span>参股公司</span>
-                </Space>
-              }
-              value={34}
-              suffix="家"
-              valueStyle={{ color: '#fa8c16' }}
-            />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                今日参股 <Text style={{ color: '#1677ff' }}>6</Text> 家
-              </Text>
-            </div>
-          </Card>
-        </Col>
-
-        <Col xs={24} sm={12} lg={6}>
-          <Card
-            bordered={false}
-            style={{ borderRadius: 8, cursor: 'pointer' }}
-            onClick={() => navigate('/finance/wallet')}
-          >
-            <Statistic
-              title={
-                <Space>
-                  <WalletOutlined style={{ color: '#722ed1' }} />
-                  <span>集团余额</span>
-                </Space>
-              }
-              value="178,283.09"
-              suffix="USDT"
-              valueStyle={{ color: '#722ed1' }}
-            />
-            <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                点击进入集团钱包 →
-              </Text>
-            </div>
           </Card>
         </Col>
       </Row>
 
-      {/* 持股估值卡片 */}
+      {/* 图表区 */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ borderRadius: 8, textAlign: 'center' }}>
-            <Text type="secondary">下辖持股估值（USDT）</Text>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#1677ff', marginTop: 8 }}>
-              1,234,567.89
-            </div>
-            <SimpleLine data={mockRevenue7} color="#1677ff" height={40} />
+        <Col xs={24} lg={12}>
+          <Card bordered={false} title="集团余额走势">
+            <Line {...lineConfig(balanceData)} />
           </Card>
         </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ borderRadius: 8, textAlign: 'center' }}>
-            <Text type="secondary">昨日参股金额（USDT）</Text>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#52c41a', marginTop: 8 }}>
-              23,400.00
-            </div>
-            <SimpleLine data={mockShib7} color="#52c41a" height={40} />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ borderRadius: 8, textAlign: 'center' }}>
-            <Text type="secondary">今日参股金额（USDT）</Text>
-            <div style={{ fontSize: 24, fontWeight: 700, color: '#fa8c16', marginTop: 8 }}>
-              18,920.00
-            </div>
-            <SimpleLine data={mockPea7} color="#fa8c16" height={40} />
+        <Col xs={24} lg={12}>
+          <Card bordered={false} title="下辖公司持股估值">
+            <Line {...lineConfig(holdingData)} />
           </Card>
         </Col>
       </Row>
 
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        {/* 收益趋势图 */}
-        <Col xs={24} lg={14}>
-          <Card
-            bordered={false}
-            style={{ borderRadius: 8 }}
-            title={
-              <Space>
-                <Title level={5} style={{ margin: 0 }}>
-                  近7日收益趋势
-                </Title>
-              </Space>
-            }
-            extra={
-              <Segmented
-                options={['USDT', 'SHIB', 'PEA']}
-                value={chartTab}
-                onChange={(v) => setChartTab(v as string)}
-                size="small"
-              />
-            }
-          >
-            <div style={{ padding: '8px 0' }}>
-              <div style={{ marginBottom: 8 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  最新：
-                </Text>
-                <Text strong style={{ color: chartColorMap[chartTab], fontSize: 18 }}>
-                  {chartDataMap[chartTab][6].toLocaleString()} {chartTab}
-                </Text>
-              </div>
-              <SimpleLine
-                data={chartDataMap[chartTab]}
-                color={chartColorMap[chartTab]}
-                height={160}
-              />
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginTop: 4,
-                }}
-              >
-                {['周一', '周二', '周三', '周四', '周五', '周六', '周日'].map((d) => (
-                  <Text key={d} type="secondary" style={{ fontSize: 11 }}>
-                    {d}
-                  </Text>
-                ))}
-              </div>
-            </div>
-            <div style={{ marginTop: 8, textAlign: 'right' }}>
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                数据更新于 2025-11-02 12:33:02
-              </Text>
-            </div>
+        <Col xs={24} lg={12}>
+          <Card bordered={false} title="下辖企业盈亏">
+            <Line {...lineConfig(profitData)} />
           </Card>
         </Col>
+        <Col xs={24} lg={12}>
+          <Card bordered={false} title="下辖企业流水">
+            <Line {...lineConfig(flowData)} />
+          </Card>
+        </Col>
+      </Row>
 
-        {/* TOP 5 收益排行 */}
-        <Col xs={24} lg={10}>
+      {/* TOP5 公司贡献排行 */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col span={24}>
           <Card
             bordered={false}
-            style={{ borderRadius: 8 }}
             title={
-              <Space>
-                <BankOutlined style={{ color: '#1677ff' }} />
-                <Title level={5} style={{ margin: 0 }}>
-                  公司收益 TOP 5
-                </Title>
-              </Space>
+              <span>
+                <BankOutlined style={{ color: '#1677ff', marginRight: 8 }} />
+                公司贡献 TOP 5
+              </span>
             }
             extra={
               <Button type="link" size="small" onClick={() => navigate('/company/list')}>
@@ -329,49 +164,12 @@ const DashboardPage: React.FC = () => {
           >
             <Table
               columns={topColumns}
-              dataSource={topCompanies}
-              rowKey="rank"
+              dataSource={topData}
+              rowKey="ranking"
               pagination={false}
-              size="small"
-              showHeader={true}
+              size="middle"
+              scroll={{ x: 900 }}
             />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 快捷入口 */}
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col span={24}>
-          <Card
-            bordered={false}
-            style={{ borderRadius: 8 }}
-            title={
-              <Title level={5} style={{ margin: 0 }}>
-                快捷入口
-              </Title>
-            }
-          >
-            <Space wrap size={12}>
-              {[
-                { label: '企业清单', path: '/enterprise/list', color: '#1677ff' },
-                { label: '公司清单', path: '/company/list', color: '#52c41a' },
-                { label: '公司持股', path: '/company/shareholding', color: '#fa8c16' },
-                { label: '佣金订单', path: '/commission', color: '#722ed1' },
-                { label: '集团钱包', path: '/finance/wallet', color: '#13c2c2' },
-                { label: '集团下拨', path: '/finance/allocate', color: '#eb2f96' },
-                { label: '用户管理', path: '/system/users', color: '#f5222d' },
-                { label: '系统日志', path: '/system/logs', color: '#595959' },
-              ].map((item) => (
-                <Tag
-                  key={item.path}
-                  color={item.color}
-                  style={{ cursor: 'pointer', padding: '6px 16px', fontSize: 14, borderRadius: 6 }}
-                  onClick={() => navigate(item.path)}
-                >
-                  {item.label}
-                </Tag>
-              ))}
-            </Space>
           </Card>
         </Col>
       </Row>

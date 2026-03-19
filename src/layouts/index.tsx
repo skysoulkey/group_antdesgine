@@ -1,18 +1,13 @@
 import {
   ApartmentOutlined,
-  AppstoreOutlined,
-  AuditOutlined,
   BankOutlined,
+  BellOutlined,
   DashboardOutlined,
   FileTextOutlined,
-  LogoutOutlined,
   SettingOutlined,
-  SwapOutlined,
-  TeamOutlined,
-  UserOutlined,
   WalletOutlined,
 } from '@ant-design/icons';
-import { Avatar, Breadcrumb, Dropdown, Layout, Menu, Space, Tag, Typography } from 'antd';
+import { Badge, Breadcrumb, Layout, Menu, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'umi';
@@ -69,17 +64,16 @@ const menuItems: MenuProps['items'] = [
     icon: <SettingOutlined />,
     label: '系统管理',
     children: [
-      { key: '/system/users', icon: <TeamOutlined />, label: '用户管理' },
-      { key: '/system/roles', icon: <AuditOutlined />, label: '角色管理' },
-      { key: '/system/logs', icon: <AppstoreOutlined />, label: '系统日志' },
+      { key: '/system/users', label: '用户管理' },
+      { key: '/system/roles', label: '角色管理' },
+      { key: '/system/logs', label: '系统日志' },
       { key: '/system/notifications', label: '通知管理' },
-      { key: '/system/profile', icon: <UserOutlined />, label: '基础信息' },
+      { key: '/system/profile', label: '基础信息' },
       { key: '/system/settings', label: '设置中心' },
     ],
   },
 ];
 
-// 面包屑映射
 const breadcrumbMap: Record<string, string[]> = {
   '/dashboard': ['首页', '仪表盘'],
   '/enterprise/list': ['企业管理', '企业清单'],
@@ -103,7 +97,6 @@ const breadcrumbMap: Record<string, string[]> = {
   '/system/notifications': ['系统管理', '通知管理'],
 };
 
-// 获取默认展开的子菜单
 function getDefaultOpenKeys(pathname: string): string[] {
   if (pathname.startsWith('/enterprise')) return ['enterprise'];
   if (pathname.startsWith('/company')) return ['company'];
@@ -116,25 +109,6 @@ const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: '基础信息',
-      onClick: () => navigate('/system/profile'),
-    },
-    { type: 'divider' },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      onClick: () => {
-        localStorage.removeItem('token');
-        navigate('/login');
-      },
-    },
-  ];
 
   const breadcrumbs = breadcrumbMap[location.pathname] || ['首页'];
 
@@ -156,7 +130,6 @@ const MainLayout: React.FC = () => {
           zIndex: 100,
         }}
       >
-        {/* Logo */}
         <div
           style={{
             height: 64,
@@ -196,7 +169,6 @@ const MainLayout: React.FC = () => {
       </Sider>
 
       <Layout style={{ marginLeft: collapsed ? 80 : 220, transition: 'margin-left 0.2s' }}>
-        {/* Header */}
         <Header
           style={{
             background: '#fff',
@@ -210,12 +182,7 @@ const MainLayout: React.FC = () => {
             zIndex: 99,
           }}
         >
-          <Space>
-            <Tag color="blue">集团管理员</Tag>
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              UU Talk
-            </Text>
-          </Space>
+          <Breadcrumb items={breadcrumbs.map((b) => ({ title: b }))} />
 
           <Space size={20}>
             <Space size={4}>
@@ -226,37 +193,18 @@ const MainLayout: React.FC = () => {
                 178,283.09 USDT
               </Text>
             </Space>
-            <SwapOutlined
-              style={{ cursor: 'pointer', color: '#1677ff' }}
-              onClick={() => navigate('/finance/wallet')}
-            />
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
-              <Space style={{ cursor: 'pointer' }}>
-                <Avatar size={32} style={{ backgroundColor: '#1677ff' }}>
-                  M
-                </Avatar>
-                <Text>Miya</Text>
-              </Space>
-            </Dropdown>
+            <Badge count={3} size="small">
+              <BellOutlined
+                style={{ fontSize: 18, cursor: 'pointer', color: '#595959' }}
+                onClick={() => navigate('/system/notifications')}
+              />
+            </Badge>
           </Space>
         </Header>
 
-        {/* Breadcrumb */}
-        <div
-          style={{
-            padding: '12px 24px 0',
-            background: '#f0f2f5',
-          }}
-        >
-          <Breadcrumb
-            items={breadcrumbs.map((b) => ({ title: b }))}
-          />
-        </div>
-
-        {/* Content */}
         <Content
           style={{
-            margin: '12px 24px 24px',
+            margin: '24px',
             minHeight: 280,
           }}
         >
