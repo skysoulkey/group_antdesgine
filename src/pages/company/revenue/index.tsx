@@ -126,7 +126,7 @@ const CompanyRevenuePage: React.FC = () => {
     {
       title: '金额', dataIndex: 'amount', width: 130, align: 'right',
       render: (v: string) => (
-        <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a', fontWeight: 600 }}>{v}</Text>
+        <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text>
       ),
     },
     { title: '备注', dataIndex: 'remark', width: 120 },
@@ -139,7 +139,7 @@ const CompanyRevenuePage: React.FC = () => {
       render: (v) => <Tag color={v === '划入' ? 'success' : 'warning'}>{v}</Tag>,
     },
     { title: '货币单位', dataIndex: 'currency', width: 80 },
-    { title: '划转金额', dataIndex: 'amount', width: 130, align: 'right', render: (v) => <Text strong>{v}</Text> },
+    { title: '划转金额', dataIndex: 'amount', width: 130, align: 'right', render: (v) => <Text>{v}</Text> },
     { title: '划转前余额', dataIndex: 'beforeBalance', width: 130, align: 'right' },
     { title: '划转后余额', dataIndex: 'afterBalance', width: 130, align: 'right' },
     { title: '操作人', dataIndex: 'operator', width: 120 },
@@ -182,7 +182,7 @@ const CompanyRevenuePage: React.FC = () => {
           >
             <Row gutter={[12, 12]}>
               <Col xs={12} sm={6}>
-                <StatCard label="本月综合收益（USDT）" value={current.totalRevenueUsdt} color="#1677ff" />
+                <StatCard label="本月综合收益（USDT）" value={current.totalRevenueUsdt} color="#722ed1" />
               </Col>
               <Col xs={12} sm={6}>
                 <StatCard label="公司可提取收益（USDT）" value={current.extractableUsdt} color="#52c41a" />
@@ -295,7 +295,7 @@ const CompanyRevenuePage: React.FC = () => {
           <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
             <Card bordered={false} size="small" style={{ borderRadius: 8, background: '#f0f7ff', minWidth: 180 }}>
               <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 4 }}>累计划入（USDT）</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#1677ff' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#722ed1' }}>
                 {mockTransfer.filter((r) => r.direction === '划入' && r.currency === 'USDT')
                   .reduce((s, r) => s + parseFloat(r.amount.replace(/,/g, '')), 0)
                   .toLocaleString(undefined, { maximumFractionDigits: 2 })}

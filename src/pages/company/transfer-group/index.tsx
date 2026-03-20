@@ -91,7 +91,7 @@ export default function CompanyTransferGroup() {
     {
       title: '方向', dataIndex: 'direction', width: 80,
       render: v => v === 'out'
-        ? <Text style={{ color: '#1677ff' }}><ArrowDownOutlined /> 下拨</Text>
+        ? <Text style={{ color: '#722ed1' }}><ArrowDownOutlined /> 下拨</Text>
         : <Text style={{ color: '#fa8c16' }}><ArrowUpOutlined /> 调回</Text>,
     },
     { title: '转出方', dataIndex: 'fromCompany' },
@@ -99,7 +99,7 @@ export default function CompanyTransferGroup() {
     {
       title: '金额', dataIndex: 'amount', width: 160, align: 'right',
       render: (v, r) => (
-        <Text strong style={{ color: r.direction === 'out' ? '#1677ff' : '#fa8c16' }}>
+        <Text strong style={{ color: r.direction === 'out' ? '#722ed1' : '#fa8c16' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -122,7 +122,7 @@ export default function CompanyTransferGroup() {
     <Card bordered={false}>
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <SwapOutlined style={{ color: '#1677ff', fontSize: 18 }} />
+          <SwapOutlined style={{ color: '#722ed1', fontSize: 18 }} />
           <Text style={{ fontSize: 16, fontWeight: 600 }}>内部划转（集团）</Text>
         </div>
         <Space>

@@ -21,7 +21,6 @@ interface RecallRecord {
 
 const statusMap = {
   success: { label: '已到账', color: 'success' },
-  pending: { label: '处理中', color: 'processing' },
   failed:  { label: '失败', color: 'error' },
 } as const;
 
@@ -34,7 +33,7 @@ const mockData: RecallRecord[] = Array.from({ length: 20 }, (_, i) => ({
   amount: (15000 + i * 12350.5).toFixed(2),
   currency: (['USDT', 'PEA'] as const)[i % 2],
   remark: ['月度调回', '季度结算', '年度回收', '临时调回'][i % 4],
-  status: (['success', 'pending', 'failed'] as const)[i % 3],
+  status: (['success', 'failed'] as const)[i % 2],
   operator: ['Admin', 'FinanceManager', 'SuperAdmin'][i % 3],
   createdAt: `2025-11-${String(1 + (i % 28)).padStart(2, '0')} 14:${String(i % 60).padStart(2, '0')}:00`,
   arrivedAt: i % 3 === 0 ? `2025-11-${String(1 + (i % 28)).padStart(2, '0')} 14:${String((i + 5) % 60).padStart(2, '0')}:00` : '',
@@ -68,12 +67,14 @@ export default function FinanceRecall() {
   };
 
   const columns: ColumnsType<RecallRecord> = [
+    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
+    { title: '到账时间', dataIndex: 'arrivedAt', width: 170, render: v => v || <Text type="secondary">—</Text> },
     { title: '订单编号', dataIndex: 'orderId', width: 210, render: v => <Text code style={{ fontSize: 12 }}>{v}</Text> },
-    { title: '来源公司', dataIndex: 'sourceCompany', render: v => <Text strong>{v}</Text> },
+    { title: '来源公司', dataIndex: 'sourceCompany', render: v => <Text>{v}</Text> },
     {
       title: '调回金额', dataIndex: 'amount', width: 170, align: 'right',
       render: (v, r) => (
-        <Text strong style={{ color: '#fa8c16' }}>
+        <Text style={{ color: '#fa8c16' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -84,8 +85,6 @@ export default function FinanceRecall() {
     },
     { title: '操作人', dataIndex: 'operator', width: 120 },
     { title: '备注', dataIndex: 'remark', width: 130, ellipsis: true },
-    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
-    { title: '到账时间', dataIndex: 'arrivedAt', width: 170, render: v => v || <Text type="secondary">—</Text> },
   ];
 
   return (
@@ -128,7 +127,7 @@ export default function FinanceRecall() {
           </Col>
           <Col>
             <Select placeholder="状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 130 }}
-              options={[{ label: '已到账', value: 'success' }, { label: '处理中', value: 'pending' }, { label: '失败', value: 'failed' }]} />
+              options={[{ label: '已到账', value: 'success' }, { label: '失败', value: 'failed' }]} />
           </Col>
           <Col><RangePicker style={{ width: 280 }} /></Col>
         </Row>

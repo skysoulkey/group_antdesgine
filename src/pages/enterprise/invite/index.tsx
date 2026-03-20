@@ -72,7 +72,7 @@ const EnterpriseInvitePage: React.FC = () => {
     { title: '邀请时间', dataIndex: 'inviteTime', width: 170 },
     {
       title: '企业认证码', dataIndex: 'authCode', width: 130,
-      render: (v) => <Text strong style={{ fontFamily: 'monospace', color: '#1677ff' }}>{v}</Text>,
+      render: (v) => <Text style={{ fontFamily: 'monospace', color: '#722ed1' }}>{v}</Text>,
     },
     { title: '认证码有效期', dataIndex: 'codeExpiry', width: 170 },
     {
@@ -90,20 +90,37 @@ const EnterpriseInvitePage: React.FC = () => {
     <div>
       {/* 统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={8}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1677ff18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <KeyOutlined style={{ fontSize: 20, color: '#1677ff' }} />
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <KeyOutlined style={{ fontSize: 20, color: '#722ed1' }} />
               </div>
               <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>邀请记录</Text>
             </div>
             <div style={{ fontSize: 28, fontWeight: 700, color: '#141414' }}>{data.length}</div>
-            <div style={{ marginTop: 6, fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
-              已接受 <Text strong style={{ color: '#52c41a' }}>{acceptedCount}</Text>
-              &nbsp;·&nbsp;
-              未接受 <Text strong style={{ color: '#fa8c16' }}>{pendingCount}</Text>
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#52c41a18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <KeyOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+              </div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>已接受邀请</Text>
             </div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#52c41a' }}>{acceptedCount}</div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fa8c1618', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <KeyOutlined style={{ fontSize: 20, color: '#fa8c16' }} />
+              </div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>未接受邀请</Text>
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#fa8c16' }}>{pendingCount}</div>
           </Card>
         </Col>
       </Row>

@@ -59,16 +59,16 @@ const TransferPage: React.FC = () => {
   });
 
   const columns: ColumnsType<TransferRecord> = [
+    { title: '订单时间', dataIndex: 'orderTime', width: 170 },
     {
       title: '订单类型', dataIndex: 'type', width: 100,
       render: (v) => <Tag color={v === '集团下拨' ? 'blue' : 'orange'}>{v}</Tag>,
     },
-    { title: '订单时间', dataIndex: 'orderTime', width: 170 },
     { title: '订单编号', dataIndex: 'orderId', width: 110 },
     { title: '公司ID', dataIndex: 'companyId', width: 80 },
     { title: '公司名称', dataIndex: 'companyName', width: 110 },
     { title: '货币单位', dataIndex: 'currency', width: 80 },
-    { title: '交易金额', dataIndex: 'amount', width: 120, align: 'right', render: (v) => <span style={{ fontWeight: 600 }}>{v}</span> },
+    { title: '交易金额', dataIndex: 'amount', width: 120, align: 'right', render: (v) => <span>{v}</span> },
     { title: '订单备注', dataIndex: 'remark', width: 110, ellipsis: true },
     { title: '操作人', dataIndex: 'operator', width: 120 },
     { title: '交易后公司余额', dataIndex: 'afterBalance', width: 140, align: 'right' },

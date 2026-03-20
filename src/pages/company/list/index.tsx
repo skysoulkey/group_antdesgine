@@ -57,23 +57,23 @@ const CompanyListPage: React.FC = () => {
   );
 
   const columns: ColumnsType<Company> = [
+    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
     { title: '公司ID', dataIndex: 'companyId', width: 100 },
     {
       title: '公司名称',
       dataIndex: 'name',
-      render: (v) => <Text strong>{v}</Text>,
+      render: (v) => <Text>{v}</Text>,
     },
     {
       title: '公司总资产（USDT）',
       dataIndex: 'totalAssets',
       align: 'right',
       render: (v) => (
-        <Text strong style={{ color: '#1677ff' }}>
+        <Text style={{ color: '#722ed1' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })}
         </Text>
       ),
     },
-    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
     {
       title: (
         <Tooltip title="已认证企业数量">认证企业</Tooltip>

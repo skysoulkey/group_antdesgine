@@ -1,15 +1,11 @@
 import {
-  AccountBookOutlined,
   ApartmentOutlined,
   BankOutlined,
   BellOutlined,
   DashboardOutlined,
   FileTextOutlined,
-  GiftOutlined,
-  MoneyCollectOutlined,
   SettingOutlined,
   StockOutlined,
-  WalletOutlined,
 } from '@ant-design/icons';
 import { Badge, Breadcrumb, Layout, Menu, Select, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
@@ -72,8 +68,8 @@ const allMenuItems: MenuItem[] = [
     label: '公司订单',
     roles: ['company_admin', 'system_admin'],
     children: [
-      { key: '/orders/lottery', label: '东方彩票', icon: <GiftOutlined /> },
-      { key: '/commission',     label: '佣金订单', icon: <MoneyCollectOutlined /> },
+      { key: '/orders/lottery', label: '东方彩票' },
+      { key: '/commission',     label: '佣金订单' },
     ],
   },
   {
@@ -81,12 +77,12 @@ const allMenuItems: MenuItem[] = [
     icon: <SettingOutlined />,
     label: '设置中心',
     children: [
-      { key: '/finance/wallet',         label: '集团钱包',  icon: <WalletOutlined />,      roles: ['group_admin', 'system_admin'] },
-      { key: '/finance/company-wallet', label: '公司钱包',  icon: <WalletOutlined />,      roles: ['company_admin', 'system_admin'] },
-      { key: '/system/profile',         label: '基础信息',  icon: <AccountBookOutlined /> },
-      { key: '/system/users',           label: '用户管理',  icon: <ApartmentOutlined /> },
-      { key: '/system/logs',            label: '系统日志',  icon: <FileTextOutlined /> },
-      { key: '/system/notifications',   label: '通知管理',  icon: <BellOutlined /> },
+      { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_admin', 'system_admin'] },
+      { key: '/finance/company-wallet', label: '公司钱包',  roles: ['company_admin', 'system_admin'] },
+      { key: '/system/profile',         label: '基础信息' },
+      { key: '/system/users',           label: '用户管理' },
+      { key: '/system/logs',            label: '系统日志' },
+      { key: '/system/notifications',   label: '通知管理' },
     ],
   },
 ];
@@ -197,7 +193,7 @@ const MainLayout: React.FC = () => {
           background: 'rgba(255,255,255,0.05)',
           overflow: 'hidden',
         }}>
-          <BankOutlined style={{ fontSize: 24, color: '#1677ff', flexShrink: 0 }} />
+          <BankOutlined style={{ fontSize: 24, color: '#722ed1', flexShrink: 0 }} />
           {!collapsed && (
             <Text strong style={{ color: '#fff', fontSize: 14, marginLeft: 10, whiteSpace: 'nowrap' }}>
               集团管理系统
@@ -244,7 +240,7 @@ const MainLayout: React.FC = () => {
             />
             <Space size={4}>
               <Text type="secondary" style={{ fontSize: 12 }}>余额:</Text>
-              <Text strong style={{ color: '#1677ff' }}>178,283.09 USDT</Text>
+              <Text strong style={{ color: '#722ed1' }}>178,283.09 USDT</Text>
             </Space>
             <Badge count={3} size="small">
               <BellOutlined

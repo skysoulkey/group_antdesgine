@@ -75,7 +75,7 @@ export default function CompanyTax() {
     {
       title: '税收金额', dataIndex: 'taxAmount', width: 160, align: 'right',
       render: (v, r) => (
-        <Text strong style={{ color: '#1677ff' }}>
+        <Text strong style={{ color: '#722ed1' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -90,7 +90,7 @@ export default function CompanyTax() {
   return (
     <Card bordered={false}>
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <FileTextOutlined style={{ color: '#1677ff', fontSize: 18 }} />
+        <FileTextOutlined style={{ color: '#722ed1', fontSize: 18 }} />
         <Text style={{ fontSize: 16, fontWeight: 600 }}>公司税单</Text>
       </div>
       <Row gutter={16} style={{ marginBottom: 16 }}>

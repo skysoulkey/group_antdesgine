@@ -79,7 +79,7 @@ const ProfilePage: React.FC = () => {
             <Card bordered={false} style={{ textAlign: 'center', borderRadius: 8 }}>
               <Avatar
                 size={80}
-                style={{ background: '#1677ff', fontSize: 32, marginBottom: 16 }}
+                style={{ background: '#722ed1', fontSize: 32, marginBottom: 16 }}
               >
                 M
               </Avatar>

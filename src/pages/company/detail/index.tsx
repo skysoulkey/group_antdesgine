@@ -175,7 +175,7 @@ const CompanyDetail: React.FC = () => {
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             <Col xs={24} sm={12} lg={8}>
               <Card bordered={false}>
-                <Statistic title="公司总资产（USDT）" value="1,090,000.00" valueStyle={{ color: '#1677ff' }} />
+                <Statistic title="公司总资产（USDT）" value="1,090,000.00" valueStyle={{ color: '#722ed1' }} />
               </Card>
             </Col>
             <Col xs={24} sm={12} lg={8}>
@@ -299,7 +299,7 @@ const CompanyDetail: React.FC = () => {
                   <Statistic
                     title={item.label}
                     value={item.value}
-                    valueStyle={{ color: item.value.startsWith('+') ? '#52c41a' : '#1677ff' }}
+                    valueStyle={{ color: item.value.startsWith('+') ? '#52c41a' : '#722ed1' }}
                   />
                 </Card>
               </Col>

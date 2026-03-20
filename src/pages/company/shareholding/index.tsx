@@ -82,6 +82,7 @@ const divData: DivRow[] = Array.from({ length: 8 }, (_, i) => ({
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const CompanyShareholding: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('holding');
   const [search, setSearch] = useState('');
   const [currency, setCurrency] = useState<string | undefined>();
   const [enterprise, setEnterprise] = useState<string | undefined>();
@@ -96,29 +97,29 @@ const CompanyShareholding: React.FC = () => {
   });
 
   const holdingColumns: ColumnsType<HoldingRow> = [
+    { title: '更新时间', dataIndex: 'updatedAt', width: 170 },
     { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
     { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
     { title: '持股比例', dataIndex: 'ratio', width: 90, align: 'right' },
-    { title: '持股估值', dataIndex: 'valuation', width: 130, align: 'right', render: (v, r) => <Text strong style={{ color: '#1677ff' }}>{v} {r.currency}</Text> },
+    { title: '持股估值', dataIndex: 'valuation', width: 130, align: 'right', render: (v, r) => <Text style={{ color: '#722ed1' }}>{v} {r.currency}</Text> },
     { title: '企业总资产', dataIndex: 'totalAsset', width: 130, align: 'right' },
-    { title: '股份收益', dataIndex: 'revenue', width: 120, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a', fontWeight: 600 }}>{v}</Text> },
+    { title: '股份收益', dataIndex: 'revenue', width: 120, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
     { title: '货币单位', dataIndex: 'currency', width: 80 },
-    { title: '更新时间', dataIndex: 'updatedAt', width: 110 },
     { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '持股中' ? 'success' : 'default'}>{v}</Tag> },
     {
       title: '操作', width: 160, fixed: 'right' as const,
       render: () => (
         <Space size={0}>
-          <Button type="link" size="small" style={{ padding: '0 4px' }}>股份交易</Button>
-          <Button type="link" size="small" style={{ padding: '0 4px' }}>投资分红</Button>
+          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => setActiveTab('trade')}>股份交易</Button>
+          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => setActiveTab('dividend')}>投资分红</Button>
         </Space>
       ),
     },
   ];
 
   const tradeColumns: ColumnsType<TradeRow> = [
-    { title: '交易方向', dataIndex: 'direction', width: 90, render: (v) => <Tag color={v === '买入' ? 'success' : 'error'}>{v}</Tag> },
     { title: '交易时间', dataIndex: 'tradeTime', width: 170 },
+    { title: '交易方向', dataIndex: 'direction', width: 90, render: (v) => <Tag color={v === '买入' ? 'success' : 'error'}>{v}</Tag> },
     { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
     { title: '交易金额', dataIndex: 'amount', width: 130, align: 'right' },
     { title: '持有股份', dataIndex: 'shareRatio', width: 90, align: 'right' },
@@ -128,14 +129,14 @@ const CompanyShareholding: React.FC = () => {
   ];
 
   const divColumns: ColumnsType<DivRow> = [
+    { title: '发起时间', dataIndex: 'startTime', width: 170 },
     { title: '应用名称', dataIndex: 'appName', width: 100 },
     { title: '游戏', dataIndex: 'game', width: 80 },
-    { title: '发起时间', dataIndex: 'startTime', width: 170 },
     { title: '完成时间', dataIndex: 'endTime', width: 170 },
     { title: '参与成员', dataIndex: 'members', width: 80, align: 'right' },
     { title: '总投资', dataIndex: 'totalInvest', width: 130, align: 'right' },
     { title: '总分红', dataIndex: 'totalDividend', width: 130, align: 'right' },
-    { title: '总盈亏', dataIndex: 'totalProfit', width: 130, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a', fontWeight: 600 }}>{v}</Text> },
+    { title: '总盈亏', dataIndex: 'totalProfit', width: 130, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
     { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '正常' ? 'success' : v === '审核中' ? 'processing' : 'default'}>{v}</Tag> },
   ];
 
@@ -151,7 +152,7 @@ const CompanyShareholding: React.FC = () => {
         <div>
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             {[
-              { label: '持股估值合计（USDT）', value: totalValuation.toLocaleString(undefined, { maximumFractionDigits: 0 }), color: '#1677ff', icon: <ArrowUpOutlined /> },
+              { label: '持股估值合计（USDT）', value: totalValuation.toLocaleString(undefined, { maximumFractionDigits: 0 }), color: '#722ed1', icon: <ArrowUpOutlined /> },
               { label: '股份收益合计（USDT）', value: totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 }), color: '#52c41a', icon: <ArrowUpOutlined /> },
               { label: '持股企业数', value: `${holdingData.filter(r => r.status === '持股中').length} 家`, color: '#722ed1', icon: null },
             ].map((s) => (
@@ -193,7 +194,7 @@ const CompanyShareholding: React.FC = () => {
     },
   ];
 
-  return <Tabs items={tabItems} type="card" />;
+  return <Tabs items={tabItems} type="card" activeKey={activeTab} onChange={setActiveTab} />;
 };
 
 export default CompanyShareholding;

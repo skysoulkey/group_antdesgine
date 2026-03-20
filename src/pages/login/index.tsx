@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
     <div
       style={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0d1b4b 0%, #1677ff 100%)',
+        background: 'linear-gradient(135deg, #0d1b4b 0%, #722ed1 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -132,7 +132,7 @@ const LoginPage: React.FC = () => {
             style={{
               width: 60,
               height: 60,
-              background: 'linear-gradient(135deg, #1677ff, #0d53d6)',
+              background: 'linear-gradient(135deg, #722ed1, #0d53d6)',
               borderRadius: 12,
               display: 'inline-flex',
               alignItems: 'center',
@@ -206,7 +206,7 @@ const LoginPage: React.FC = () => {
                   borderRadius: 8,
                   height: 46,
                   fontSize: 16,
-                  background: 'linear-gradient(135deg, #1677ff, #0d53d6)',
+                  background: 'linear-gradient(135deg, #722ed1, #0d53d6)',
                   border: 'none',
                 }}
               >
@@ -237,7 +237,7 @@ const LoginPage: React.FC = () => {
                   borderRadius: 8,
                   height: 46,
                   fontSize: 16,
-                  background: 'linear-gradient(135deg, #1677ff, #0d53d6)',
+                  background: 'linear-gradient(135deg, #722ed1, #0d53d6)',
                   border: 'none',
                 }}
               >

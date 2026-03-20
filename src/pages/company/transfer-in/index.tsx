@@ -86,7 +86,7 @@ export default function CompanyTransferIn() {
   return (
     <Card bordered={false}>
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <SwapOutlined style={{ color: '#1677ff', fontSize: 18 }} />
+        <SwapOutlined style={{ color: '#722ed1', fontSize: 18 }} />
         <Text style={{ fontSize: 16, fontWeight: 600 }}>内部划转（公司）</Text>
       </div>
       <Row gutter={16} style={{ marginBottom: 16 }}>

@@ -21,7 +21,6 @@ interface AllocateRecord {
 
 const statusMap = {
   success: { label: '已到账', color: 'success' },
-  pending: { label: '处理中', color: 'processing' },
   failed:  { label: '失败', color: 'error' },
 } as const;
 
@@ -34,7 +33,7 @@ const mockData: AllocateRecord[] = Array.from({ length: 20 }, (_, i) => ({
   amount: (20000 + i * 18750.5).toFixed(2),
   currency: (['USDT', 'PEA'] as const)[i % 2],
   remark: ['月度下拨', '季度专项', '年度预算', '临时调拨'][i % 4],
-  status: (['success', 'pending', 'failed'] as const)[i % 3],
+  status: (['success', 'failed'] as const)[i % 2],
   operator: ['Admin', 'FinanceManager', 'SuperAdmin'][i % 3],
   createdAt: `2025-11-${String(1 + (i % 28)).padStart(2, '0')} 09:${String(i % 60).padStart(2, '0')}:00`,
   arrivedAt: i % 3 === 0 ? `2025-11-${String(1 + (i % 28)).padStart(2, '0')} 09:${String((i + 5) % 60).padStart(2, '0')}:00` : '',
@@ -68,12 +67,14 @@ export default function FinanceAllocate() {
   };
 
   const columns: ColumnsType<AllocateRecord> = [
+    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
+    { title: '到账时间', dataIndex: 'arrivedAt', width: 170, render: v => v || <Text type="secondary">—</Text> },
     { title: '订单编号', dataIndex: 'orderId', width: 200, render: v => <Text code style={{ fontSize: 12 }}>{v}</Text> },
-    { title: '目标公司', dataIndex: 'targetCompany', render: v => <Text strong>{v}</Text> },
+    { title: '目标公司', dataIndex: 'targetCompany', render: v => <Text>{v}</Text> },
     {
       title: '下拨金额', dataIndex: 'amount', width: 170, align: 'right',
       render: (v, r) => (
-        <Text strong style={{ color: '#1677ff' }}>
+        <Text style={{ color: '#722ed1' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -84,8 +85,6 @@ export default function FinanceAllocate() {
     },
     { title: '操作人', dataIndex: 'operator', width: 120 },
     { title: '备注', dataIndex: 'remark', width: 130, ellipsis: true },
-    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
-    { title: '到账时间', dataIndex: 'arrivedAt', width: 170, render: v => v || <Text type="secondary">—</Text> },
   ];
 
   return (
@@ -94,7 +93,7 @@ export default function FinanceAllocate() {
         <Col xs={24} sm={12}>
           <Card bordered={false} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>本月下拨总额（USDT）</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#1677ff' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#722ed1' }}>
               {monthTotal.toLocaleString('en', { minimumFractionDigits: 2 })}
             </div>
           </Card>
@@ -110,7 +109,7 @@ export default function FinanceAllocate() {
       <Card bordered={false}>
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ArrowDownOutlined style={{ color: '#1677ff', fontSize: 18 }} />
+            <ArrowDownOutlined style={{ color: '#722ed1', fontSize: 18 }} />
             <Text style={{ fontSize: 16, fontWeight: 600 }}>集团下拨</Text>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
@@ -128,7 +127,7 @@ export default function FinanceAllocate() {
           </Col>
           <Col>
             <Select placeholder="状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 130 }}
-              options={[{ label: '已到账', value: 'success' }, { label: '处理中', value: 'pending' }, { label: '失败', value: 'failed' }]} />
+              options={[{ label: '已到账', value: 'success' }, { label: '失败', value: 'failed' }]} />
           </Col>
           <Col><RangePicker style={{ width: 280 }} /></Col>
         </Row>

@@ -1,5 +1,23 @@
-import { MoneyCollectOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Input, Row, Select, Space, Table, Typography } from 'antd';
+import { Bar, Column } from '@ant-design/plots';
+import {
+  FullscreenOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
+import {
+  Button,
+  Card,
+  Col,
+  Divider,
+  Drawer,
+  Row,
+  Select,
+  Space,
+  Table,
+  Typography,
+  Input,
+} from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
@@ -7,116 +25,270 @@ const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
+// ── 数据模型 ──────────────────────────────────────────────────────
 interface CommissionOrder {
   id: string;
   createdAt: string;
   orderId: string;
   appName: string;
-  enterpriseId: string;
-  enterpriseName: string;
-  currency: string;
-  commission: string;
+  game: string;
   bettorId: string;
   bettorName: string;
+  enterpriseId: string;
+  enterpriseName: string;
+  currency: 'USDT' | 'PEA';
+  commission: string;
 }
 
 const APPS = ['UU Talk', 'Hey Talk', 'Star Game'];
-const ENTERPRISES = ['hey', 'wow', 'boom', 'flash', 'nova'];
+const GAMES = ['百家乐', '龙虎斗', '骰子'];
+const ENTERPRISES = ['hey企业', 'wow公司', 'boom集团', 'flash科技', 'nova星球'];
 
 const mockData: CommissionOrder[] = Array.from({ length: 20 }, (_, i) => ({
   id: `CO${String(i + 1).padStart(7, '0')}`,
-  createdAt: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} ${String(10 + i % 10).padStart(2, '0')}:00:00`,
-  orderId: `ORD${800000 + i}`,
+  createdAt: `2025-10-10 12:23:23`,
+  orderId: String(73720 + i),
   appName: APPS[i % 3],
-  enterpriseId: `ENT${10000 + i}`,
+  game: GAMES[i % 3],
+  bettorId: String(287402 + i),
+  bettorName: `滴滴答答`,
+  enterpriseId: String(287402 + i),
   enterpriseName: ENTERPRISES[i % 5],
-  currency: i % 2 === 0 ? 'USDT' : 'PEA',
-  commission: `${(200 + i * 80).toLocaleString()}.00`,
-  bettorId: `MB${100000 + i}`,
-  bettorName: `用户${i + 1}`,
+  currency: (['USDT', 'PEA'] as const)[i % 2],
+  commission: i % 2 === 0 ? '873,233.23' : '73,233.23',
 }));
 
+// ── 图表数据 ──────────────────────────────────────────────────────
+const top5CommissionData = [
+  { enterprise: '企业名称5', value: 18 },
+  { enterprise: '企业名称4', value: 26 },
+  { enterprise: '企业名称3', value: 34 },
+  { enterprise: '企业名称2', value: 45 },
+  { enterprise: '企业名称1', value: 58 },
+];
+
+const orderCountData = ENTERPRISES.map((e, i) => ({
+  enterprise: e,
+  value: 18 + i * 9 + (i % 2 === 0 ? 4 : 0),
+}));
+
+// ── 统计 ──────────────────────────────────────────────────────────
 const totalUsdt = mockData.filter((r) => r.currency === 'USDT').reduce((s, r) => s + parseFloat(r.commission.replace(/,/g, '')), 0);
 const totalPea  = mockData.filter((r) => r.currency === 'PEA').reduce((s, r) => s + parseFloat(r.commission.replace(/,/g, '')), 0);
 
-const CommissionPage: React.FC = () => {
-  const [search, setSearch] = useState('');
-  const [currency, setCurrency] = useState<string | undefined>();
-  const [enterprise, setEnterprise] = useState<string | undefined>();
+// ── 来源订单 mock ─────────────────────────────────────────────────
+interface SourceOrder { id: string; time: string; orderId: string; betAmt: string; bettorId: string; bettorName: string }
+const sourceMock: SourceOrder[] = Array.from({ length: 5 }, (_, i) => ({
+  id: String(i),
+  time: '2017-10-01 12:00',
+  orderId: String(223242 + i),
+  betAmt: i % 2 === 0 ? '873,233.23' : '73,233.23',
+  bettorId: '287402',
+  bettorName: '滴滴答答',
+}));
+
+// ── 佣金订单 Tab ──────────────────────────────────────────────────
+const CommissionOrderTab: React.FC = () => {
+  const [currencyFilter, setCurrencyFilter] = useState<string>('全部');
   const [app, setApp] = useState<string | undefined>();
+  const [game, setGame] = useState<string | undefined>();
+  const [enterprise, setEnterprise] = useState<string | undefined>();
+  const [search, setSearch] = useState('');
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selected, setSelected] = useState<CommissionOrder | null>(null);
 
   const filtered = mockData.filter((r) => {
     const kw = search.toLowerCase();
     return (
-      (!kw || r.orderId.toLowerCase().includes(kw) || r.enterpriseName.toLowerCase().includes(kw)) &&
-      (!currency || r.currency === currency) &&
+      (currencyFilter === '全部' || r.currency === currencyFilter) &&
+      (!app || r.appName === app) &&
+      (!game || r.game === game) &&
       (!enterprise || r.enterpriseName === enterprise) &&
-      (!app || r.appName === app)
+      (!kw || r.orderId.includes(kw))
     );
   });
 
   const columns: ColumnsType<CommissionOrder> = [
-    { title: '订单时间', dataIndex: 'createdAt', width: 170 },
-    { title: '订单编号', dataIndex: 'orderId', width: 110 },
+    { title: '订单时间', dataIndex: 'createdAt', width: 160 },
+    { title: '订单编号', dataIndex: 'orderId', width: 90 },
     { title: '应用名称', dataIndex: 'appName', width: 100 },
+    { title: '游戏', dataIndex: 'game', width: 80 },
+    { title: '下注人ID', dataIndex: 'bettorId', width: 100 },
+    { title: '下注人昵称', dataIndex: 'bettorName', width: 100 },
     { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
     { title: '企业名称', dataIndex: 'enterpriseName', width: 100 },
     { title: '货币单位', dataIndex: 'currency', width: 80 },
-    { title: '公司佣金支出', dataIndex: 'commission', width: 130, align: 'right', render: (v) => <span style={{ fontWeight: 600, color: '#141414' }}>{v}</span> },
-    { title: '下注人ID', dataIndex: 'bettorId', width: 100 },
+    {
+      title: '公司佣金支出',
+      dataIndex: 'commission',
+      width: 130,
+      align: 'right',
+      sorter: (a, b) => parseFloat(a.commission.replace(/,/g, '')) - parseFloat(b.commission.replace(/,/g, '')),
+      render: (v) => <Text style={{ color: '#141414' }}>{v}</Text>,
+    },
+    {
+      title: '操作', width: 70, fixed: 'right' as const,
+      render: (_, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => { setSelected(r); setDetailOpen(true); }}>
+          详情
+        </Button>
+      ),
+    },
+  ];
+
+  const sourceCols: ColumnsType<SourceOrder> = [
+    { title: '订单生成时间', dataIndex: 'time', width: 150 },
+    { title: '订单编号', dataIndex: 'orderId', width: 90 },
+    { title: '下注金额', dataIndex: 'betAmt', width: 110, align: 'right' },
+    { title: '下注人ID', dataIndex: 'bettorId', width: 90 },
     { title: '下注人昵称', dataIndex: 'bettorName', width: 100 },
-    { title: '操作', width: 80, fixed: 'right' as const, render: () => <Button type="link" size="small" style={{ padding: 0 }}>详情</Button> },
   ];
 
   return (
     <div>
-      {/* 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
+      {/* 筛选区 */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 14, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>应用名称：</Text>
+            <Select placeholder="选择选项" value={app} onChange={setApp} allowClear style={{ width: 160 }}
+              options={APPS.map((a) => ({ value: a, label: a }))} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>货币单位：</Text>
+            <Space size={0}>
+              {(['全部', 'USDT', 'PEA']).map((s) => (
+                <Button key={s} size="small"
+                  type={currencyFilter === s ? 'primary' : 'default'}
+                  style={{ borderRadius: s === '全部' ? '4px 0 0 4px' : s === 'PEA' ? '0 4px 4px 0' : '0' }}
+                  onClick={() => setCurrencyFilter(s)}>{s}</Button>
+              ))}
+            </Space>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>企业名称：</Text>
+            <Select placeholder="请选择" value={enterprise} onChange={setEnterprise} allowClear style={{ width: 160 }}
+              options={ENTERPRISES.map((e) => ({ value: e, label: e }))} />
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>搜索：</Text>
+            <Input prefix={<SearchOutlined />} placeholder="订单编号"
+              value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 200 }} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>游戏：</Text>
+            <Select placeholder="请选择" value={game} onChange={setGame} allowClear style={{ width: 140 }}
+              options={GAMES.map((g) => ({ value: g, label: g }))} />
+          </div>
+        </div>
+      </Card>
+
+      {/* 汇总统计栏 */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Text type="secondary" style={{ fontSize: 13 }}>佣金支出（USDT）：
+            <Text style={{ color: '#141414' }}>{totalUsdt.toLocaleString('en', { minimumFractionDigits: 2 })}</Text>
+          </Text>
+          <Divider type="vertical" />
+          <Text type="secondary" style={{ fontSize: 13 }}>佣金支出（PEA）：
+            <Text style={{ color: '#141414' }}>{totalPea.toLocaleString('en', { minimumFractionDigits: 2 })}</Text>
+          </Text>
+        </div>
+      </Card>
+
+      {/* 图表区 */}
+      <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
+        <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#eb2f9618', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <MoneyCollectOutlined style={{ fontSize: 20, color: '#eb2f96' }} />
-              </div>
-              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>佣金支出合计（USDT）</Text>
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: '#141414' }}>
-              {totalUsdt.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </div>
+            <Text style={{ fontSize: 13, fontWeight: 600 }}>企业佣金支出</Text>
+            <Bar
+              data={top5CommissionData}
+              xField="value"
+              yField="enterprise"
+              height={220}
+              style={{ fill: '#722ed1', marginTop: 8 }}
+              scale={{ color: { range: ['#722ed1'] }, x: { paddingInner: 0.4 } }}
+              axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
+              tooltip={{ items: [{ channel: 'x', name: '佣金支出', valueFormatter: (v: number) => `${v.toLocaleString()}.00  USDT` }] }}
+            />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <MoneyCollectOutlined style={{ fontSize: 20, color: '#722ed1' }} />
-              </div>
-              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>佣金支出合计（PEA）</Text>
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: '#141414' }}>
-              {totalPea.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </div>
+            <Text style={{ fontSize: 13, fontWeight: 600 }}>佣金订单数量</Text>
+            <Column
+              data={orderCountData}
+              xField="enterprise"
+              yField="value"
+              height={220}
+              style={{ fill: '#722ed1', marginTop: 8 }}
+              scale={{ color: { range: ['#722ed1'] }, x: { paddingInner: 0.4 } }}
+              axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
+              tooltip={{ items: [{ channel: 'y', name: '订单数', valueFormatter: (v: number) => `${v}单` }] }}
+            />
           </Card>
         </Col>
       </Row>
 
-      {/* 筛选 + 表格 */}
+      {/* 订单表格 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-        <Space style={{ marginBottom: 16 }} wrap>
-          <Input prefix={<SearchOutlined />} placeholder="订单编号 / 企业名称" value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 220 }} />
-          <Select placeholder="货币单位" value={currency} onChange={setCurrency} allowClear style={{ width: 110 }}
-            options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]} />
-          <Select placeholder="企业名称" value={enterprise} onChange={setEnterprise} allowClear style={{ width: 130 }}
-            options={ENTERPRISES.map((e) => ({ value: e, label: e }))} />
-          <Select placeholder="应用名称" value={app} onChange={setApp} allowClear style={{ width: 130 }}
-            options={APPS.map((a) => ({ value: a, label: a }))} />
-        </Space>
-        <Table columns={columns} dataSource={filtered} rowKey="id" size="middle"
-          scroll={{ x: 1200 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>佣金订单</Text>
+          <Space size={8}>
+            <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
+            <SettingOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
+            <FullscreenOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
+          </Space>
+        </div>
+        <Table
+          columns={columns}
+          dataSource={filtered}
+          rowKey="id"
+          size="middle"
+          scroll={{ x: 1400 }}
+          pagination={{ pageSize: 10, showTotal: (t) => `总共 ${t} 个项目`, showSizeChanger: true }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+        />
       </Card>
+
+      {/* 详情 Drawer */}
+      <Drawer
+        title="详情"
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        width={660}
+        footer={
+          <div style={{ textAlign: 'right' }}>
+            <Button type="primary" onClick={() => setDetailOpen(false)}>关闭</Button>
+          </div>
+        }
+      >
+        {selected && (
+          <>
+            <div style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 14, fontWeight: 600 }}>订单详情</Text>
+              <div style={{ marginTop: 10, fontSize: 13, lineHeight: 2 }}>
+                <div>佣金结算公司：{selected.appName}</div>
+                <div>货币单位：{selected.currency}</div>
+              </div>
+            </div>
+            <Divider />
+            <Text style={{ fontSize: 14, fontWeight: 600 }}>来源订单详情</Text>
+            <Table
+              style={{ marginTop: 12 }}
+              columns={sourceCols}
+              dataSource={sourceMock}
+              rowKey="id"
+              size="small"
+              pagination={{ pageSize: 5, showTotal: (t) => `总共 ${t} 个项目`, showSizeChanger: true, pageSizeOptions: ['5', '10'] }}
+            />
+          </>
+        )}
+      </Drawer>
     </div>
   );
 };
 
-export default CommissionPage;
+export default CommissionOrderTab;

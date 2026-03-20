@@ -78,7 +78,7 @@ const EnterpriseListPage: React.FC = () => {
     {
       title: '企业名称',
       dataIndex: 'name',
-      render: (v) => <Text strong>{v}</Text>,
+      render: (v) => <Text>{v}</Text>,
     },
     {
       title: '企业认证',
@@ -103,7 +103,7 @@ const EnterpriseListPage: React.FC = () => {
       dataIndex: 'totalAssets',
       align: 'right',
       render: (v) => (
-        <Text strong style={{ color: '#1677ff' }}>
+        <Text style={{ color: '#722ed1' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} USDT
         </Text>
       ),

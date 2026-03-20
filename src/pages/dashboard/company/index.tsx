@@ -2,13 +2,13 @@ import {
   AccountBookOutlined,
   ApartmentOutlined,
   BankOutlined,
-  FallOutlined,
+  ExportOutlined,
   FundOutlined,
   GiftOutlined,
+  ImportOutlined,
   MinusCircleOutlined,
   MoneyCollectOutlined,
   ReloadOutlined,
-  RiseOutlined,
   StockOutlined,
   TeamOutlined,
   ThunderboltOutlined,
@@ -56,9 +56,11 @@ const chartCfg = (data: { date: string; value: number }[]) => ({
   xField: 'date',
   yField: 'value',
   shape: 'smooth',
-  point: {},
+  point: { style: { fill: '#722ed1', stroke: '#722ed1' } },
   height: 220,
   autoFit: true,
+  style: { stroke: '#722ed1' },
+  scale: { color: { range: ['#722ed1'] } },
 });
 
 // ── KPI 卡片 ─────────────────────────────────────────────────────
@@ -120,7 +122,7 @@ const DualCard: React.FC = () => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
       <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
       <div style={{ width: 32, height: 32, borderRadius: 8, background: '#faad1418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <RiseOutlined style={{ color: '#faad14', fontSize: 16 }} />
+        <ExportOutlined style={{ color: '#faad14', fontSize: 16 }} />
       </div>
     </div>
     <div style={{ fontSize: 24, fontWeight: 700, color: '#52c41a', marginBottom: 16 }}>202,320.00</div>
@@ -128,7 +130,7 @@ const DualCard: React.FC = () => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
       <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金调回</Text>
       <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ff4d4f18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <FallOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
+        <ImportOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
       </div>
     </div>
     <div style={{ fontSize: 24, fontWeight: 700, color: '#ff4d4f' }}>202,320.00</div>
@@ -206,7 +208,7 @@ const CompanyDashboard: React.FC = () => {
     { title: '公司名称', dataIndex: 'companyName', width: 110 },
     {
       title: '公司累计盈利', dataIndex: 'cumulativeProfit', width: 140, sorter: true,
-      render: (v) => <span style={{ color: '#141414', fontWeight: 600 }}>{v}</span>,
+      render: (v) => <span style={{ color: '#141414' }}>{v}</span>,
     },
     { title: '认证企业', dataIndex: 'certEnterprises', width: 90, sorter: true, align: 'right' },
     { title: '企业成员', dataIndex: 'members', width: 90, sorter: true, align: 'right' },
@@ -217,7 +219,7 @@ const CompanyDashboard: React.FC = () => {
       title: '操作', width: 90, fixed: 'right' as const,
       render: (_: unknown, r: TopRow) => (
         <Button
-          type="link" size="small" style={{ padding: 0, fontWeight: 600 }}
+          type="link" size="small" style={{ padding: 0 }}
           onClick={() => navigate(`/company/detail/${r.companyId}`)}
         >
           公司详情
@@ -237,10 +239,16 @@ const CompanyDashboard: React.FC = () => {
           onChange={(v) => setCurrency(v as string)}
           style={{ fontWeight: 600 }}
         />
-        <div style={{ flex: 1 }} />
         <Space size={6}>
-          <Text type="secondary" style={{ fontSize: 12 }}>更新于 2025-11-02 12:33:02</Text>
-          <ReloadOutlined style={{ color: '#1677ff', cursor: 'pointer', fontSize: 14 }} />
+          <Text type="secondary" style={{ fontSize: 12 }}>数据更新时间：2025-11-02 12:33:02</Text>
+          <ReloadOutlined style={{ color: '#722ed1', cursor: 'pointer', fontSize: 14 }} />
+        </Space>
+        <div style={{ flex: 1 }} />
+        <Space size={4}>
+          <Text type="secondary" style={{ fontSize: 12 }}>公司名称：</Text>
+          <Text style={{ fontSize: 12, fontWeight: 600 }}>UU Talk</Text>
+          <Text type="secondary" style={{ fontSize: 12, marginLeft: 12 }}>公司ID：</Text>
+          <Text style={{ fontSize: 12, fontFamily: 'monospace', color: '#722ed1' }}>24897872938</Text>
         </Space>
       </div>
 
@@ -250,7 +258,7 @@ const CompanyDashboard: React.FC = () => {
           <KpiCard
             title={`公司总资产（${currency}）`}
             value="223,300.00"
-            color="#1677ff"
+            color="#722ed1"
             icon={<BankOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322.00' },
@@ -342,7 +350,7 @@ const CompanyDashboard: React.FC = () => {
           <KpiCard
             title="认证企业（家）"
             value="22 家"
-            color="#1677ff"
+            color="#722ed1"
             icon={<ApartmentOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322' },
@@ -422,7 +430,7 @@ const CompanyDashboard: React.FC = () => {
                 </span>
                 <Badge
                   count={`${currency}`}
-                  style={{ backgroundColor: '#1677ff', fontWeight: 600, fontSize: 11 }}
+                  style={{ backgroundColor: '#722ed1', fontWeight: 600, fontSize: 11 }}
                 />
               </div>
             }

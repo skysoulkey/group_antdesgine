@@ -45,10 +45,10 @@ const FinanceRevenuePage: React.FC = () => {
       title: '账单状态', dataIndex: 'status', width: 110,
       render: (v) => <Tag color={v === '已出账单' ? 'success' : 'processing'}>{v}</Tag>,
     },
-    { title: '本月综合收益', dataIndex: 'totalRevenue', width: 140, align: 'right', render: (v) => <span style={{ fontWeight: 600 }}>{v}</span> },
+    { title: '本月综合收益', dataIndex: 'totalRevenue', width: 140, align: 'right', render: (v) => <span>{v}</span> },
     { title: '免征税额', dataIndex: 'taxExempt', width: 110, align: 'right' },
     { title: '应纳税额', dataIndex: 'taxableAmount', width: 110, align: 'right', render: (v) => <Text style={{ color: '#fa8c16' }}>{v}</Text> },
-    { title: '可划转收益', dataIndex: 'transferable', width: 130, align: 'right', render: (v) => <Text strong style={{ color: '#1677ff' }}>{v}</Text> },
+    { title: '可划转收益', dataIndex: 'transferable', width: 130, align: 'right', render: (v) => <Text style={{ color: '#722ed1' }}>{v}</Text> },
     {
       title: '操作', width: 100, fixed: 'right' as const,
       render: (_, r) => r.status === '已出账单' ? (
@@ -64,11 +64,11 @@ const FinanceRevenuePage: React.FC = () => {
     <div>
       {/* 统计卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1677ff18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AccountBookOutlined style={{ fontSize: 20, color: '#1677ff' }} />
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AccountBookOutlined style={{ fontSize: 20, color: '#722ed1' }} />
               </div>
               <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>累计综合收益（USDT）</Text>
             </div>
@@ -77,7 +77,7 @@ const FinanceRevenuePage: React.FC = () => {
             </div>
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: '#52c41a18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -46,9 +46,9 @@ const dividendData: Dividend[] = mk(8).map((i) => ({
   status: ['正常', '审核中', '已结算'][i % 3],
 }));
 const dividendColumns: ColumnsType<Dividend> = [
+  { title: '发起时间', dataIndex: 'startTime', width: 170 },
   { title: '应用名称', dataIndex: 'appName', width: 100 },
   { title: '游戏', dataIndex: 'game', width: 80 },
-  { title: '发起时间', dataIndex: 'startTime', width: 170 },
   { title: '完成时间', dataIndex: 'endTime', width: 170 },
   { title: '参与成员', dataIndex: 'members', width: 80, align: 'right' },
   { title: '总投资', dataIndex: 'totalInvest', width: 120, align: 'right' },
@@ -100,11 +100,11 @@ const memberData: Member[] = mk(10).map((i) => ({
   status: i % 5 === 4 ? '已离开' : '正常',
 }));
 const memberColumns: ColumnsType<Member> = [
+  { title: '加入时间', dataIndex: 'joinTime', width: 170 },
   { title: '成员ID', dataIndex: 'id', width: 100 },
   { title: '昵称', dataIndex: 'nickname', width: 90 },
   { title: '上级ID', dataIndex: 'parentId', width: 100 },
   { title: '上级昵称', dataIndex: 'parentNickname', width: 90 },
-  { title: '加入时间', dataIndex: 'joinTime', width: 110 },
   { title: '参与场次', dataIndex: 'sessions', width: 80, align: 'right' },
   { title: '邀请人数', dataIndex: 'invited', width: 80, align: 'right' },
   { title: '总盈亏', dataIndex: 'totalPnl', width: 120, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
@@ -126,11 +126,11 @@ const shareholderData: Shareholder[] = mk(6).map((i) => ({
   status: i % 4 === 3 ? '已退出' : '持股中',
 }));
 const shareholderColumns: ColumnsType<Shareholder> = [
+  { title: '入股时间', dataIndex: 'joinTime', width: 170 },
   { title: '股东ID', dataIndex: 'id', width: 100 },
   { title: '昵称', dataIndex: 'nickname', width: 90 },
   { title: '持股数量', dataIndex: 'shares', width: 110, align: 'right' },
   { title: '持股比例', dataIndex: 'ratio', width: 90, align: 'right' },
-  { title: '入股时间', dataIndex: 'joinTime', width: 170 },
   { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '持股中' ? 'success' : 'default'}>{v}</Tag> },
 ];
 
@@ -152,11 +152,11 @@ const redPacketData: RedPacket[] = mk(6).map((i) => ({
   createdAt: `2026-03-${String(i + 1).padStart(2, '0')} 12:00:00`,
 }));
 const redPacketColumns: ColumnsType<RedPacket> = [
+  { title: '发放时间', dataIndex: 'createdAt', width: 170 },
   { title: '红包ID', dataIndex: 'id', width: 100 },
   { title: '金额', dataIndex: 'amount', width: 110, align: 'right' },
   { title: '发放人', dataIndex: 'sender', width: 90 },
   { title: '领取状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '已领取' ? 'success' : v === '未领取' ? 'processing' : 'default'}>{v}</Tag> },
-  { title: '发放时间', dataIndex: 'createdAt', width: 170 },
 ];
 
 // ── 东方彩票 ──────────────────────────────────────────────────────
@@ -176,12 +176,12 @@ const lotteryData: LotteryOrder[] = mk(8).map((i) => ({
   bettorName: `用户${i + 1}`,
 }));
 const lotteryColumns: ColumnsType<LotteryOrder> = [
+  { title: '发起时间', dataIndex: 'startTime', width: 170 },
+  { title: '完成时间', dataIndex: 'endTime', width: 170 },
   { title: '订单编号', dataIndex: 'id', width: 120 },
   { title: '游戏', dataIndex: 'game', width: 80 },
   { title: '游戏期数', dataIndex: 'period', width: 90 },
   { title: '订单状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '已结算' ? 'success' : v === '结算中' ? 'processing' : 'warning'}>{v}</Tag> },
-  { title: '发起时间', dataIndex: 'startTime', width: 170 },
-  { title: '完成时间', dataIndex: 'endTime', width: 170 },
   { title: '订单金额', dataIndex: 'orderAmt', width: 110, align: 'right' },
   { title: '赔付金额', dataIndex: 'payoutAmt', width: 110, align: 'right' },
   { title: '公司盈亏', dataIndex: 'pnl', width: 110, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
@@ -228,7 +228,7 @@ const EnterpriseDetail: React.FC = () => {
         <div>
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             <Col xs={24} sm={6}>
-              <Card bordered={false}><Statistic title="企业总资产（USDT）" value="234,560.00" valueStyle={{ color: '#1677ff' }} /></Card>
+              <Card bordered={false}><Statistic title="企业总资产（USDT）" value="234,560.00" valueStyle={{ color: '#722ed1' }} /></Card>
             </Col>
             <Col xs={24} sm={6}>
               <Card bordered={false}><Statistic title="企业总流水（USDT）" value="89,230.00" valueStyle={{ color: '#fa8c16' }} /></Card>
@@ -315,8 +315,8 @@ const EnterpriseDetail: React.FC = () => {
           {appsData.map((app) => (
             <Col key={app.name} xs={24} sm={12} lg={6}>
               <Card bordered={false} style={{ textAlign: 'center', borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03),0 4px 16px rgba(0,0,0,0.06)' }}>
-                <div style={{ width: 56, height: 56, borderRadius: 14, background: app.enabled ? '#1677ff18' : '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                  <AppstoreOutlined style={{ fontSize: 26, color: app.enabled ? '#1677ff' : '#bfbfbf' }} />
+                <div style={{ width: 56, height: 56, borderRadius: 14, background: app.enabled ? '#722ed118' : '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                  <AppstoreOutlined style={{ fontSize: 26, color: app.enabled ? '#722ed1' : '#bfbfbf' }} />
                 </div>
                 <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 8 }}>{app.name}</div>
                 <Tag color={app.enabled ? 'success' : 'default'}>{app.enabled ? '已开通' : '未开通'}</Tag>
@@ -383,7 +383,7 @@ const EnterpriseDetail: React.FC = () => {
               options={[{ value: 'UU Talk', label: 'UU Talk' }, { value: 'Hey Talk', label: 'Hey Talk' }, { value: 'Star Game', label: 'Star Game' }]} />
           </Space>
           <div style={{ marginBottom: 12 }}>
-            <Badge count="佣金支出合计" style={{ backgroundColor: '#1677ff' }} />
+            <Badge count="佣金支出合计" style={{ backgroundColor: '#722ed1' }} />
             <Text strong style={{ marginLeft: 8, fontSize: 16 }}>234,234,244.00 USDT</Text>
           </div>
           <Table columns={commissionColumns} dataSource={commissionData} rowKey="id" size="middle"

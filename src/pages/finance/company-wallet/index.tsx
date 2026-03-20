@@ -45,8 +45,8 @@ const CompanyWalletPage: React.FC = () => {
         <Col xs={24} sm={12} lg={6}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#1677ff18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <WalletOutlined style={{ fontSize: 22, color: '#1677ff' }} />
+              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <WalletOutlined style={{ fontSize: 22, color: '#722ed1' }} />
               </div>
               <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>USDT 余额</Text>
             </div>
@@ -74,7 +74,7 @@ const CompanyWalletPage: React.FC = () => {
             <Space>
               <Text>43215321432</Text>
               <CopyOutlined
-                style={{ cursor: 'pointer', color: '#1677ff' }}
+                style={{ cursor: 'pointer', color: '#722ed1' }}
                 onClick={() => { navigator.clipboard.writeText('43215321432'); message.success('已复制'); }}
               />
             </Space>

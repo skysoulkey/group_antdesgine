@@ -1,4 +1,20 @@
-import { ReloadOutlined } from '@ant-design/icons';
+import {
+  AccountBookOutlined,
+  AppstoreOutlined,
+  ApartmentOutlined,
+  BankOutlined,
+  ClusterOutlined,
+  ExportOutlined,
+  FundOutlined,
+  GiftOutlined,
+  ImportOutlined,
+  PieChartOutlined,
+  ReloadOutlined,
+  ShopOutlined,
+  StockOutlined,
+  TeamOutlined,
+  TrophyOutlined,
+} from '@ant-design/icons';
 import { Line } from '@ant-design/plots';
 import {
   Button,
@@ -16,6 +32,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'umi';
 
 const { Text } = Typography;
+
+const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+const CARD_RADIUS = 12;
 
 // ── 折线图数据 ──────────────────────────────────────────
 const months = ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
@@ -35,42 +54,91 @@ const chartCfg = (data: { date: string; value: number }[]) => ({
   xField: 'date',
   yField: 'value',
   shape: 'smooth',
-  point: {},
+  point: { style: { fill: '#722ed1', stroke: '#722ed1' } },
   height: 200,
   autoFit: true,
+  style: { stroke: '#722ed1' },
+  scale: { color: { range: ['#722ed1'] } },
 });
 
-// ── 统一 stat 卡片 ──────────────────────────────────────
+// ── KPI 卡片 ─────────────────────────────────────────────────────
 interface Sub { label: string; value: string | number }
-interface StatCardProps {
+interface KpiCardProps {
   title: string;
   value: string | number;
-  suffix?: string;
+  color: string;
+  icon: React.ReactNode;
   sub?: Sub[];
 }
-const StatCard: React.FC<StatCardProps> = ({ title, value, suffix, sub }) => (
-  <Card bordered={false} style={{ height: '100%' }}>
-    <Text type="secondary" style={{ fontSize: 13 }}>{title}</Text>
-    <div style={{ fontSize: 26, fontWeight: 700, margin: '4px 0 8px', letterSpacing: -0.5 }}>
-      {value}
-      {suffix && <Text type="secondary" style={{ fontSize: 14, fontWeight: 400, marginLeft: 4 }}>{suffix}</Text>}
-    </div>
-    {sub && (
-      <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap' }}>
-        {sub.map((s) => (
-          <div key={s.label}>
-            <div><Text type="secondary" style={{ fontSize: 12 }}>{s.label}</Text></div>
-            <div style={{ fontSize: 13, fontWeight: 500 }}>{s.value}</div>
-          </div>
-        ))}
+
+const KpiCard: React.FC<KpiCardProps> = ({ title, value, color, icon, sub }) => (
+  <Card
+    bordered={false}
+    style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
+    styles={{ body: { padding: '20px 24px' } }}
+  >
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>{title}</Text>
+      <div style={{
+        width: 44, height: 44, borderRadius: 10,
+        background: `${color}18`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        <span style={{ fontSize: 20, color }}>{icon}</span>
       </div>
+    </div>
+
+    <div style={{ marginTop: 8, marginBottom: sub ? 12 : 0 }}>
+      <span style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>
+        {value}
+      </span>
+    </div>
+
+    {sub && (
+      <>
+        <Divider style={{ margin: '10px 0' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', rowGap: 4 }}>
+          {sub.map((s) => (
+            <div key={s.label}>
+              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#262626' }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
+      </>
     )}
+  </Card>
+);
+
+// ── 双值卡片（集团资金下拨 + 调回）────────────────────────────────
+const DualCard: React.FC = () => (
+  <Card
+    bordered={false}
+    style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
+    styles={{ body: { padding: '20px 24px' } }}
+  >
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#faad1418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <ExportOutlined style={{ color: '#faad14', fontSize: 16 }} />
+      </div>
+    </div>
+    <div style={{ fontSize: 24, fontWeight: 700, color: '#52c41a', marginBottom: 16 }}>202,320.00</div>
+    <Divider style={{ margin: '0 0 12px' }} />
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金调回</Text>
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ff4d4f18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <ImportOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
+      </div>
+    </div>
+    <div style={{ fontSize: 24, fontWeight: 700, color: '#ff4d4f' }}>202,320.00</div>
   </Card>
 );
 
 // ── TOP5 表格 ───────────────────────────────────────────
 interface TopRow {
   ranking: string;
+  rankNum: number;
   companyId: string;
   companyName: string;
   cumulativeProfit: string;
@@ -82,11 +150,11 @@ interface TopRow {
 }
 
 const topData: TopRow[] = [
-  { ranking: '第1名', companyId: '283982', companyName: 'hey', cumulativeProfit: '873,233.23', certEnterprises: 543, members: 543, masterId: '73720', masterNickname: 'name1', createdAt: '2025-10-10 12:23:23' },
-  { ranking: '第2名', companyId: '283982', companyName: 'hey', cumulativeProfit: '73,233.23',  certEnterprises: 23,  members: 23,  masterId: '73720', masterNickname: 'name2', createdAt: '2025-10-10 12:23:23' },
-  { ranking: '第3名', companyId: '283982', companyName: 'hey', cumulativeProfit: '873,233.23', certEnterprises: 11,  members: 11,  masterId: '73720', masterNickname: 'name3', createdAt: '2025-10-10 12:23:23' },
-  { ranking: '第4名', companyId: '283982', companyName: 'hey', cumulativeProfit: '873,233.23', certEnterprises: 0,   members: 0,   masterId: '73720', masterNickname: 'name4', createdAt: '2025-10-10 12:23:23' },
-  { ranking: '第5名', companyId: '283982', companyName: 'hey', cumulativeProfit: '873,233.23', certEnterprises: 32,  members: 32,  masterId: '73720', masterNickname: 'name5', createdAt: '2025-10-10 12:23:23' },
+  { ranking: '第1名', rankNum: 1, companyId: '283982', companyName: 'Hey Talk',  cumulativeProfit: '873,233.23', certEnterprises: 543, members: 543, masterId: '73720', masterNickname: 'name1', createdAt: '2025-10-10 12:23:23' },
+  { ranking: '第2名', rankNum: 2, companyId: '283983', companyName: 'UU Talk',   cumulativeProfit: '73,233.23',  certEnterprises: 23,  members: 23,  masterId: '73721', masterNickname: 'name2', createdAt: '2025-10-10 12:23:23' },
+  { ranking: '第3名', rankNum: 3, companyId: '283984', companyName: 'Star Tech',  cumulativeProfit: '873,233.23', certEnterprises: 11,  members: 11,  masterId: '73722', masterNickname: 'name3', createdAt: '2025-10-10 12:23:23' },
+  { ranking: '第4名', rankNum: 4, companyId: '283985', companyName: 'Cyber Bot',  cumulativeProfit: '873,233.23', certEnterprises: 0,   members: 0,   masterId: '73723', masterNickname: 'name4', createdAt: '2025-10-10 12:23:23' },
+  { ranking: '第5名', rankNum: 5, companyId: '283986', companyName: 'Nova Corp',  cumulativeProfit: '873,233.23', certEnterprises: 32,  members: 32,  masterId: '73724', masterNickname: 'name5', createdAt: '2025-10-10 12:23:23' },
 ];
 
 const DashboardPage: React.FC = () => {
@@ -94,21 +162,34 @@ const DashboardPage: React.FC = () => {
   const [currency, setCurrency] = useState('USDT');
 
   const topColumns: ColumnsType<TopRow> = [
-    { title: '总贡献排名', dataIndex: 'ranking', width: 100 },
+    {
+      title: '总贡献排名', dataIndex: 'rankNum', width: 100,
+      render: (v: number, r: TopRow) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 26, height: 26, borderRadius: 6,
+            background: v <= 3 ? '#faad1420' : '#f5f5f5',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 13, fontWeight: 700, color: v <= 3 ? '#faad14' : 'rgba(0,0,0,0.65)',
+          }}>
+            {v <= 3 ? <TrophyOutlined /> : v}
+          </div>
+          <span style={{ fontWeight: 500, color: 'rgba(0,0,0,0.65)' }}>{r.ranking}</span>
+        </div>
+      ),
+    },
     { title: '公司ID', dataIndex: 'companyId', width: 90 },
-    { title: '公司名称', dataIndex: 'companyName', width: 100 },
-    { title: '公司累计盈利', dataIndex: 'cumulativeProfit', width: 130, sorter: true, render: (v) => <Text strong style={{ color: '#1677ff' }}>{v}</Text> },
+    { title: '公司名称', dataIndex: 'companyName', width: 110 },
+    { title: '公司累计盈利', dataIndex: 'cumulativeProfit', width: 140, sorter: true, render: (v) => <span style={{ color: '#141414' }}>{v}</span> },
     { title: '认证企业', dataIndex: 'certEnterprises', width: 90, sorter: true, align: 'right' },
     { title: '企业成员', dataIndex: 'members', width: 90, sorter: true, align: 'right' },
     { title: '公司主ID', dataIndex: 'masterId', width: 90 },
     { title: '公司主昵称', dataIndex: 'masterNickname', width: 100 },
     { title: '创建时间', dataIndex: 'createdAt', width: 170 },
     {
-      title: '操作',
-      width: 90,
-      fixed: 'right',
-      render: (_, r) => (
-        <Button type="link" size="small" style={{ color: '#722ed1', padding: 0 }}
+      title: '操作', width: 90, fixed: 'right' as const,
+      render: (_: unknown, r: TopRow) => (
+        <Button type="link" size="small" style={{ padding: 0 }}
           onClick={() => navigate(`/company/detail/${r.companyId}`)}>
           公司详情
         </Button>
@@ -119,7 +200,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div>
       {/* 顶部工具栏 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <Segmented
           options={['USDT', 'PEA']}
           value={currency}
@@ -128,123 +209,149 @@ const DashboardPage: React.FC = () => {
         />
         <Space size={6}>
           <Text type="secondary" style={{ fontSize: 12 }}>数据更新时间：2025-11-02 12:33:02</Text>
-          <ReloadOutlined style={{ color: '#1677ff', cursor: 'pointer', fontSize: 13 }} />
+          <ReloadOutlined style={{ color: '#722ed1', cursor: 'pointer', fontSize: 13 }} />
+        </Space>
+        <div style={{ flex: 1 }} />
+        <Space size={4}>
+          <Text type="secondary" style={{ fontSize: 12 }}>集团名称：</Text>
+          <Text style={{ fontSize: 12, fontWeight: 600 }}>XX集团</Text>
+          <Text type="secondary" style={{ fontSize: 12, marginLeft: 12 }}>集团ID：</Text>
+          <Text style={{ fontSize: 12, fontFamily: 'monospace', color: '#722ed1' }}>24897872938</Text>
         </Space>
       </div>
 
-      {/* ── 第一行 stat 卡片 ── */}
-      <Row gutter={[12, 12]}>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard title={`集团余额（${currency}）`} value="223,300.00" />
+      {/* ── 第一行 KPI 卡片 ── */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
+            title={`集团余额（${currency}）`}
+            value="223,300.00"
+            color="#722ed1"
+            icon={<BankOutlined />}
+          />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title={`下辖公司资产（${currency}）`}
             value="2,020.00"
+            color="#722ed1"
+            icon={<ApartmentOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322.00' },
               { label: '今日新增', value: '233,322.00' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title={`下辖企业资产（${currency}）`}
             value="2,020.00"
+            color="#13c2c2"
+            icon={<AppstoreOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322.00' },
               { label: '今日新增', value: '233,322.00' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title={`下辖持股估值（${currency}）`}
             value="2,020.00"
-            sub={[{ label: '持股企业', value: '2000家' }]}
+            color="#52c41a"
+            icon={<StockOutlined />}
+            sub={[{ label: '持股企业', value: '2,000 家' }]}
           />
         </Col>
       </Row>
 
-      {/* ── 第二行 stat 卡片 ── */}
-      <Row gutter={[12, 12]} style={{ marginTop: 12 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+      {/* ── 第二行 KPI 卡片 ── */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title={`东方彩票盈亏（${currency}）`}
             value="223,300.00"
+            color="#fa8c16"
+            icon={<GiftOutlined />}
             sub={[
               { label: '昨日盈亏', value: '233,322' },
               { label: '今日盈亏', value: '233,322' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title={`股份收益（${currency}）`}
             value="202,320.00"
+            color="#eb2f96"
+            icon={<FundOutlined />}
             sub={[
               { label: '收益', value: '233,322.00' },
               { label: '支出', value: '233,322.00' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title={`税费收益（${currency}）`}
             value="202,320.00"
+            color="#52c41a"
+            icon={<AccountBookOutlined />}
             sub={[
               { label: '昨日收益', value: '233,322.00' },
               { label: '今日收益', value: '233,322.00' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ height: '100%' }}>
-            <Text type="secondary" style={{ fontSize: 13 }}>集团资金下拨</Text>
-            <div style={{ fontSize: 22, fontWeight: 700, margin: '4px 0 8px' }}>202,320.00</div>
-            <Divider style={{ margin: '8px 0' }} />
-            <Text type="secondary" style={{ fontSize: 13 }}>集团资金调回</Text>
-            <div style={{ fontSize: 22, fontWeight: 700, marginTop: 4 }}>202,320.00</div>
-          </Card>
+        <Col xs={24} sm={12} xl={6}>
+          <DualCard />
         </Col>
       </Row>
 
-      {/* ── 第三行 stat 卡片 ── */}
-      <Row gutter={[12, 12]} style={{ marginTop: 12 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+      {/* ── 第三行 KPI 卡片 ── */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title="下辖公司（家）"
             value="22"
+            color="#722ed1"
+            icon={<ShopOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233,322' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title="参股公司（家）"
             value="22"
+            color="#722ed1"
+            icon={<PieChartOutlined />}
             sub={[
               { label: '昨日参股', value: '+233,322' },
               { label: '今日参股', value: '-233,322' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title="下辖企业（家）"
             value="22"
+            color="#13c2c2"
+            icon={<ClusterOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233' },
             ]}
           />
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatCard
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
             title="下辖成员（个）"
             value="223,234"
+            color="#52c41a"
+            icon={<TeamOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233' },
@@ -254,63 +361,70 @@ const DashboardPage: React.FC = () => {
       </Row>
 
       {/* ── 折线图区（8张） ── */}
-      <Row gutter={[12, 12]} style={{ marginTop: 12 }}>
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="集团余额">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="集团余额">
             <Line {...chartCfg(groupBalanceData)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="下辖公司资产">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖公司资产">
             <Line {...chartCfg(companyAssetData)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="下辖企业总资产">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业总资产">
             <Line {...chartCfg(enterpriseTotal)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="下辖持股估值">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖持股估值">
             <Line {...chartCfg(holdingValData)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="下辖企业盈亏">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业盈亏">
             <Line {...chartCfg(enterprisePnl)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="下辖企业流水">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业流水">
             <Line {...chartCfg(enterpriseFlow)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="下辖企业">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业">
             <Line {...chartCfg(enterpriseCount)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} title="下辖企业成员">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业成员">
             <Line {...chartCfg(enterpriseMember)} />
           </Card>
         </Col>
       </Row>
 
       {/* ── TOP5 收益贡献排行榜 ── */}
-      <Row gutter={[12, 12]} style={{ marginTop: 12 }}>
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col span={24}>
           <Card
             bordered={false}
-            title={`收益贡献排行榜TOP5（${currency}）`}
+            style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
+            title={
+              <Space>
+                <TrophyOutlined style={{ color: '#faad14', fontSize: 18 }} />
+                <span style={{ fontWeight: 700, fontSize: 16 }}>收益贡献排行榜 TOP 5</span>
+              </Space>
+            }
           >
             <Table
               columns={topColumns}
               dataSource={topData}
-              rowKey="ranking"
+              rowKey="rankNum"
               pagination={false}
               size="middle"
               scroll={{ x: 1100 }}
+              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
             />
           </Card>
         </Col>
