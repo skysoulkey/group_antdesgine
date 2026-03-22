@@ -8,6 +8,7 @@ import {
   FundOutlined,
   GiftOutlined,
   ImportOutlined,
+  InfoCircleOutlined,
   PieChartOutlined,
   ReloadOutlined,
   ShopOutlined,
@@ -20,11 +21,13 @@ import {
   Button,
   Card,
   Col,
+  ConfigProvider,
   Divider,
   Row,
   Segmented,
   Space,
   Table,
+  Tooltip,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -69,16 +72,24 @@ interface KpiCardProps {
   color: string;
   icon: React.ReactNode;
   sub?: Sub[];
+  tooltip?: string;
 }
 
-const KpiCard: React.FC<KpiCardProps> = ({ title, value, color, icon, sub }) => (
+const KpiCard: React.FC<KpiCardProps> = ({ title, value, color, icon, sub, tooltip }) => (
   <Card
     bordered={false}
     style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
     styles={{ body: { padding: '20px 24px' } }}
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>{title}</Text>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>{title}</Text>
+        {tooltip && (
+          <Tooltip title={tooltip}>
+            <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+          </Tooltip>
+        )}
+      </div>
       <div style={{
         width: 44, height: 44, borderRadius: 10,
         background: `${color}18`,
@@ -118,7 +129,12 @@ const DualCard: React.FC = () => (
     styles={{ body: { padding: '20px 24px' } }}
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
+        <Tooltip title="集团向下辖公司累计下拨的资金总额">
+          <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+        </Tooltip>
+      </div>
       <div style={{ width: 32, height: 32, borderRadius: 8, background: '#faad1418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <ExportOutlined style={{ color: '#faad14', fontSize: 16 }} />
       </div>
@@ -126,13 +142,28 @@ const DualCard: React.FC = () => (
     <div style={{ fontSize: 24, fontWeight: 700, color: '#52c41a', marginBottom: 16 }}>202,320.00</div>
     <Divider style={{ margin: '0 0 12px' }} />
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金调回</Text>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金调回</Text>
+        <Tooltip title="集团从下辖公司累计调回的资金总额">
+          <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+        </Tooltip>
+      </div>
       <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ff4d4f18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <ImportOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
       </div>
     </div>
     <div style={{ fontSize: 24, fontWeight: 700, color: '#ff4d4f' }}>202,320.00</div>
   </Card>
+);
+
+// ── 折线图 title 带注释 ──────────────────────────────────────────
+const chartTitle = (label: string, tip: string) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+    {label}
+    <Tooltip title={tip}>
+      <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+    </Tooltip>
+  </span>
 );
 
 // ── TOP5 表格 ───────────────────────────────────────────
@@ -201,12 +232,19 @@ const DashboardPage: React.FC = () => {
     <div>
       {/* 顶部工具栏 */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-        <Segmented
-          options={['USDT', 'PEA']}
-          value={currency}
-          onChange={(v) => setCurrency(v as string)}
-          style={{ fontWeight: 600 }}
-        />
+        <ConfigProvider theme={{ components: { Segmented: {
+          trackBg: '#f9f0ff',
+          itemSelectedBg: '#722ed1',
+          itemSelectedColor: '#ffffff',
+          itemColor: '#722ed1',
+        } } }}>
+          <Segmented
+            options={['USDT', 'PEA']}
+            value={currency}
+            onChange={(v) => setCurrency(v as string)}
+            style={{ fontWeight: 600 }}
+          />
+        </ConfigProvider>
         <Space size={6}>
           <Text type="secondary" style={{ fontSize: 12 }}>数据更新时间：2025-11-02 12:33:02</Text>
           <ReloadOutlined style={{ color: '#722ed1', cursor: 'pointer', fontSize: 13 }} />
@@ -228,6 +266,7 @@ const DashboardPage: React.FC = () => {
             value="223,300.00"
             color="#722ed1"
             icon={<BankOutlined />}
+            tooltip="本集团钱包当前可用余额，点击可跳转至钱包页面查看明细"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -240,6 +279,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日新增', value: '233,322.00' },
               { label: '今日新增', value: '233,322.00' },
             ]}
+            tooltip="汇总本集团下所有公司的总资产，按总资产从高到低排序"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -252,6 +292,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日新增', value: '233,322.00' },
               { label: '今日新增', value: '233,322.00' },
             ]}
+            tooltip="汇总本集团下所有企业的总资产，按总资产从高到低排序"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -261,6 +302,7 @@ const DashboardPage: React.FC = () => {
             color="#52c41a"
             icon={<StockOutlined />}
             sub={[{ label: '持股企业', value: '2,000 家' }]}
+            tooltip="汇总本集团下所有公司的持股估值，按估值从高到低排序"
           />
         </Col>
       </Row>
@@ -277,6 +319,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日盈亏', value: '233,322' },
               { label: '今日盈亏', value: '233,322' },
             ]}
+            tooltip="汇总本集团下所有企业的东方彩票历史盈亏总和"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -289,6 +332,7 @@ const DashboardPage: React.FC = () => {
               { label: '收益', value: '233,322.00' },
               { label: '支出', value: '233,322.00' },
             ]}
+            tooltip="汇总本集团下所有公司的持股收益，按股份收益从高到低排序"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -301,6 +345,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日收益', value: '233,322.00' },
               { label: '今日收益', value: '233,322.00' },
             ]}
+            tooltip="汇总本集团下所有公司通过税费获得的收益总和（含昨日/今日增量）"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -320,6 +365,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233,322' },
             ]}
+            tooltip="本集团下辖公司的总数量（含昨日/今日新增）"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -332,6 +378,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日参股', value: '+233,322' },
               { label: '今日参股', value: '-233,322' },
             ]}
+            tooltip="本集团持有股份的公司总数量"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -344,6 +391,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233' },
             ]}
+            tooltip="本集团下辖企业的总数量（含昨日/今日新增）"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -356,6 +404,7 @@ const DashboardPage: React.FC = () => {
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233' },
             ]}
+            tooltip="本集团下辖所有公司的注册成员总数（含昨日/今日新增）"
           />
         </Col>
       </Row>
@@ -363,42 +412,42 @@ const DashboardPage: React.FC = () => {
       {/* ── 折线图区（8张） ── */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="集团余额">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('集团余额', '横轴按天，展示最近31天集团钱包余额变化趋势（单位：USDT/PEA）')}>
             <Line {...chartCfg(groupBalanceData)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖公司资产">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖公司资产', '横轴按天，展示最近31天集团下所有公司总资产合计的变化趋势')}>
             <Line {...chartCfg(companyAssetData)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业总资产">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业总资产', '横轴按天，展示最近31天集团下所有企业总资产合计的变化趋势')}>
             <Line {...chartCfg(enterpriseTotal)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖持股估值">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖持股估值', '横轴按天，展示最近31天集团下所有持股估值合计的变化趋势')}>
             <Line {...chartCfg(holdingValData)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业盈亏">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业盈亏', '横轴按天，展示最近31天集团下所有企业盈亏总和的变化趋势')}>
             <Line {...chartCfg(enterprisePnl)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业流水">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业流水', '横轴按天，展示最近31天集团下所有企业游戏流水合计的变化趋势')}>
             <Line {...chartCfg(enterpriseFlow)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业', '横轴按天，展示最近31天集团下辖企业数量的变化趋势')}>
             <Line {...chartCfg(enterpriseCount)} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title="下辖企业成员">
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业成员', '横轴按天，展示最近31天集团下辖所有企业成员总数的变化趋势')}>
             <Line {...chartCfg(enterpriseMember)} />
           </Card>
         </Col>

@@ -10,11 +10,11 @@
 
 | 名称 | 色值 | 用途 |
 |------|------|------|
-| Primary（主色） | `#1677ff` | 链接、主按钮、KPI 数值高亮、图标 |
+| Primary（主色） | `#722ed1` | 导航选中、主按钮、链接、KPI 高亮、操作按钮、图标 |
 | Success（成功） | `#52c41a` | 正常状态、盈利、收益、已完成 |
 | Warning（警告） | `#faad14` | 待处理、排名金色、注意项 |
 | Error（错误） | `#ff4d4f` | 亏损、失败、撤回、错误提示 |
-| Purple（紫色） | `#722ed1` | 持股估值、辅助强调 |
+| Purple Light（紫色浅） | `#f9f0ff` | 紫色系背景、Segmented 容器底色 |
 | Cyan（青色） | `#13c2c2` | 股份相关数据 |
 | Orange（橙色） | `#fa8c16` | 彩票、运营类数据 |
 | Pink（粉色） | `#eb2f96` | 佣金收益类 |
@@ -127,8 +127,9 @@ border:        none（bordered={false}）
 - 表头字色：Ant Design 默认（`rgba(0,0,0,0.88)`）
 - 表格正文：`color: #141414`（主列）/ `rgba(0,0,0,0.65)`（次要列）
 - **不使用** `<Text type="secondary">` 或自定义蓝色高亮正文
-- 金额列：`fontWeight: 600, color: #141414`
-- 操作列：`type="link"` 按钮，默认蓝色 `#1677ff`，特殊场景可用紫色 `#722ed1`
+- 金额列：`color: #141414`，**不加粗**，视觉强调通过颜色区分（正值 `#52c41a`，负值 `#ff4d4f`）
+- 操作列：`type="link"` 按钮，统一使用紫色 `#722ed1`（继承全局 `colorPrimary`，**不需要**显式写 color 样式）；字重 400，禁止加粗；字号 14px（Ant Design 默认）
+- **表格正文（表头以外）一律不加粗**（`fontWeight: 400`）；仅表头、卡片标题、数值大字等结构性元素可加粗
 - 斑马纹：奇偶行交替，偶数行 `background: #fafafa`（CSS class `.table-row-light td`）
 - 排名前三：使用 `TrophyOutlined`（`color: #faad14`），4-5 名显示数字，文字色统一 `rgba(0,0,0,0.65)`
 
@@ -175,3 +176,28 @@ Content（margin: 24px）
 | KPI 卡片（4列） | `xs={24} sm={12} xl={6}` |
 | 图表卡片（2列） | `xs={24} lg={12}` |
 | 全宽表格 | `span={24}` |
+
+---
+
+## 十、仪表盘 KPI 卡片注释规范
+
+每个 KPI 卡片 title 右侧须放置 `<InfoCircleOutlined>` 小图标，用 `<Tooltip>` 包裹，鼠标悬停展示数据统计口径说明。
+
+```tsx
+import { InfoCircleOutlined } from '@ant-design/icons';
+import { Tooltip } from 'antd';
+
+// KpiCard title 行
+<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+  <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>{title}</Text>
+  {tooltip && (
+    <Tooltip title={tooltip}>
+      <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+    </Tooltip>
+  )}
+</div>
+```
+
+- 图标大小：`12px`，颜色：`rgba(0,0,0,0.35)`（最弱文字色），`cursor: help`
+- 折线图卡片 title 同样加注释图标
+- Tooltip 文案说明：数据统计来源、汇总口径、跳转目标（如适用）
