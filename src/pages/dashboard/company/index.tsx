@@ -131,12 +131,7 @@ const DualCard: React.FC = () => (
     styles={{ body: { padding: '20px 24px' } }}
   >
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
-        <Tooltip title="集团向本公司累计下拨的资金总额">
-          <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
-        </Tooltip>
-      </div>
+      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
       <div style={{ width: 32, height: 32, borderRadius: 8, background: '#faad1418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <ExportOutlined style={{ color: '#faad14', fontSize: 16 }} />
       </div>
@@ -146,7 +141,7 @@ const DualCard: React.FC = () => (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金调回</Text>
-        <Tooltip title="集团从本公司累计调回的资金总额">
+        <Tooltip title="集团从公司账户转出金额之和">
           <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
         </Tooltip>
       </div>
@@ -298,7 +293,7 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日新增', value: '233,322.00' },
               { label: '今日新增', value: '233,322.00' },
             ]}
-            tooltip="本公司当前持有的总资产，包含钱包余额、持股估值等各类资产合计"
+            tooltip="企业余额及应用余额之和"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -308,7 +303,7 @@ const CompanyDashboard: React.FC = () => {
             color="#722ed1"
             icon={<StockOutlined />}
             sub={[{ label: '持股企业', value: '2,000 家' }]}
-            tooltip="本公司持有所有企业股份的当前估值合计"
+            tooltip="公司当前持有企业资产之和"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -321,7 +316,6 @@ const CompanyDashboard: React.FC = () => {
               { label: '收益', value: '233,322.00' },
               { label: '支出', value: '233,322.00' },
             ]}
-            tooltip="本公司持股的历史累计盈亏（收益减去支出）"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -334,7 +328,7 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日收益', value: '233,322.00' },
               { label: '今日收益', value: '233,322.00' },
             ]}
-            tooltip="本公司通过税费机制获得的收益总和（含昨日/今日增量）"
+            tooltip="股份交易税费及分红税之和"
           />
         </Col>
       </Row>
@@ -351,7 +345,7 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日盈亏', value: '233,322.00' },
               { label: '今日盈亏', value: '233,322.00' },
             ]}
-            tooltip="本公司参与东方彩票的历史盈亏合计（含昨日/今日增量）"
+            tooltip="东方彩票订单-订单赔付"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -364,7 +358,6 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日收益', value: '233,322.00' },
               { label: '今日收益', value: '233,322.00' },
             ]}
-            tooltip="本公司从下辖企业获得的佣金收益总和（含昨日/今日增量）"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -377,7 +370,7 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日支出', value: '233,322.00' },
               { label: '今日支出', value: '233,322.00' },
             ]}
-            tooltip="本公司支付给企业成员的佣金总支出（含昨日/今日增量）"
+            tooltip="本公司支出佣金之和"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -397,7 +390,7 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233,322' },
             ]}
-            tooltip="本公司下完成认证的企业总数（含昨日/今日新增）"
+            tooltip="本公司下完成认证的企业总数"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -410,7 +403,6 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日新增', value: '233,322' },
               { label: '今日新增', value: '233' },
             ]}
-            tooltip="本公司的注册成员总数（含昨日/今日新增）"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -420,7 +412,7 @@ const CompanyDashboard: React.FC = () => {
             color="#fa8c16"
             icon={<UsergroupAddOutlined />}
             sub={[{ label: '昨日参与', value: '33' }]}
-            tooltip="参与过游戏的成员数（含昨日参与增量）"
+            tooltip="参与投注或红包游戏的成员"
           />
         </Col>
         <Col xs={24} sm={12} xl={6}>
@@ -433,7 +425,7 @@ const CompanyDashboard: React.FC = () => {
               { label: '昨日活跃', value: '233' },
               { label: '七日留存', value: '233' },
             ]}
-            tooltip="近期有活跃行为的成员数（含昨日活跃、七日留存数据）"
+            tooltip="本日存在登录记录"
           />
         </Col>
       </Row>
@@ -441,22 +433,22 @@ const CompanyDashboard: React.FC = () => {
       {/* ── 折线图区（6张） ── */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
-          <ChartCard title="公司总资产" value="223,300.00" data={charts.asset} tooltip="横轴按天，展示最近31天公司总资产变化趋势（单位：USDT/PEA）" />
+          <ChartCard title="公司总资产" value="223,300.00" data={charts.asset} tooltip="展示最近31天公司总资产（企业余额及应用余额之和）变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="公司盈亏" value="202,320.00" data={charts.profit} tooltip="横轴按天，展示最近31天公司综合盈亏变化趋势" />
+          <ChartCard title="公司盈亏" value="202,320.00" data={charts.profit} tooltip="展示最近31天公司综合盈亏变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="企业总资产" value="234,560.00" data={charts.enterprise} tooltip="横轴按天，展示最近31天本公司下所有企业总资产合计的变化趋势" />
+          <ChartCard title="企业总资产" value="234,560.00" data={charts.enterprise} tooltip="展示最近31天本公司下所有企业总资产合计的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="认证企业" value="22 家" data={charts.cert} tooltip="横轴按天，展示最近31天本公司认证企业数量的变化趋势" />
+          <ChartCard title="认证企业" value="22 家" data={charts.cert} tooltip="本公司下认证企业数量" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="成员总数" value="200 人" data={charts.member} tooltip="横轴按天，展示最近31天本公司注册成员总数的变化趋势" />
+          <ChartCard title="成员总数" value="200 人" data={charts.member} tooltip="展示最近31天本公司注册成员总数的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="参与成员" value="200 人" data={charts.particip} tooltip="横轴按天，展示最近31天参与游戏的成员数量变化趋势" />
+          <ChartCard title="参与成员" value="200 人" data={charts.particip} tooltip="本日参与东方彩票游戏的成员之和" />
         </Col>
       </Row>
 
