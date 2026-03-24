@@ -179,6 +179,7 @@ const LoginPage: React.FC = () => {
     setTimeout(() => {
       localStorage.setItem('token', 'mock-token-12345');
       localStorage.setItem('userInfo', JSON.stringify({ name: 'Miya', role: '集团管理员' }));
+      localStorage.setItem('mock_role', 'group_admin');
       message.success('登录成功');
       navigate('/dashboard');
       setLoading(false);
