@@ -179,7 +179,70 @@ Content（margin: 24px）
 
 ---
 
-## 十、仪表盘 KPI 卡片注释规范
+## 十、筛选区规范
+
+### 10.1 可枚举选项 — 平铺 Radio.Button
+
+当筛选项的可选值固定可枚举（≤ 6 个），必须使用 `Radio.Group + Radio.Button` 平铺展示，**不使用下拉 Select**。
+
+```tsx
+import { ConfigProvider, Radio } from 'antd';
+
+// 主题覆盖（统一紫色选中态）
+const radioTheme = {
+  components: {
+    Radio: {
+      buttonCheckedBg: '#ffffff',
+      buttonSolidCheckedBg: '#ffffff',
+      buttonSolidCheckedColor: '#722ed1',
+      buttonSolidCheckedHoverBg: '#ffffff',
+      colorPrimary: '#722ed1',
+      colorBorder: '#d9d9d9',
+    },
+  },
+};
+
+// 用法示例（订单类型 / 货币单位）
+<ConfigProvider theme={radioTheme}>
+  <Radio.Group
+    value={orderType}
+    onChange={(e) => setOrderType(e.target.value)}
+    buttonStyle="outline"
+  >
+    {['全部', '集团下拨', '集团调回'].map((t) => (
+      <Radio.Button
+        key={t}
+        value={t}
+        style={orderType === t ? { color: '#722ed1', borderColor: '#722ed1' } : {}}
+      >
+        {t}
+      </Radio.Button>
+    ))}
+  </Radio.Group>
+</ConfigProvider>
+```
+
+**选中态**：白底 + 紫色文字 + 紫色边框（`#722ed1`）
+**未选中态**：白底 + 默认灰色文字 + 默认灰色边框
+
+### 10.2 筛选区布局
+
+- 筛选区与表格区分为**两个独立卡片**，上下排列（`Space direction="vertical" size={16}`）
+- 每行筛选项用 `Space size={24} wrap` 横向排列
+- 标签文字（如"订单类型："）使用 `whiteSpace: 'nowrap'` 防止折行
+- 可枚举项（Radio.Button）与不可枚举项（Select / Input）可共存于同一行
+
+### 10.3 选择方式判断规则
+
+| 场景 | 组件 |
+|------|------|
+| 可选值固定，≤ 6 项 | `Radio.Button` 平铺 |
+| 可选值动态或较多（> 6） | `Select` 下拉 |
+| 文本搜索 | `Input` + 搜索图标 |
+
+---
+
+## 十一、仪表盘 KPI 卡片注释规范
 
 每个 KPI 卡片 title 右侧须放置 `<InfoCircleOutlined>` 小图标，用 `<Tooltip>` 包裹，鼠标悬停展示数据统计口径说明。
 

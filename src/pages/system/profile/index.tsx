@@ -1,14 +1,12 @@
-import { EditOutlined, LockOutlined, UserOutlined } from '@ant-design/icons';
+import { LockOutlined } from '@ant-design/icons';
 import {
-  Avatar,
   Button,
   Card,
-  Col,
   Descriptions,
+  Divider,
   Form,
   Input,
   Modal,
-  Row,
   Space,
   Switch,
   Tabs,
@@ -17,7 +15,9 @@ import {
 } from 'antd';
 import React, { useState } from 'react';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
+
+const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
 const ProfilePage: React.FC = () => {
   const [pwdOpen, setPwdOpen] = useState(false);
@@ -47,8 +47,8 @@ const ProfilePage: React.FC = () => {
       key: 'company',
       label: '公司信息',
       children: (
-        <Card bordered={false}>
-          <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 120 }} bordered>
+        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
+          <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130 }} bordered>
             <Descriptions.Item label="公司名称">
               <Text strong>{companyInfo.name}</Text>
             </Descriptions.Item>
@@ -56,17 +56,14 @@ const ProfilePage: React.FC = () => {
               <Tag color="blue">{companyInfo.group}</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="通知账号">
-              {companyInfo.notifyAccounts.split(';').map((a) => (
-                <Tag key={a} style={{ marginBottom: 4 }}>
-                  {a}
-                </Tag>
-              ))}
+              <Space wrap size={4}>
+                {companyInfo.notifyAccounts.split(';').map((a) => (
+                  <Tag key={a}>{a}</Tag>
+                ))}
+              </Space>
             </Descriptions.Item>
             <Descriptions.Item label="创建时间">{companyInfo.createdAt}</Descriptions.Item>
           </Descriptions>
-          <div style={{ marginTop: 16 }}>
-            <Button icon={<EditOutlined />}>编辑公司信息</Button>
-          </div>
         </Card>
       ),
     },
@@ -74,64 +71,38 @@ const ProfilePage: React.FC = () => {
       key: 'personal',
       label: '个人设置',
       children: (
-        <Row gutter={[24, 24]}>
-          <Col xs={24} lg={8}>
-            <Card bordered={false} style={{ textAlign: 'center', borderRadius: 8 }}>
-              <Avatar
-                size={80}
-                style={{ background: '#722ed1', fontSize: 32, marginBottom: 16 }}
+        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
+          <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130 }} bordered>
+            <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
+            <Descriptions.Item label="角色">
+              <Tag color="blue">{personalInfo.role}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="邮箱">{personalInfo.email}</Descriptions.Item>
+            <Descriptions.Item label="账户有效期">
+              <Text type="success">{personalInfo.validPeriod}</Text>
+            </Descriptions.Item>
+            <Descriptions.Item label="最近登录IP">
+              <Space>
+                <Text style={{ fontFamily: 'monospace' }}>{personalInfo.lastLoginIp}</Text>
+                <Text>{personalInfo.lastLoginCountry}</Text>
+              </Space>
+            </Descriptions.Item>
+            <Descriptions.Item label="最近登录时间">{personalInfo.lastLoginTime}</Descriptions.Item>
+            <Descriptions.Item label="账号创建时间">{personalInfo.createdAt}</Descriptions.Item>
+            <Descriptions.Item label="MFA 认证">
+              <Switch defaultChecked={personalInfo.mfaEnabled} />
+            </Descriptions.Item>
+            <Descriptions.Item label="登录密码">
+              <Button
+                size="small"
+                icon={<LockOutlined />}
+                onClick={() => setPwdOpen(true)}
               >
-                M
-              </Avatar>
-              <Title level={4} style={{ margin: 0 }}>
-                {personalInfo.username}
-              </Title>
-              <Tag color="blue" style={{ marginTop: 8 }}>
-                {personalInfo.role}
-              </Tag>
-              <div style={{ marginTop: 16 }}>
-                <Button icon={<LockOutlined />} onClick={() => setPwdOpen(true)}>
-                  修改密码
-                </Button>
-              </div>
-            </Card>
-          </Col>
-
-          <Col xs={24} lg={16}>
-            <Card bordered={false} style={{ borderRadius: 8 }}>
-              <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130 }} bordered>
-                <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
-                <Descriptions.Item label="角色">
-                  <Tag color="blue">{personalInfo.role}</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="邮箱">{personalInfo.email}</Descriptions.Item>
-                <Descriptions.Item label="账户有效期">
-                  <Text type="success">{personalInfo.validPeriod}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="最近登录IP">
-                  <Space>
-                    <Text style={{ fontFamily: 'monospace' }}>{personalInfo.lastLoginIp}</Text>
-                    <Text>{personalInfo.lastLoginCountry}</Text>
-                  </Space>
-                </Descriptions.Item>
-                <Descriptions.Item label="最近登录时间">
-                  {personalInfo.lastLoginTime}
-                </Descriptions.Item>
-                <Descriptions.Item label="账号创建时间">
-                  {personalInfo.createdAt}
-                </Descriptions.Item>
-                <Descriptions.Item label="MFA 认证">
-                  <Space>
-                    <Switch defaultChecked={personalInfo.mfaEnabled} />
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      （当前角色MFA为【可选】，可自行开启）
-                    </Text>
-                  </Space>
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Col>
-        </Row>
+                修改密码
+              </Button>
+            </Descriptions.Item>
+          </Descriptions>
+        </Card>
       ),
     },
   ];

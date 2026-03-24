@@ -17,7 +17,8 @@ export default defineConfig({
     { path: '/company/detail/:id',component: 'company/detail/index' },
     { path: '/finance/allocate',  component: 'finance/allocate/index' },
     { path: '/finance/recall',    component: 'finance/recall/index' },
-    { path: '/finance/revenue',   component: 'finance/revenue/index' },
+    { path: '/finance/revenue',              component: 'finance/revenue/index' },
+    { path: '/finance/revenue/detail/:month', component: 'finance/revenue/detail' },
 
     // 公司管理
     { path: '/company/shareholding', component: 'company/shareholding/index' },

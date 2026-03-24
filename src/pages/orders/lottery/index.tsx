@@ -12,9 +12,11 @@ import {
   Button,
   Card,
   Col,
+  ConfigProvider,
   DatePicker,
   Drawer,
   Divider,
+  Radio,
   Row,
   Select,
   Space,
@@ -196,8 +198,17 @@ const LotteryPage: React.FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>游戏：</Text>
-            <Select placeholder="游戏名称" value={game} onChange={setGame} allowClear style={{ width: 140 }}
-              options={GAMES.map((g) => ({ value: g, label: g }))} />
+            <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+              <Radio.Group buttonStyle="outline" value={game ?? '全部'}
+                onChange={e => setGame(e.target.value === '全部' ? undefined : e.target.value)}>
+                {(['全部', ...GAMES]).map((v) => (
+                  <Radio.Button key={v} value={v}
+                    style={(game ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                    {v}
+                  </Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>发起时间：</Text>

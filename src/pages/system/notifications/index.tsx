@@ -1,5 +1,5 @@
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Card, Descriptions, Divider, Form, Input, Modal, Select, Space, Table, Tabs, Tag, Typography, message } from 'antd';
+import { Button, Card, ConfigProvider, Descriptions, Divider, Form, Input, Modal, Radio, Space, Table, Tabs, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
@@ -72,7 +72,6 @@ const NotificationsPage: React.FC = () => {
       title: '通知方式', dataIndex: 'method', width: 90,
       render: (v) => <Tag color={v === 'APP' ? 'blue' : 'purple'}>{v}</Tag>,
     },
-    { title: '通知内容', dataIndex: 'content', ellipsis: true },
     { title: '通知对象', dataIndex: 'target', width: 120 },
     {
       title: '消息回执', dataIndex: 'receipt', width: 90,
@@ -104,31 +103,38 @@ const NotificationsPage: React.FC = () => {
       label: '通知记录',
       children: (
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <Space style={{ marginBottom: 16 }} wrap>
-            <Input
-              placeholder="通知对象、通知内容"
-              value={searchKw}
-              onChange={(e) => setSearchKw(e.target.value)}
-              allowClear
-              style={{ width: 220 }}
-            />
-            <Select
-              placeholder="通知方式"
-              value={methodFilter}
-              onChange={setMethodFilter}
-              allowClear
-              style={{ width: 120 }}
-              options={[{ value: 'APP', label: 'APP' }, { value: '邮件', label: '邮件' }]}
-            />
-            <Select
-              placeholder="通知类型"
-              value={typeFilter}
-              onChange={setTypeFilter}
-              allowClear
-              style={{ width: 180 }}
-              options={NOTIF_TYPES.map((t) => ({ value: t, label: t }))}
-            />
-          </Space>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
+              <Space size={24} wrap align="center">
+                <Space size={8} align="center">
+                  <Text style={{ whiteSpace: 'nowrap' }}>通知方式：</Text>
+                  <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                    {['全部', 'APP', '邮件'].map((v) => (
+                      <Radio.Button key={v} value={v} style={(methodFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                    ))}
+                  </Radio.Group>
+                </Space>
+                <Space size={8} align="center">
+                  <Text style={{ whiteSpace: 'nowrap' }}>搜索：</Text>
+                  <Input
+                    placeholder="通知对象"
+                    value={searchKw}
+                    onChange={(e) => setSearchKw(e.target.value)}
+                    allowClear
+                    style={{ width: 200 }}
+                  />
+                </Space>
+              </Space>
+              <Space size={8} align="center">
+                <Text style={{ whiteSpace: 'nowrap' }}>通知类型：</Text>
+                <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                  {['全部', ...NOTIF_TYPES].map((v) => (
+                    <Radio.Button key={v} value={v} style={(typeFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                  ))}
+                </Radio.Group>
+              </Space>
+            </Space>
+          </ConfigProvider>
           <Table
             columns={columns}
             dataSource={filtered}

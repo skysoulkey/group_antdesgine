@@ -41,29 +41,53 @@ const { Text } = Typography;
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
 
-// ── 折线图数据 ────────────────────────────────────────────────────
-const months = ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
-const mk = (vals: number[]) => vals.map((v, i) => ({ date: months[i], value: v }));
+// ── 折线图数据（最近60天，按日展示）────────────────────────────────
+const BASE_DATE = new Date('2026-03-24');
+const days60 = Array.from({ length: 60 }, (_, i) => {
+  const d = new Date(BASE_DATE);
+  d.setDate(d.getDate() - 59 + i);
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+});
+
+/** 用正弦波 + 线性趋势生成确定性日级数据，避免随机抖动 */
+const mkDay = (base: number, amp: number, trend: number, phase: number) =>
+  days60.map((date, i) => ({
+    date,
+    value: Math.round(base + amp * Math.sin((i / 60) * Math.PI * 6 + phase) + trend * (i / 60)),
+  }));
 
 const charts = {
-  asset:      mk([28, 32, 35, 52, 38, 22, 18]),
-  profit:     mk([20, 28, 35, 50, 40, 25, 18]),
-  enterprise: mk([18, 25, 32, 48, 42, 28, 22]),
-  cert:       mk([15, 22, 30, 45, 40, 25, 28]),
-  member:     mk([20, 28, 35, 52, 38, 20, -5]),
-  particip:   mk([10, 18, 28, 45, 35, 20, -10]),
+  // Tooltip 注释：展示最近60天公司总资产（企业余额+应用余额之和）变化趋势
+  asset:      mkDay(2000, 400, 300, 0),
+  // Tooltip 注释：展示最近60天公司综合盈亏变化趋势
+  profit:     mkDay(1500, 350, 200, 1),
+  // Tooltip 注释：展示最近60天本公司下所有企业总资产合计的变化趋势
+  enterprise: mkDay(3000, 500, 400, 2),
+  // Tooltip 注释：本公司下认证企业数量变化趋势（日度快照）
+  cert:       mkDay(20, 5, 2, 0.5),
+  // Tooltip 注释：展示最近60天本公司注册成员总数变化趋势
+  member:     mkDay(180, 30, 20, 1.5),
+  // Tooltip 注释：本日参与东方彩票游戏的成员之和
+  particip:   mkDay(80, 40, 10, 2.5),
 };
 
-const chartCfg = (data: { date: string; value: number }[]) => ({
+const chartCfg = (data: { date: string; value: number }[], name: string) => ({
   data,
   xField: 'date',
   yField: 'value',
   shape: 'smooth',
-  point: { style: { fill: '#722ed1', stroke: '#722ed1' } },
+  point: false,                   // 60个点不显示 point，避免密集
   height: 220,
   autoFit: true,
   style: { stroke: '#722ed1' },
-  scale: { color: { range: ['#722ed1'] } },
+  scale: {
+    color: { range: ['#722ed1'] },
+    x: { tickCount: 10 },         // X轴只显示约10个刻度，避免拥挤
+  },
+  axis: {
+    x: { labelFontSize: 10, labelAutoRotate: true },
+  },
+  tooltip: { items: [{ channel: 'y' as const, name }] },
 });
 
 // ── KPI 卡片 ─────────────────────────────────────────────────────
@@ -178,7 +202,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, value, data, tooltip }) =>
     <div style={{ marginBottom: 16 }}>
       <span style={{ fontSize: 26, fontWeight: 700, color: '#141414', letterSpacing: -0.5 }}>{value}</span>
     </div>
-    <Line {...chartCfg(data)} />
+    <Line {...chartCfg(data, title)} />
   </Card>
 );
 
@@ -433,19 +457,19 @@ const CompanyDashboard: React.FC = () => {
       {/* ── 折线图区（6张） ── */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
-          <ChartCard title="公司总资产" value="223,300.00" data={charts.asset} tooltip="展示最近31天公司总资产（企业余额及应用余额之和）变化趋势" />
+          <ChartCard title="公司总资产" value="223,300.00" data={charts.asset} tooltip="展示最近60天公司总资产（企业余额及应用余额之和）变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="公司盈亏" value="202,320.00" data={charts.profit} tooltip="展示最近31天公司综合盈亏变化趋势" />
+          <ChartCard title="公司盈亏" value="202,320.00" data={charts.profit} tooltip="展示最近60天公司综合盈亏变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="企业总资产" value="234,560.00" data={charts.enterprise} tooltip="展示最近31天本公司下所有企业总资产合计的变化趋势" />
+          <ChartCard title="企业总资产" value="234,560.00" data={charts.enterprise} tooltip="展示最近60天本公司下所有企业总资产合计的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
           <ChartCard title="认证企业" value="22 家" data={charts.cert} tooltip="本公司下认证企业数量" />
         </Col>
         <Col xs={24} lg={12}>
-          <ChartCard title="成员总数" value="200 人" data={charts.member} tooltip="展示最近31天本公司注册成员总数的变化趋势" />
+          <ChartCard title="成员总数" value="200 人" data={charts.member} tooltip="展示最近60天本公司注册成员总数的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
           <ChartCard title="参与成员" value="200 人" data={charts.particip} tooltip="本日参与东方彩票游戏的成员之和" />

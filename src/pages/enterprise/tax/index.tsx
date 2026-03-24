@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography } from 'antd';
+import { Card, Row, Col, ConfigProvider, Input, Radio, Table, Tag, DatePicker, Typography } from 'antd';
 import { SearchOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -93,18 +93,47 @@ export default function EnterpriseTax() {
         <FileTextOutlined style={{ color: '#722ed1', fontSize: 18 }} />
         <Text style={{ fontSize: 16, fontWeight: 600 }}>企业税收</Text>
       </div>
-      <Row gutter={16} style={{ marginBottom: 16 }}>
+      <Row gutter={[16, 12]} style={{ marginBottom: 16 }} align="middle">
         <Col>
           <Input prefix={<SearchOutlined />} placeholder="搜索订单编号 / 企业名称"
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
-        <Col>
-          <Select placeholder="税收类型" value={taxTypeFilter} onChange={setTaxTypeFilter} allowClear
-            style={{ width: 130 }} options={TAX_TYPES.map(t => ({ label: t, value: t }))} />
+        <Col style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text style={{ whiteSpace: 'nowrap' }}>税收类型：</Text>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Radio.Group
+              buttonStyle="outline"
+              value={taxTypeFilter ?? '全部'}
+              onChange={(e) => setTaxTypeFilter(e.target.value === '全部' ? undefined : e.target.value)}
+            >
+              {(['全部', ...TAX_TYPES] as const).map((v) => (
+                <Radio.Button key={v} value={v} style={(taxTypeFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                  {v}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
         </Col>
-        <Col>
-          <Select placeholder="状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 130 }}
-            options={[{ label: '已结算', value: 'settled' }, { label: '待结算', value: 'pending' }, { label: '已取消', value: 'cancelled' }]} />
+        <Col style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Text style={{ whiteSpace: 'nowrap' }}>状态：</Text>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Radio.Group
+              buttonStyle="outline"
+              value={statusFilter ?? 'all'}
+              onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
+            >
+              {([
+                { v: 'all', label: '全部' },
+                { v: 'settled', label: '已结算' },
+                { v: 'pending', label: '待结算' },
+                { v: 'cancelled', label: '已取消' },
+              ]).map(({ v, label }) => (
+                <Radio.Button key={v} value={v} style={(statusFilter ?? 'all') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                  {label}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
         </Col>
         <Col><RangePicker style={{ width: 280 }} /></Col>
       </Row>

@@ -1,7 +1,9 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Button, Card, Input, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Card, ConfigProvider, Input, Radio, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
+
+const radioTheme = { components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } };
 
 const { Text } = Typography;
 
@@ -49,13 +51,19 @@ const operationLogs: OperationLog[] = Array.from({ length: 24 }, (_, i) => ({
   result: i % 8 === 0 ? '失败' : '成功',
 }));
 
+const ROLES = ['集团管理员', '公司管理员', '平台管理员'];
+
 const SystemLogsPage: React.FC = () => {
   const [loginSearch, setLoginSearch] = useState('');
+  const [loginRole, setLoginRole] = useState<string | undefined>();
   const [opSearch, setOpSearch] = useState('');
 
   const filteredLogin = loginLogs.filter((r) => {
     const kw = loginSearch.toLowerCase();
-    return !kw || r.username.toLowerCase().includes(kw) || r.loginIp.includes(kw);
+    return (
+      (!loginRole || r.role === loginRole) &&
+      (!kw || r.username.toLowerCase().includes(kw) || r.loginIp.includes(kw))
+    );
   });
 
   const filteredOp = operationLogs.filter((r) => {
@@ -83,10 +91,6 @@ const SystemLogsPage: React.FC = () => {
       title: '结果', dataIndex: 'result', width: 80,
       render: (v) => <Tag color={v === '成功' ? 'success' : 'error'}>{v}</Tag>,
     },
-    {
-      title: '操作', width: 80, fixed: 'right' as const,
-      render: () => <Button type="link" size="small" style={{ padding: 0 }}>详情</Button>,
-    },
   ];
 
   const opColumns: ColumnsType<OperationLog> = [
@@ -110,15 +114,30 @@ const SystemLogsPage: React.FC = () => {
       label: '登录日志',
       children: (
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <Space style={{ marginBottom: 16 }}>
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="账号名 / 登录IP"
-              value={loginSearch}
-              onChange={(e) => setLoginSearch(e.target.value)}
-              allowClear
-              style={{ width: 240 }}
-            />
+          <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
+            <Space size={24} wrap align="center">
+              <Space size={8} align="center">
+                <Text style={{ whiteSpace: 'nowrap' }}>角色：</Text>
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group value={loginRole ?? '全部'} onChange={(e) => setLoginRole(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                    {['全部', ...ROLES].map((v) => (
+                      <Radio.Button key={v} value={v} style={(loginRole ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                    ))}
+                  </Radio.Group>
+                </ConfigProvider>
+              </Space>
+              <Space size={8} align="center">
+                <Text style={{ whiteSpace: 'nowrap' }}>搜索：</Text>
+                <Input
+                  prefix={<SearchOutlined />}
+                  placeholder="账号名 / 登录IP"
+                  value={loginSearch}
+                  onChange={(e) => setLoginSearch(e.target.value)}
+                  allowClear
+                  style={{ width: 240 }}
+                />
+              </Space>
+            </Space>
           </Space>
           <Table
             columns={loginColumns}

@@ -36,8 +36,7 @@ const allMenuItems: MenuItem[] = [
     roles: ['group_admin', 'system_admin'],
     children: [
       { key: '/company/list',      label: '公司清单' },
-      { key: '/finance/allocate',  label: '集团下拨' },
-      { key: '/finance/recall',    label: '集团调回' },
+      { key: '/company/transfer',  label: '内部划转' },
       { key: '/finance/revenue',   label: '集团收益' },
     ],
   },
@@ -49,7 +48,6 @@ const allMenuItems: MenuItem[] = [
     children: [
       { key: '/company/shareholding', label: '公司持股' },
       { key: '/company/revenue',      label: '公司收益' },
-      { key: '/company/transfer',     label: '内部划转' },
     ],
   },
   {
@@ -102,12 +100,12 @@ const breadcrumbMap: Record<string, string[]> = {
   '/dashboard':              ['首页', '集团仪表盘'],
   '/dashboard/company':      ['首页', '公司仪表盘'],
   '/company/list':           ['集团管理', '公司清单'],
-  '/finance/allocate':       ['集团管理', '集团下拨'],
-  '/finance/recall':         ['集团管理', '集团调回'],
+  '/company/detail':         ['公司管理', '公司清单', '公司概览'],
   '/finance/revenue':        ['集团管理', '集团收益'],
+  '/finance/revenue/detail': ['集团管理', '集团收益', '收益汇算明细'],
   '/company/shareholding':   ['公司管理', '公司持股'],
   '/company/revenue':        ['公司管理', '公司收益'],
-  '/company/transfer':       ['公司管理', '内部划转'],
+  '/company/transfer':       ['集团管理', '内部划转'],
   '/enterprise/list':        ['企业管理', '企业清单'],
   '/enterprise/invite':      ['企业管理', '邀请企业'],
   '/orders/lottery':         ['公司订单', '东方彩票'],
@@ -133,8 +131,8 @@ function getBreadcrumb(pathname: string): string[] {
 
 function getDefaultOpenKeys(pathname: string): string[] {
   if (pathname.startsWith('/dashboard')) return ['dashboard'];
-  if (pathname.startsWith('/company/list') || pathname.startsWith('/finance/allocate') ||
-      pathname.startsWith('/finance/recall') || pathname.startsWith('/finance/revenue')) return ['group'];
+  if (pathname.startsWith('/company/list') || pathname.startsWith('/company/transfer') ||
+      pathname.startsWith('/finance/revenue')) return ['group'];
   if (pathname.startsWith('/company/')) return ['company'];
   if (pathname.startsWith('/enterprise')) return ['enterprise'];
   if (pathname.startsWith('/orders') || pathname.startsWith('/commission')) return ['orders'];

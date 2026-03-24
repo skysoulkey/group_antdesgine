@@ -1,7 +1,8 @@
 import { AccountBookOutlined, DownloadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, DatePicker, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import { Button, Card, Col, ConfigProvider, DatePicker, Radio, Row, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
+import { useNavigate } from 'umi';
 
 const { Text } = Typography;
 
@@ -26,6 +27,7 @@ const mockData: RevenueRow[] = [
 ];
 
 const FinanceRevenuePage: React.FC = () => {
+  const navigate = useNavigate();
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [month, setMonth] = useState<string | undefined>();
 
@@ -50,10 +52,15 @@ const FinanceRevenuePage: React.FC = () => {
     { title: '应纳税额', dataIndex: 'taxableAmount', width: 110, align: 'right', render: (v) => <Text style={{ color: '#fa8c16' }}>{v}</Text> },
     { title: '可划转收益', dataIndex: 'transferable', width: 130, align: 'right', render: (v) => <Text style={{ color: '#722ed1' }}>{v}</Text> },
     {
-      title: '操作', width: 100, fixed: 'right' as const,
+      title: '操作', width: 110, fixed: 'right' as const,
       render: (_, r) => r.status === '已出账单' ? (
         <Space size={0}>
-          <Button type="link" size="small" style={{ padding: '0 4px' }}>详细账单</Button>
+          <Button
+            type="link" size="small" style={{ padding: '0 4px' }}
+            onClick={() => navigate(`/finance/revenue/detail/${r.billMonth}`)}
+          >
+            详细账单
+          </Button>
           <Button type="link" size="small" style={{ padding: '0 4px' }} icon={<DownloadOutlined />} />
         </Space>
       ) : <Text type="secondary" style={{ fontSize: 12 }}>—</Text>,
@@ -94,9 +101,21 @@ const FinanceRevenuePage: React.FC = () => {
 
       {/* 账单列表 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-        <Space style={{ marginBottom: 16 }} wrap>
-          <Select placeholder="账单状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 140 }}
-            options={[{ value: '未出账单', label: '未出账单' }, { value: '已出账单', label: '已出账单' }]} />
+        <Space style={{ marginBottom: 16 }} wrap align="center">
+          <Text style={{ whiteSpace: 'nowrap' }}>账单状态：</Text>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Radio.Group
+              buttonStyle="outline"
+              value={statusFilter ?? '全部'}
+              onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
+            >
+              {(['全部', '未出账单', '已出账单'] as const).map((v) => (
+                <Radio.Button key={v} value={v} style={(statusFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                  {v}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
           <DatePicker picker="month" placeholder="汇算月份" onChange={(_, v) => setMonth(v as string)} style={{ width: 150 }} />
         </Space>
         <Table columns={columns} dataSource={filtered} rowKey="id" size="middle"

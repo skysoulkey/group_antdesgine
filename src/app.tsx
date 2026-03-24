@@ -10,6 +10,7 @@ export function rootContainer(container: React.ReactNode) {
       theme={{
         token: {
           colorPrimary: '#722ed1',
+          colorLink: '#722ed1',
           borderRadius: 8,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         },

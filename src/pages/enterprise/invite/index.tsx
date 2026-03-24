@@ -1,5 +1,5 @@
 import { KeyOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Card, Col, DatePicker, Form, Input, Modal, Row, Select, Space, Table, Tag, Typography } from 'antd';
+import { Button, Card, Col, ConfigProvider, DatePicker, Form, Input, Modal, Radio, Row, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { message } from 'antd';
 import React, { useState } from 'react';
@@ -136,17 +136,22 @@ const EnterpriseInvitePage: React.FC = () => {
               allowClear
               style={{ width: 200 }}
             />
-            <Select
-              placeholder="邀请状态"
-              value={inviteStatus}
-              onChange={setInviteStatus}
-              allowClear
-              style={{ width: 130 }}
-              options={[
-                { value: '已接受', label: `已接受 (${acceptedCount})` },
-                { value: '未接受', label: `未接受 (${pendingCount})` },
-              ]}
-            />
+            <Space size={4}>
+              <Text style={{ whiteSpace: 'nowrap' }}>邀请状态：</Text>
+              <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+                <Radio.Group
+                  buttonStyle="outline"
+                  value={inviteStatus ?? '全部'}
+                  onChange={(e) => setInviteStatus(e.target.value === '全部' ? undefined : e.target.value)}
+                >
+                  {(['全部', '已接受', '未接受'] as const).map((v) => (
+                    <Radio.Button key={v} value={v} style={(inviteStatus ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                      {v}
+                    </Radio.Button>
+                  ))}
+                </Radio.Group>
+              </ConfigProvider>
+            </Space>
           </Space>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
             生成邀请码

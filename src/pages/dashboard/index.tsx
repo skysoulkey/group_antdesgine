@@ -40,28 +40,45 @@ const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
 
 // ── 折线图数据 ──────────────────────────────────────────
-const months = ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
-const mk = (vals: number[]) => vals.map((v, i) => ({ date: months[i], value: v }));
+// ── 折线图数据（最近60天，按日展示）────────────────────────────────
+const BASE_DATE = new Date('2026-03-24');
+const days60 = Array.from({ length: 60 }, (_, i) => {
+  const d = new Date(BASE_DATE);
+  d.setDate(d.getDate() - 59 + i);
+  return d.toISOString().slice(0, 10);
+});
+const mkDay = (base: number, amp: number, trend: number, phase: number) =>
+  days60.map((date, i) => ({
+    date,
+    value: Math.round(base + amp * Math.sin((i / 60) * Math.PI * 6 + phase) + trend * (i / 60)),
+  }));
 
-const groupBalanceData   = mk([28, 32, 35, 52, 38, 22, 18]);
-const companyAssetData   = mk([30, 28, 35, 50, 32, 20, 16]);
-const enterpriseTotal    = mk([18, 25, 32, 48, 30, 18, 22]);
-const holdingValData     = mk([22, 30, 38, 55, 42, 28, 15]);
-const enterprisePnl      = mk([20, 28, 35, 50, 28, 15, 10]);
-const enterpriseFlow     = mk([25, 32, 38, 52, 35, 22, 18]);
-const enterpriseCount    = mk([5, -5, 15, 60, -20, -40, -50]);
-const enterpriseMember   = mk([0, -10, 20, 55, -15, -35, -45]);
+const groupBalanceData   = mkDay(5000, 800,  500,  0);
+const companyAssetData   = mkDay(3000, 500,  300,  1);
+const enterpriseTotal    = mkDay(8000, 1200, 800,  2);
+const holdingValData     = mkDay(4000, 700,  400,  0.5);
+const enterprisePnl      = mkDay(1500, 400,  200,  1.5);
+const enterpriseFlow     = mkDay(2000, 500,  300,  2.5);
+const enterpriseCount    = mkDay(50,   15,   5,    0.8);
+const enterpriseMember   = mkDay(500,  80,   40,   1.2);
 
-const chartCfg = (data: { date: string; value: number }[]) => ({
+const chartCfg = (data: { date: string; value: number }[], name: string) => ({
   data,
   xField: 'date',
   yField: 'value',
   shape: 'smooth',
-  point: { style: { fill: '#722ed1', stroke: '#722ed1' } },
+  point: false,                   // 60个点不显示 point
   height: 200,
   autoFit: true,
   style: { stroke: '#722ed1' },
-  scale: { color: { range: ['#722ed1'] } },
+  scale: {
+    color: { range: ['#722ed1'] },
+    x: { tickCount: 10 },         // X轴约10个刻度
+  },
+  axis: {
+    x: { labelFontSize: 10, labelAutoRotate: true },
+  },
+  tooltip: { items: [{ channel: 'y' as const, name }] },
 });
 
 // ── KPI 卡片 ─────────────────────────────────────────────────────
@@ -156,14 +173,33 @@ const DualCard: React.FC = () => (
   </Card>
 );
 
-// ── 折线图 title 带注释 ──────────────────────────────────────────
-const chartTitle = (label: string, tip: string) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-    {label}
-    <Tooltip title={tip}>
-      <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
-    </Tooltip>
-  </span>
+// ── 折线图卡片（带总计值）────────────────────────────────────────
+interface ChartCardProps {
+  title: string;
+  value: string;
+  data: { date: string; value: number }[];
+  tooltip?: string;
+}
+
+const ChartCard: React.FC<ChartCardProps> = ({ title, value, data, tooltip }) => (
+  <Card
+    bordered={false}
+    style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
+    styles={{ body: { padding: '20px 24px 12px' } }}
+  >
+    <div style={{ marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>{title}</Text>
+      {tooltip && (
+        <Tooltip title={tooltip}>
+          <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+        </Tooltip>
+      )}
+    </div>
+    <div style={{ marginBottom: 16 }}>
+      <span style={{ fontSize: 26, fontWeight: 700, color: '#141414', letterSpacing: -0.5 }}>{value}</span>
+    </div>
+    <Line {...chartCfg(data, title)} />
+  </Card>
 );
 
 // ── TOP5 表格 ───────────────────────────────────────────
@@ -407,44 +443,36 @@ const DashboardPage: React.FC = () => {
       {/* ── 折线图区（8张） ── */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('集团余额', '展示最近31天集团钱包余额变化趋势')}>
-            <Line {...chartCfg(groupBalanceData)} />
-          </Card>
+          <ChartCard title="集团余额" value="223,300.00" data={groupBalanceData}
+            tooltip="展示最近31天集团钱包余额变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖公司资产', '展示最近31天集团下所有公司总资产合计的变化趋势')}>
-            <Line {...chartCfg(companyAssetData)} />
-          </Card>
+          <ChartCard title="下辖公司资产" value="2,020,000.00" data={companyAssetData}
+            tooltip="展示最近31天集团下所有公司总资产合计的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业总资产', '展示最近31天集团下所有企业总资产合计的变化趋势')}>
-            <Line {...chartCfg(enterpriseTotal)} />
-          </Card>
+          <ChartCard title="下辖企业总资产" value="1,560,000.00" data={enterpriseTotal}
+            tooltip="展示最近31天集团下所有企业总资产合计的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖持股估值', '展示最近31天下辖公司持有企业股份估值之和的变化趋势')}>
-            <Line {...chartCfg(holdingValData)} />
-          </Card>
+          <ChartCard title="下辖持股估值" value="234,560.00" data={holdingValData}
+            tooltip="展示最近31天下辖公司持有企业股份估值之和的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业盈亏', '展示最近31天集团下所有企业盈亏总和的变化趋势')}>
-            <Line {...chartCfg(enterprisePnl)} />
-          </Card>
+          <ChartCard title="下辖企业盈亏" value="18,320.00" data={enterprisePnl}
+            tooltip="展示最近31天集团下所有企业盈亏总和的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业流水', '展示最近31天集团下所有企业游戏流水合计的变化趋势')}>
-            <Line {...chartCfg(enterpriseFlow)} />
-          </Card>
+          <ChartCard title="下辖企业流水" value="3,280,000.00" data={enterpriseFlow}
+            tooltip="展示最近31天集团下所有企业游戏流水合计的变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业', '展示最近31天本集团下完成认证的企业数量变化趋势')}>
-            <Line {...chartCfg(enterpriseCount)} />
-          </Card>
+          <ChartCard title="下辖企业" value="22 家" data={enterpriseCount}
+            tooltip="展示最近31天本集团下完成认证的企业数量变化趋势" />
         </Col>
         <Col xs={24} lg={12}>
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }} title={chartTitle('下辖企业成员', '展示最近31天本集团下所有企业成员总数的变化趋势')}>
-            <Line {...chartCfg(enterpriseMember)} />
-          </Card>
+          <ChartCard title="下辖企业成员" value="223,234 人" data={enterpriseMember}
+            tooltip="展示最近31天本集团下所有企业成员总数的变化趋势" />
         </Col>
       </Row>
 

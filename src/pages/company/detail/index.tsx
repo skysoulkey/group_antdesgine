@@ -1,46 +1,171 @@
-import { Line } from '@ant-design/plots';
-import { SearchOutlined } from '@ant-design/icons';
 import {
+  AccountBookOutlined,
+  ExportOutlined,
+  FundOutlined,
+  ImportOutlined,
+  InfoCircleOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+  StockOutlined,
+  TrophyOutlined,
+} from '@ant-design/icons';
+import { Line } from '@ant-design/plots';
+import {
+  Badge,
+  Button,
   Card,
   Col,
+  ConfigProvider,
+  Divider,
   Input,
   Row,
+  Segmented,
   Select,
   Space,
-  Statistic,
   Table,
   Tabs,
   Tag,
+  Tooltip,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React from 'react';
-import { useParams } from 'umi';
+import React, { useState } from 'react';
+import { useNavigate, useParams } from 'umi';
 
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
-// 折线图数据
-const assetTrendData = [
-  { date: '3/13', value: 980000 },
-  { date: '3/14', value: 1020000 },
-  { date: '3/15', value: 995000 },
-  { date: '3/16', value: 1080000 },
-  { date: '3/17', value: 1050000 },
-  { date: '3/18', value: 1120000 },
-  { date: '3/19', value: 1090000 },
+const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+const CARD_RADIUS = 12;
+
+// ── 公司列表（切换用）────────────────────────────────────────────
+const COMPANIES = [
+  { value: '283982', label: 'UU Talk' },
+  { value: '283983', label: 'Hey Talk' },
+  { value: '283984', label: '炸雷第一波' },
+  { value: '283985', label: 'Cyber Bot' },
+  { value: '283986', label: 'Star Tech' },
 ];
 
-const profitTrendData = [
-  { date: '3/13', value: 8000 },
-  { date: '3/14', value: -3000 },
-  { date: '3/15', value: 12000 },
-  { date: '3/16', value: -5000 },
-  { date: '3/17', value: 15000 },
-  { date: '3/18', value: 9000 },
-  { date: '3/19', value: -2000 },
+// ── 折线图数据 ────────────────────────────────────────────────────
+const months = ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
+const mk = (vals: number[]) => vals.map((v, i) => ({ date: months[i], value: v }));
+
+const assetData  = mk([28, 32, 35, 52, 38, 22, 18]);
+const profitData = mk([20, 28, 35, 52, 40, 25, 18]);
+
+const chartCfg = (data: { date: string; value: number }[], name: string) => ({
+  data,
+  xField: 'date',
+  yField: 'value',
+  shape: 'smooth',
+  point: { style: { fill: '#722ed1', stroke: '#722ed1' } },
+  height: 220,
+  autoFit: true,
+  style: { stroke: '#722ed1' },
+  tooltip: { items: [{ channel: 'y' as const, name }] },
+});
+
+// ── KPI 卡片 ─────────────────────────────────────────────────────
+interface Sub { label: string; value: string | number }
+interface KpiCardProps {
+  title: string;
+  value: string | number;
+  color: string;
+  icon: React.ReactNode;
+  sub?: Sub[];
+  tooltip?: string;
+}
+
+const KpiCard: React.FC<KpiCardProps> = ({ title, value, color, icon, sub, tooltip }) => (
+  <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
+    styles={{ body: { padding: '20px 24px' } }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>{title}</Text>
+        {tooltip && (
+          <Tooltip title={tooltip}>
+            <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+          </Tooltip>
+        )}
+      </div>
+      <div style={{
+        width: 44, height: 44, borderRadius: 10,
+        background: `${color}18`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+      }}>
+        <span style={{ fontSize: 20, color }}>{icon}</span>
+      </div>
+    </div>
+    <div style={{ marginTop: 8, marginBottom: sub ? 12 : 0 }}>
+      <span style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>{value}</span>
+    </div>
+    {sub && (
+      <>
+        <Divider style={{ margin: '10px 0' }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', rowGap: 4 }}>
+          {sub.map((s) => (
+            <div key={s.label}>
+              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#262626' }}>{s.value}</div>
+            </div>
+          ))}
+        </div>
+      </>
+    )}
+  </Card>
+);
+
+// ── 双值卡片（集团资金下拨 + 调回）────────────────────────────────
+const DualCard: React.FC = () => (
+  <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
+    styles={{ body: { padding: '20px 24px' } }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#faad1418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <ExportOutlined style={{ color: '#faad14', fontSize: 16 }} />
+      </div>
+    </div>
+    <div style={{ fontSize: 24, fontWeight: 700, color: '#52c41a', marginBottom: 16 }}>202,320.00</div>
+    <Divider style={{ margin: '0 0 12px' }} />
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金调回</Text>
+        <Tooltip title="集团从公司账户转出金额之和">
+          <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
+        </Tooltip>
+      </div>
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ff4d4f18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <ImportOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
+      </div>
+    </div>
+    <div style={{ fontSize: 24, fontWeight: 700, color: '#ff4d4f' }}>202,320.00</div>
+  </Card>
+);
+
+// ── TOP5 数据 ─────────────────────────────────────────────────────
+interface TopRow {
+  rankNum: number;
+  ranking: string;
+  enterpriseId: string;
+  enterpriseName: string;
+  cumulativeProfit: string;
+  contributedProfit: string;
+  certDays: number;
+  memberCount: number;
+  masterId: string;
+  masterNickname: string;
+  createdAt: string;
+}
+
+const topData: TopRow[] = [
+  { rankNum: 1, ranking: '第1名', enterpriseId: '82938',  enterpriseName: 'hey',       cumulativeProfit: '873,233.23', contributedProfit: '873,233.23', certDays: 341, memberCount: 244, masterId: '73720', masterNickname: 'name1', createdAt: '2025-10-10 12:23:23' },
+  { rankNum: 2, ranking: '第2名', enterpriseId: '82939',  enterpriseName: 'wow',       cumulativeProfit: '73,233.23',  contributedProfit: '73,233.23',  certDays: 200, memberCount: 120, masterId: '73721', masterNickname: 'name2', createdAt: '2025-10-10 12:23:23' },
+  { rankNum: 3, ranking: '第3名', enterpriseId: '82940',  enterpriseName: 'boom',      cumulativeProfit: '63,233.23',  contributedProfit: '63,233.23',  certDays: 180, memberCount: 98,  masterId: '73722', masterNickname: 'name3', createdAt: '2025-10-10 12:23:23' },
+  { rankNum: 4, ranking: '第4名', enterpriseId: '82941',  enterpriseName: 'flash',     cumulativeProfit: '53,233.23',  contributedProfit: '53,233.23',  certDays: 150, memberCount: 76,  masterId: '73723', masterNickname: 'name4', createdAt: '2025-10-10 12:23:23' },
+  { rankNum: 5, ranking: '第5名', enterpriseId: '82942',  enterpriseName: 'nova',      cumulativeProfit: '43,233.23',  contributedProfit: '43,233.23',  certDays: 120, memberCount: 55,  masterId: '73724', masterNickname: 'name5', createdAt: '2025-10-10 12:23:23' },
 ];
 
-// 集团转账 mock
+// ── 集团转账 mock ─────────────────────────────────────────────────
 interface GroupTransfer {
   id: string;
   orderType: string;
@@ -62,14 +187,7 @@ const groupTransferData: GroupTransfer[] = Array.from({ length: 10 }, (_, i) => 
 }));
 
 const groupTransferColumns: ColumnsType<GroupTransfer> = [
-  {
-    title: '订单类型',
-    dataIndex: 'orderType',
-    width: 140,
-    render: (v) => (
-      <Tag color={v === '集团资金下拨' ? 'success' : 'warning'}>{v}</Tag>
-    ),
-  },
+  { title: '订单类型', dataIndex: 'orderType', width: 140, render: (v) => <Tag color={v === '集团资金下拨' ? 'success' : 'warning'}>{v}</Tag> },
   { title: '订单时间', dataIndex: 'orderTime', width: 170 },
   { title: '订单编号', dataIndex: 'orderNo', width: 160 },
   { title: '货币单位', dataIndex: 'currency', width: 90 },
@@ -77,15 +195,8 @@ const groupTransferColumns: ColumnsType<GroupTransfer> = [
   { title: '订单备注', dataIndex: 'remark' },
 ];
 
-// 贡献集团 mock
-interface GroupContrib {
-  id: string;
-  joinTime: string;
-  shareRatio: string;
-  holdingValue: string;
-  status: string;
-}
-
+// ── 贡献集团 mock ─────────────────────────────────────────────────
+interface GroupContrib { id: string; joinTime: string; shareRatio: string; holdingValue: string; status: string }
 const groupContribData: GroupContrib[] = Array.from({ length: 4 }, (_, i) => ({
   id: `GC${i + 1}`,
   joinTime: `2025-0${i + 1}-15 09:00:00`,
@@ -93,32 +204,19 @@ const groupContribData: GroupContrib[] = Array.from({ length: 4 }, (_, i) => ({
   holdingValue: `${(50000 + i * 20000).toLocaleString()}.00`,
   status: i % 3 === 2 ? '已退' : '持股',
 }));
-
 const groupContribColumns: ColumnsType<GroupContrib> = [
   { title: '首次加入时间', dataIndex: 'joinTime', width: 170 },
   { title: '持股比例', dataIndex: 'shareRatio', width: 100, align: 'right' },
   { title: '持股估值（USDT）', dataIndex: 'holdingValue', width: 160, align: 'right' },
-  {
-    title: '公司持股状态',
-    dataIndex: 'status',
-    width: 110,
-    render: (v) => <Tag color={v === '持股' ? 'success' : 'default'}>{v}</Tag>,
-  },
+  { title: '公司持股状态', dataIndex: 'status', width: 110, render: (v) => <Tag color={v === '持股' ? 'success' : 'default'}>{v}</Tag> },
 ];
 
-// 持股估值 mock
+// ── 持股估值 mock ─────────────────────────────────────────────────
 interface HoldingValuation {
-  id: string;
-  targetEnterprise: string;
-  shareRatio: string;
-  investAmount: string;
-  currentValue: string;
-  unrealizedPnl: string;
-  returnRate: string;
-  status: string;
-  investTime: string;
+  id: string; targetEnterprise: string; shareRatio: string;
+  investAmount: string; currentValue: string; unrealizedPnl: string;
+  returnRate: string; status: string; investTime: string;
 }
-
 const holdingData: HoldingValuation[] = Array.from({ length: 6 }, (_, i) => ({
   id: `HV${i + 1}`,
   targetEnterprise: ['UU Talk企业', 'Hey Talk企业', '炸雷一期', 'Cyber Bot', 'Star Tech', '龙虎斗基金'][i],
@@ -130,141 +228,190 @@ const holdingData: HoldingValuation[] = Array.from({ length: 6 }, (_, i) => ({
   status: i % 4 === 3 ? '已退出' : '持仓中',
   investTime: `2025-0${i + 1}-10 09:00:00`,
 }));
-
 const holdingColumns: ColumnsType<HoldingValuation> = [
   { title: '标的企业', dataIndex: 'targetEnterprise', width: 130 },
   { title: '持股比例', dataIndex: 'shareRatio', width: 90, align: 'right' },
   { title: '投入金额', dataIndex: 'investAmount', width: 120, align: 'right' },
   { title: '当前估值', dataIndex: 'currentValue', width: 120, align: 'right' },
-  {
-    title: '未实现盈亏',
-    dataIndex: 'unrealizedPnl',
-    width: 130,
-    align: 'right',
-    render: (v: string) => (
-      <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text>
-    ),
-  },
-  {
-    title: '收益率',
-    dataIndex: 'returnRate',
-    width: 90,
-    align: 'right',
-    render: (v: string) => (
-      <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text>
-    ),
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    width: 90,
-    render: (v) => <Tag color={v === '持仓中' ? 'processing' : 'default'}>{v}</Tag>,
-  },
+  { title: '未实现盈亏', dataIndex: 'unrealizedPnl', width: 130, align: 'right',
+    render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
+  { title: '收益率', dataIndex: 'returnRate', width: 90, align: 'right',
+    render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
+  { title: '状态', dataIndex: 'status', width: 90,
+    render: (v) => <Tag color={v === '持仓中' ? 'processing' : 'default'}>{v}</Tag> },
   { title: '投入时间', dataIndex: 'investTime', width: 170 },
 ];
 
+// ── 主组件 ────────────────────────────────────────────────────────
 const CompanyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [currency, setCurrency] = useState('USDT');
 
-  const tabItems = [
+  const currentCompany = COMPANIES.find((c) => c.value === id) ?? COMPANIES[0];
+
+  const topColumns: ColumnsType<TopRow> = [
     {
-      key: 'overview',
-      label: '公司概览',
-      children: (
-        <div>
-          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-            <Col xs={24} sm={12} lg={8}>
-              <Card bordered={false}>
-                <Statistic title="公司总资产（USDT）" value="1,090,000.00" valueStyle={{ color: '#722ed1' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <Card bordered={false}>
-                <Statistic title="昨日新增（USDT）" value="23,400.00" valueStyle={{ color: '#52c41a' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <Card bordered={false}>
-                <Statistic title="今日新增（USDT）" value="18,920.00" valueStyle={{ color: '#52c41a' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <Card bordered={false}>
-                <Statistic title="持股公司数" value={12} suffix="家" valueStyle={{ color: '#fa8c16' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <Card bordered={false}>
-                <Statistic title="持股估值（USDT）" value="234,560.00" valueStyle={{ color: '#722ed1' }} />
-              </Card>
-            </Col>
-            <Col xs={24} sm={12} lg={8}>
-              <Card bordered={false}>
-                <Statistic title="集团下拨资金（USDT）" value="500,000.00" valueStyle={{ color: '#13c2c2' }} />
-              </Card>
-            </Col>
-          </Row>
-          <Row gutter={[16, 16]}>
-            <Col xs={24} lg={12}>
-              <Card bordered={false} title="公司总资产走势">
-                <Line
-                  data={assetTrendData}
-                  xField="date"
-                  yField="value"
-                  shape="smooth"
-                  point={{}}
-                  height={200}
-                  autoFit={true}
-                />
-              </Card>
-            </Col>
-            <Col xs={24} lg={12}>
-              <Card bordered={false} title="公司盈亏走势">
-                <Line
-                  data={profitTrendData}
-                  xField="date"
-                  yField="value"
-                  shape="smooth"
-                  point={{}}
-                  height={200}
-                  autoFit={true}
-                />
-              </Card>
-            </Col>
-          </Row>
+      title: '总贡献排名', dataIndex: 'rankNum', width: 110,
+      render: (v: number, r: TopRow) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 26, height: 26, borderRadius: 6,
+            background: v <= 3 ? '#faad1420' : '#f5f5f5',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 13, color: v <= 3 ? '#faad14' : 'rgba(0,0,0,0.65)',
+          }}>
+            {v <= 3 ? <TrophyOutlined /> : v}
+          </div>
+          <span style={{ color: 'rgba(0,0,0,0.65)' }}>{r.ranking}</span>
         </div>
       ),
     },
+    { title: '企业ID', dataIndex: 'enterpriseId', width: 90 },
+    { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
+    { title: '企业累计盈利', dataIndex: 'cumulativeProfit', width: 140, sorter: true,
+      render: (v) => <span style={{ color: '#141414' }}>{v}</span> },
+    { title: '累计给公司盈利', dataIndex: 'contributedProfit', width: 150, sorter: true,
+      render: (v) => <span style={{ color: '#141414' }}>{v}</span> },
+    { title: '认证天数', dataIndex: 'certDays', width: 90, sorter: true, align: 'right' },
+    { title: '成员数量', dataIndex: 'memberCount', width: 90, sorter: true, align: 'right' },
+    { title: '企业主ID', dataIndex: 'masterId', width: 90 },
+    { title: '企业主昵称', dataIndex: 'masterNickname', width: 100 },
+    { title: '创建时间', dataIndex: 'createdAt', width: 170 },
+  ];
+
+  // 公司概览 tab 内容
+  const overviewContent = (
+    <div>
+      {/* 顶部工具栏 */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <ConfigProvider theme={{ components: { Segmented: {
+          trackBg: '#f9f0ff',
+          itemSelectedBg: '#722ed1',
+          itemSelectedColor: '#ffffff',
+          itemColor: '#722ed1',
+        } } }}>
+          <Segmented
+            options={['USDT', 'PEA']}
+            value={currency}
+            onChange={(v) => setCurrency(v as string)}
+            style={{ fontWeight: 600 }}
+          />
+        </ConfigProvider>
+        <Space size={6}>
+          <Text type="secondary" style={{ fontSize: 12 }}>数据更新时间：2025-11-02 12:33:02</Text>
+          <ReloadOutlined style={{ color: '#722ed1', cursor: 'pointer', fontSize: 13 }} />
+        </Space>
+      </div>
+
+      {/* KPI 卡片 */}
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
+            title={`公司总资产（${currency}）`}
+            value="223,300.00"
+            color="#722ed1"
+            icon={<AccountBookOutlined />}
+            sub={[
+              { label: '昨日新增', value: '233,322.00' },
+              { label: '今日新增', value: '233,322.00' },
+            ]}
+            tooltip="企业余额及应用余额之和"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
+            title={`持股估值（${currency}）`}
+            value="2,020.00"
+            color="#13c2c2"
+            icon={<StockOutlined />}
+            sub={[{ label: '持股企业', value: '2,000 家' }]}
+            tooltip="公司当前持有企业资产之和"
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <KpiCard
+            title={`总收益（${currency}）`}
+            value="2,020.00"
+            color="#52c41a"
+            icon={<FundOutlined />}
+            sub={[
+              { label: '昨日新增', value: '233,322.00' },
+              { label: '今日新增', value: '233,322.00' },
+            ]}
+          />
+        </Col>
+        <Col xs={24} sm={12} xl={6}>
+          <DualCard />
+        </Col>
+      </Row>
+
+      {/* 折线图 */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} lg={12}>
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
+            title={<Text style={{ fontWeight: 600 }}>公司总资产走势</Text>}>
+            <Line {...chartCfg(assetData, '公司总资产')} />
+          </Card>
+        </Col>
+        <Col xs={24} lg={12}>
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
+            title={<Text style={{ fontWeight: 600 }}>公司盈亏走势</Text>}>
+            <Line {...chartCfg(profitData, '公司盈亏')} />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* TOP5 */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col span={24}>
+          <Card
+            bordered={false}
+            style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
+            styles={{ body: { padding: '0 0 8px' } }}
+            title={
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <TrophyOutlined style={{ color: '#faad14', fontSize: 18 }} />
+                <span style={{ fontWeight: 700, fontSize: 16 }}>收益贡献排行榜 TOP5</span>
+                <Badge
+                  count={currency}
+                  style={{ backgroundColor: '#722ed1', fontWeight: 600, fontSize: 11 }}
+                />
+              </div>
+            }
+          >
+            <Table
+              columns={topColumns}
+              dataSource={topData}
+              rowKey="rankNum"
+              pagination={false}
+              size="middle"
+              scroll={{ x: 1200 }}
+              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+            />
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  );
+
+  const tabItems = [
+    { key: 'overview', label: '公司概览', children: overviewContent },
     {
       key: 'groupTransfer',
       label: '集团转账',
       children: (
-        <Card bordered={false}>
+        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
           <Space style={{ marginBottom: 16 }} wrap>
-            <Input
-              placeholder="搜索订单编号/备注"
-              prefix={<SearchOutlined />}
-              style={{ width: 220 }}
-              allowClear
-            />
-            <Select
-              placeholder="订单类型"
-              style={{ width: 160 }}
-              allowClear
-              options={[
-                { value: '全部', label: '全部' },
-                { value: '集团资金下拨', label: '集团资金下拨' },
-                { value: '集团资金调回', label: '集团资金调回' },
-              ]}
-            />
+            <Input placeholder="搜索订单编号/备注" prefix={<SearchOutlined />} style={{ width: 220 }} allowClear />
+            <Select placeholder="订单类型" style={{ width: 160 }} allowClear options={[
+              { value: '集团资金下拨', label: '集团资金下拨' },
+              { value: '集团资金调回', label: '集团资金调回' },
+            ]} />
           </Space>
-          <Table
-            columns={groupTransferColumns}
-            dataSource={groupTransferData}
-            rowKey="id"
-            size="middle"
-            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-          />
+          <Table columns={groupTransferColumns} dataSource={groupTransferData} rowKey="id"
+            size="middle" pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
         </Card>
       ),
     },
@@ -272,14 +419,10 @@ const CompanyDetail: React.FC = () => {
       key: 'groupContrib',
       label: '贡献集团',
       children: (
-        <Card bordered={false}>
-          <Table
-            columns={groupContribColumns}
-            dataSource={groupContribData}
-            rowKey="id"
-            size="middle"
-            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-          />
+        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+          <Table columns={groupContribColumns} dataSource={groupContribData} rowKey="id"
+            size="middle" pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
         </Card>
       ),
     },
@@ -290,30 +433,22 @@ const CompanyDetail: React.FC = () => {
         <div>
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
             {[
-              { label: '累计投入（USDT）', value: '188,000.00' },
-              { label: '当前估值（USDT）', value: '216,000.00' },
-              { label: '未实现盈亏（USDT）', value: '+28,000.00' },
+              { label: '累计投入（USDT）', value: '188,000.00', color: '#722ed1' },
+              { label: '当前估值（USDT）', value: '216,000.00', color: '#722ed1' },
+              { label: '未实现盈亏（USDT）', value: '+28,000.00', color: '#52c41a' },
             ].map((item) => (
               <Col key={item.label} xs={24} sm={8}>
-                <Card bordered={false}>
-                  <Statistic
-                    title={item.label}
-                    value={item.value}
-                    valueStyle={{ color: item.value.startsWith('+') ? '#52c41a' : '#722ed1' }}
-                  />
+                <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+                  <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', marginBottom: 8 }}>{item.label}</div>
+                  <div style={{ fontSize: 26, fontWeight: 700, color: item.color }}>{item.value}</div>
                 </Card>
               </Col>
             ))}
           </Row>
-          <Card bordered={false}>
-            <Table
-              columns={holdingColumns}
-              dataSource={holdingData}
-              rowKey="id"
-              size="middle"
-              scroll={{ x: 1000 }}
-              pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-            />
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+            <Table columns={holdingColumns} dataSource={holdingData} rowKey="id"
+              size="middle" scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
           </Card>
         </div>
       ),
@@ -322,11 +457,24 @@ const CompanyDetail: React.FC = () => {
 
   return (
     <div>
-      <Card bordered={false} style={{ marginBottom: 16 }}>
-        <Text type="secondary">公司 ID：</Text>
-        <Text strong>{id}</Text>
-      </Card>
-      <Tabs items={tabItems} type="card" />
+      {/* 页面标题行 */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <Title level={4} style={{ margin: 0 }}>公司概览</Title>
+        <Select
+          value={currentCompany.value}
+          onChange={(val) => navigate(`/company/detail/${val}`)}
+          style={{ width: 180 }}
+          options={COMPANIES}
+          placeholder="切换公司"
+        />
+      </div>
+
+      {/* Tabs */}
+      <Tabs
+        items={tabItems}
+        defaultActiveKey="overview"
+        style={{ background: 'transparent' }}
+      />
     </div>
   );
 };

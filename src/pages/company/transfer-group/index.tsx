@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message, Space } from 'antd';
+import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message, Space, ConfigProvider, Radio } from 'antd';
 import { SearchOutlined, SwapOutlined, ArrowDownOutlined, ArrowUpOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -139,13 +139,33 @@ export default function CompanyTransferGroup() {
           <Input prefix={<SearchOutlined />} placeholder="搜索划转单号 / 公司名称"
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
-        <Col>
-          <Select placeholder="划转方向" value={directionFilter} onChange={setDirectionFilter} allowClear style={{ width: 130 }}
-            options={[{ label: '集团下拨', value: 'out' }, { label: '集团调回', value: 'in' }]} />
+        <Col style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>划转方向：</Text>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Radio.Group buttonStyle="outline" value={directionFilter ?? 'all'}
+              onChange={e => setDirectionFilter(e.target.value === 'all' ? undefined : e.target.value)}>
+              {[{ v: 'all', label: '全部' }, { v: 'out', label: '集团下拨' }, { v: 'in', label: '集团调回' }].map(({ v, label }) => (
+                <Radio.Button key={v} value={v}
+                  style={(directionFilter ?? 'all') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                  {label}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
         </Col>
-        <Col>
-          <Select placeholder="状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 130 }}
-            options={[{ label: '成功', value: 'success' }, { label: '处理中', value: 'pending' }, { label: '失败', value: 'failed' }]} />
+        <Col style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>状态：</Text>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Radio.Group buttonStyle="outline" value={statusFilter ?? 'all'}
+              onChange={e => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}>
+              {[{ v: 'all', label: '全部' }, { v: 'success', label: '成功' }, { v: 'pending', label: '处理中' }, { v: 'failed', label: '失败' }].map(({ v, label }) => (
+                <Radio.Button key={v} value={v}
+                  style={(statusFilter ?? 'all') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                  {label}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
         </Col>
         <Col><RangePicker style={{ width: 280 }} /></Col>
       </Row>

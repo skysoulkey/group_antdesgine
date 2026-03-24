@@ -1,21 +1,43 @@
-import { ArrowDownOutlined, ArrowUpOutlined, SearchOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
   Col,
+  ConfigProvider,
+  Descriptions,
   Input,
+  Modal,
+  Radio,
   Row,
   Select,
   Space,
   Table,
   Tabs,
   Tag,
+  Tooltip,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
 const { Text } = Typography;
+
+const radioTheme = {
+  components: {
+    Radio: {
+      buttonBg: '#fff',
+      buttonCheckedBg: '#722ed1',
+      buttonColor: 'rgba(0,0,0,0.65)',
+      buttonCheckedColor: '#fff',
+      buttonSolidCheckedBg: '#722ed1',
+      buttonSolidCheckedHoverBg: '#9254de',
+      buttonSolidCheckedActiveBg: '#531dab',
+      colorPrimary: '#722ed1',
+      colorPrimaryHover: '#9254de',
+      colorPrimaryActive: '#531dab',
+    },
+  },
+};
 
 const ENTERPRISES = ['hey', 'wow', 'boom', 'flash', 'nova'];
 
@@ -25,10 +47,10 @@ interface HoldingRow {
   enterpriseId: string;
   enterpriseName: string;
   ratio: string;
-  valuation: string;
-  totalAsset: string;
-  revenue: string;
-  currency: string;
+  valuation: number;
+  totalAsset: number;
+  revenue: number;
+  currency: 'USDT' | 'PEA';
   updatedAt: string;
   status: string;
 }
@@ -36,161 +58,391 @@ interface HoldingRow {
 const holdingData: HoldingRow[] = Array.from({ length: 12 }, (_, i) => {
   const invested = 50000 + i * 12500;
   const pnlRate = ((i % 7) - 3) * 8;
-  const valuation = (invested * (1 + pnlRate / 100)).toFixed(2);
+  const valuation = invested * (1 + pnlRate / 100);
+  const revenue = i % 3 === 0 ? -(1000 + i * 200) : 3000 + i * 1500;
   return {
     id: `SH${String(i + 1).padStart(5, '0')}`,
     enterpriseId: `ENT${10000 + i}`,
     enterpriseName: ENTERPRISES[i % 5],
     ratio: `${(5 + (i % 10) * 2.5).toFixed(2)}%`,
-    valuation: Number(valuation).toLocaleString() + '.00',
-    totalAsset: `${(200000 + i * 30000).toLocaleString()}.00`,
-    revenue: i % 3 === 0 ? `-${(1000 + i * 200)}.00` : `${(3000 + i * 1500).toLocaleString()}.00`,
+    valuation,
+    totalAsset: 200000 + i * 30000,
+    revenue,
     currency: i % 2 === 0 ? 'USDT' : 'PEA',
-    updatedAt: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')}`,
+    updatedAt: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} ${String(9 + i).padStart(2, '0')}:${String(i * 4).padStart(2, '0')}:${String(i * 7 % 60).padStart(2, '0')}`,
     status: i % 4 === 3 ? '已退出' : '持股中',
   };
 });
 
 // ── 股份交易数据 ──────────────────────────────────────────────────
-interface TradeRow { id: string; direction: string; tradeTime: string; amount: string; enterpriseName: string; shareRatio: string; expenditure: string; income: string; status: string }
-const tradeData: TradeRow[] = Array.from({ length: 8 }, (_, i) => ({
+interface TradeRow {
+  id: string;
+  orderId: string;
+  orderTime: string;
+  enterpriseId: string;
+  enterpriseName: string;
+  orderType: '购买股份' | '释放股份';
+  changeRatio: string;
+  currency: 'USDT' | 'PEA';
+  amount: number;
+  tax: number;
+  assetSnapshot: number;
+}
+
+const tradeData: TradeRow[] = Array.from({ length: 12 }, (_, i) => ({
   id: `TR${String(i + 1).padStart(5, '0')}`,
-  direction: i % 2 === 0 ? '买入' : '卖出',
-  tradeTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} 14:${String(i * 7).padStart(2, '0')}:00`,
-  amount: `${(5000 + i * 2000).toLocaleString()}.00`,
+  orderId: `ORD${String(20240001 + i)}`,
+  orderTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} ${String(10 + i % 8).padStart(2, '0')}:${String(i * 7 % 60).padStart(2, '0')}:00`,
+  enterpriseId: `ENT${10000 + (i % 5)}`,
   enterpriseName: ENTERPRISES[i % 5],
-  shareRatio: `${(5 + i * 2).toFixed(2)}%`,
-  expenditure: i % 2 === 0 ? `${(5000 + i * 2000).toLocaleString()}.00` : '0.00',
-  income: i % 2 !== 0 ? `${(5000 + i * 2000).toLocaleString()}.00` : '0.00',
-  status: '已完成',
+  orderType: i % 2 === 0 ? '购买股份' : '释放股份',
+  changeRatio: `${(5 + i * 2).toFixed(2)}%`,
+  currency: i % 2 === 0 ? 'USDT' : 'PEA',
+  amount: 5000 + i * 2000,
+  tax: i % 2 === 0 ? 0 : Math.round((5000 + i * 2000) * 0.05),
+  assetSnapshot: 500000 + i * 50000,
 }));
 
 // ── 投资分红数据 ──────────────────────────────────────────────────
-interface DivRow { id: string; appName: string; game: string; startTime: string; endTime: string; members: number; totalInvest: string; totalDividend: string; totalProfit: string; status: string }
-const divData: DivRow[] = Array.from({ length: 8 }, (_, i) => ({
+interface DivRow {
+  id: string;
+  finishTime: string;
+  enterpriseId: string;
+  enterpriseName: string;
+  orderType: '分红' | '投资';
+  amount: number;
+  tax: number;
+  currency: 'USDT' | 'PEA';
+  assetSnapshot: number;
+  shareholderName: string;
+  shareholdingRatio: string;
+}
+
+const divData: DivRow[] = Array.from({ length: 12 }, (_, i) => ({
   id: `DIV${String(i + 1).padStart(5, '0')}`,
-  appName: ['UU Talk', 'Hey Talk', 'Star Game'][i % 3],
-  game: ['百家乐', '龙虎斗', '骰子'][i % 3],
-  startTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} 10:00:00`,
-  endTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} 22:00:00`,
-  members: 12 + i * 3,
-  totalInvest: `${(10000 + i * 3000).toLocaleString()}.00`,
-  totalDividend: `${(8000 + i * 2500).toLocaleString()}.00`,
-  totalProfit: i % 3 === 1 ? `-${(500 + i * 100).toLocaleString()}.00` : `${(1500 + i * 800).toLocaleString()}.00`,
-  status: ['正常', '审核中', '已结算'][i % 3],
+  finishTime: `2026-0${(i % 3) + 1}-${String(i + 1).padStart(2, '0')} ${String(14 + i % 6).padStart(2, '0')}:${String(i * 5 % 60).padStart(2, '0')}:${String(i * 3 % 60).padStart(2, '0')}`,
+  enterpriseId: `ENT${10000 + (i % 5)}`,
+  enterpriseName: ENTERPRISES[i % 5],
+  orderType: i % 3 !== 1 ? '分红' : '投资',
+  amount: 8000 + i * 2500,
+  tax: i % 3 !== 1 ? 0 : Math.round((8000 + i * 2500) * 0.05),
+  currency: i % 2 === 0 ? 'USDT' : 'PEA',
+  assetSnapshot: 600000 + i * 40000,
+  shareholderName: `股东${i + 1}`,
+  shareholdingRatio: `${(5 + i * 2).toFixed(2)}%`,
 }));
 
-// ── 主组件 ────────────────────────────────────────────────────────
-const CompanyShareholding: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('holding');
-  const [search, setSearch] = useState('');
-  const [currency, setCurrency] = useState<string | undefined>();
-  const [enterprise, setEnterprise] = useState<string | undefined>();
+const fmt = (n: number) => n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const filteredHoldings = holdingData.filter((r) => {
+// ── Tooltip 表头辅助 ──────────────────────────────────────────────
+const TipTitle: React.FC<{ title: string; tip: string }> = ({ title, tip }) => (
+  <Space size={4}>
+    {title}
+    <Tooltip title={tip}>
+      <InfoCircleOutlined style={{ color: 'rgba(0,0,0,0.35)', fontSize: 12, cursor: 'pointer' }} />
+    </Tooltip>
+  </Space>
+);
+
+// ── 入股清单 ──────────────────────────────────────────────────────
+const HoldingContent: React.FC<{ onSwitchTab: (t: string) => void }> = ({ onSwitchTab }) => {
+  const [currency, setCurrency] = useState('all');
+  const [search, setSearch] = useState('');
+
+  const filtered = holdingData.filter((r) => {
     const kw = search.toLowerCase();
     return (
-      (!kw || r.enterpriseName.toLowerCase().includes(kw) || r.enterpriseId.includes(kw)) &&
-      (!currency || r.currency === currency) &&
-      (!enterprise || r.enterpriseName === enterprise)
+      (currency === 'all' || r.currency === currency) &&
+      (!kw || r.enterpriseName.toLowerCase().includes(kw) || r.enterpriseId.toLowerCase().includes(kw))
     );
   });
 
-  const holdingColumns: ColumnsType<HoldingRow> = [
-    { title: '更新时间', dataIndex: 'updatedAt', width: 170 },
+  const totalValuation = filtered.reduce((s, r) => s + r.valuation, 0);
+  const totalRevenue = filtered.reduce((s, r) => s + r.revenue, 0);
+  const holdingCount = filtered.filter((r) => r.status === '持股中').length;
+
+  const columns: ColumnsType<HoldingRow> = [
+    { title: '更新时间', dataIndex: 'updatedAt', width: 175 },
     { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
     { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
     { title: '持股比例', dataIndex: 'ratio', width: 90, align: 'right' },
-    { title: '持股估值', dataIndex: 'valuation', width: 130, align: 'right', render: (v, r) => <Text style={{ color: '#722ed1' }}>{v} {r.currency}</Text> },
-    { title: '企业总资产', dataIndex: 'totalAsset', width: 130, align: 'right' },
-    { title: '股份收益', dataIndex: 'revenue', width: 120, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
-    { title: '货币单位', dataIndex: 'currency', width: 80 },
-    { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '持股中' ? 'success' : 'default'}>{v}</Tag> },
     {
-      title: '操作', width: 160, fixed: 'right' as const,
+      title: <TipTitle title="持股估值" tip="当前最新持股金额预估价值" />,
+      dataIndex: 'valuation',
+      width: 140,
+      align: 'right',
+      render: (v: number) => <Text style={{ color: '#722ed1' }}>{fmt(v)}</Text>,
+    },
+    {
+      title: <TipTitle title="企业总资产" tip="当前企业最新资产" />,
+      dataIndex: 'totalAsset',
+      width: 140,
+      align: 'right',
+      render: (v: number) => fmt(v),
+    },
+    {
+      title: <TipTitle title="股份收益" tip="历史累计的分红及股份交易获益之和减去购买股份及追加投资的支出" />,
+      dataIndex: 'revenue',
+      width: 120,
+      align: 'right',
+      render: (v: number) => <Text style={{ color: v < 0 ? '#ff4d4f' : '#52c41a' }}>{fmt(v)}</Text>,
+    },
+    { title: '货币单位', dataIndex: 'currency', width: 90 },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      width: 90,
+      render: (v) => <Tag color={v === '持股中' ? 'success' : 'default'}>{v}</Tag>,
+    },
+    {
+      title: '操作',
+      width: 160,
+      fixed: 'right' as const,
       render: () => (
         <Space size={0}>
-          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => setActiveTab('trade')}>股份交易</Button>
-          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => setActiveTab('dividend')}>投资分红</Button>
+          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => onSwitchTab('trade')}>股份交易</Button>
+          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => onSwitchTab('dividend')}>投资分红</Button>
         </Space>
       ),
     },
   ];
 
-  const tradeColumns: ColumnsType<TradeRow> = [
-    { title: '交易时间', dataIndex: 'tradeTime', width: 170 },
-    { title: '交易方向', dataIndex: 'direction', width: 90, render: (v) => <Tag color={v === '买入' ? 'success' : 'error'}>{v}</Tag> },
+  return (
+    <div>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        {[
+          { label: `持股估值合计（${currency === 'all' ? 'USDT' : currency}）`, value: fmt(totalValuation), color: '#722ed1' },
+          { label: `股份收益合计（${currency === 'all' ? 'USDT' : currency}）`, value: fmt(totalRevenue), color: totalRevenue >= 0 ? '#52c41a' : '#ff4d4f' },
+          { label: '持股企业数', value: `${holdingCount} 家`, color: '#722ed1' },
+        ].map((s) => (
+          <Col xs={24} sm={8} key={s.label}>
+            <Card bordered={false} style={{ textAlign: 'center', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 6 }}>{s.label}</div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</div>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <ConfigProvider theme={radioTheme}>
+          <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid" size="middle">
+            <Radio.Button value="all">全部</Radio.Button>
+            <Radio.Button value="USDT">USDT</Radio.Button>
+            <Radio.Button value="PEA">PEA</Radio.Button>
+          </Radio.Group>
+        </ConfigProvider>
+        <Input
+          prefix={<SearchOutlined />}
+          placeholder="企业名称 / 企业ID"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          allowClear
+          style={{ width: 220 }}
+        />
+      </div>
+      <Table
+        columns={columns}
+        dataSource={filtered}
+        rowKey="id"
+        size="middle"
+        scroll={{ x: 1200 }}
+        pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+      />
+    </div>
+  );
+};
+
+// ── 股份交易 ──────────────────────────────────────────────────────
+const TradeContent: React.FC = () => {
+  const [orderType, setOrderType] = useState('all');
+  const [currency, setCurrency] = useState('all');
+  const [enterprise, setEnterprise] = useState<string | undefined>();
+  const [search, setSearch] = useState('');
+
+  const filtered = tradeData.filter((r) => {
+    const kw = search.toLowerCase();
+    return (
+      (orderType === 'all' || r.orderType === orderType) &&
+      (currency === 'all' || r.currency === currency) &&
+      (!enterprise || r.enterpriseName === enterprise) &&
+      (!kw || r.orderId.toLowerCase().includes(kw))
+    );
+  });
+
+  const taxTip = '购买股份时，公司释放股份是不需要收取税费；释放股份时，需要缴纳得利税。';
+
+  const columns: ColumnsType<TradeRow> = [
+    { title: '订单时间', dataIndex: 'orderTime', width: 175 },
+    { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
     { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
-    { title: '交易金额', dataIndex: 'amount', width: 130, align: 'right' },
-    { title: '持有股份', dataIndex: 'shareRatio', width: 90, align: 'right' },
-    { title: '股东支出', dataIndex: 'expenditure', width: 120, align: 'right' },
-    { title: '股东收入', dataIndex: 'income', width: 120, align: 'right' },
-    { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color="success">{v}</Tag> },
+    { title: '订单编号', dataIndex: 'orderId', width: 130 },
+    {
+      title: '订单类型',
+      dataIndex: 'orderType',
+      width: 100,
+      render: (v) => <Tag color={v === '购买股份' ? 'success' : 'error'}>{v}</Tag>,
+    },
+    { title: '变动比例', dataIndex: 'changeRatio', width: 90, align: 'right' },
+    { title: '货币单位', dataIndex: 'currency', width: 90 },
+    { title: '订单金额', dataIndex: 'amount', width: 130, align: 'right', sorter: (a, b) => a.amount - b.amount, render: (v) => fmt(v) },
+    {
+      title: <TipTitle title="税费" tip={taxTip} />,
+      dataIndex: 'tax',
+      width: 110,
+      align: 'right',
+      sorter: (a, b) => a.tax - b.tax,
+      render: (v) => fmt(v),
+    },
+    {
+      title: '企业总资产快照',
+      dataIndex: 'assetSnapshot',
+      width: 140,
+      align: 'right',
+      sorter: (a, b) => a.assetSnapshot - b.assetSnapshot,
+      render: (v) => fmt(v),
+    },
   ];
 
-  const divColumns: ColumnsType<DivRow> = [
-    { title: '发起时间', dataIndex: 'startTime', width: 170 },
-    { title: '应用名称', dataIndex: 'appName', width: 100 },
-    { title: '游戏', dataIndex: 'game', width: 80 },
-    { title: '完成时间', dataIndex: 'endTime', width: 170 },
-    { title: '参与成员', dataIndex: 'members', width: 80, align: 'right' },
-    { title: '总投资', dataIndex: 'totalInvest', width: 130, align: 'right' },
-    { title: '总分红', dataIndex: 'totalDividend', width: 130, align: 'right' },
-    { title: '总盈亏', dataIndex: 'totalProfit', width: 130, align: 'right', render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
-    { title: '状态', dataIndex: 'status', width: 90, render: (v) => <Tag color={v === '正常' ? 'success' : v === '审核中' ? 'processing' : 'default'}>{v}</Tag> },
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <ConfigProvider theme={radioTheme}>
+          <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid" size="middle">
+            <Radio.Button value="all">全部</Radio.Button>
+            <Radio.Button value="购买股份">购买股份</Radio.Button>
+            <Radio.Button value="释放股份">释放股份</Radio.Button>
+          </Radio.Group>
+        </ConfigProvider>
+        <ConfigProvider theme={radioTheme}>
+          <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid" size="middle">
+            <Radio.Button value="all">全部</Radio.Button>
+            <Radio.Button value="USDT">USDT</Radio.Button>
+            <Radio.Button value="PEA">PEA</Radio.Button>
+          </Radio.Group>
+        </ConfigProvider>
+        <Select
+          placeholder="企业名称"
+          value={enterprise}
+          onChange={setEnterprise}
+          allowClear
+          style={{ width: 140 }}
+          options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
+        />
+        <Input
+          prefix={<SearchOutlined />}
+          placeholder="订单编号"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          allowClear
+          style={{ width: 180 }}
+        />
+      </div>
+      <Table
+        columns={columns}
+        dataSource={filtered}
+        rowKey="id"
+        size="middle"
+        scroll={{ x: 1200 }}
+        pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+      />
+    </div>
+  );
+};
+
+// ── 投资分红 ──────────────────────────────────────────────────────
+const DividendContent: React.FC = () => {
+  const [currency, setCurrency] = useState('all');
+  const [detail, setDetail] = useState<DivRow | null>(null);
+
+  const filtered = divData.filter((r) => currency === 'all' || r.currency === currency);
+
+  const columns: ColumnsType<DivRow> = [
+    { title: '完成时间', dataIndex: 'finishTime', width: 175 },
+    { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
+    { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
+    {
+      title: '订单类型',
+      dataIndex: 'orderType',
+      width: 90,
+      render: (v) => <Tag color={v === '分红' ? 'success' : 'error'}>{v}</Tag>,
+    },
+    { title: '订单金额', dataIndex: 'amount', width: 130, align: 'right', sorter: (a, b) => a.amount - b.amount, render: (v) => fmt(v) },
+    { title: '税费', dataIndex: 'tax', width: 110, align: 'right', sorter: (a, b) => a.tax - b.tax, render: (v) => fmt(v) },
+    { title: '货币单位', dataIndex: 'currency', width: 90 },
+    {
+      title: '操作',
+      width: 80,
+      fixed: 'right' as const,
+      render: (_, r) => (
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setDetail(r)}>查看</Button>
+      ),
+    },
   ];
 
-  // 汇总统计
-  const totalValuation = holdingData.reduce((s, r) => s + parseFloat(r.valuation.replace(/,/g, '')), 0);
-  const totalRevenue   = holdingData.reduce((s, r) => s + parseFloat(r.revenue.replace(/,/g, '').replace('-', '')), 0);
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <ConfigProvider theme={radioTheme}>
+          <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid" size="middle">
+            <Radio.Button value="all">全部</Radio.Button>
+            <Radio.Button value="USDT">USDT</Radio.Button>
+            <Radio.Button value="PEA">PEA</Radio.Button>
+          </Radio.Group>
+        </ConfigProvider>
+      </div>
+      <Table
+        columns={columns}
+        dataSource={filtered}
+        rowKey="id"
+        size="middle"
+        scroll={{ x: 900 }}
+        pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+      />
+      <Modal
+        title="投资分红详情"
+        open={!!detail}
+        onCancel={() => setDetail(null)}
+        footer={<Button onClick={() => setDetail(null)}>关闭</Button>}
+        width={480}
+        destroyOnClose
+      >
+        {detail && (
+          <Descriptions column={1} bordered size="small" style={{ marginTop: 8 }}>
+            <Descriptions.Item label="订单类型">
+              <Tag color={detail.orderType === '分红' ? 'success' : 'error'}>{detail.orderType}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="企业总资产快照">{fmt(detail.assetSnapshot)} {detail.currency}</Descriptions.Item>
+            <Descriptions.Item label="股东昵称">{detail.shareholderName}</Descriptions.Item>
+            <Descriptions.Item label="持有股份">{detail.shareholdingRatio}</Descriptions.Item>
+            <Descriptions.Item label="订单金额">{fmt(detail.amount)} {detail.currency}</Descriptions.Item>
+            <Descriptions.Item label="税费">{fmt(detail.tax)} {detail.currency}</Descriptions.Item>
+            <Descriptions.Item label="完成时间">{detail.finishTime}</Descriptions.Item>
+          </Descriptions>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+// ── 主组件 ────────────────────────────────────────────────────────
+const CompanyShareholding: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('holding');
 
   const tabItems = [
     {
       key: 'holding',
       label: '入股清单',
-      children: (
-        <div>
-          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-            {[
-              { label: '持股估值合计（USDT）', value: totalValuation.toLocaleString(undefined, { maximumFractionDigits: 0 }), color: '#722ed1', icon: <ArrowUpOutlined /> },
-              { label: '股份收益合计（USDT）', value: totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 }), color: '#52c41a', icon: <ArrowUpOutlined /> },
-              { label: '持股企业数', value: `${holdingData.filter(r => r.status === '持股中').length} 家`, color: '#722ed1', icon: null },
-            ].map((s) => (
-              <Col xs={24} sm={8} key={s.label}>
-                <Card bordered={false} style={{ textAlign: 'center', borderRadius: 8 }}>
-                  <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 6 }}>{s.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: s.color }}>{s.value}</div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-          <Space style={{ marginBottom: 16 }} wrap>
-            <Input prefix={<SearchOutlined />} placeholder="企业名称 / 企业ID" value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 220 }} />
-            <Select placeholder="货币单位" value={currency} onChange={setCurrency} allowClear style={{ width: 110 }}
-              options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]} />
-            <Select placeholder="企业名称" value={enterprise} onChange={setEnterprise} allowClear style={{ width: 140 }}
-              options={ENTERPRISES.map((e) => ({ value: e, label: e }))} />
-          </Space>
-          <Table columns={holdingColumns} dataSource={filteredHoldings} rowKey="id" size="middle"
-            scroll={{ x: 1200 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }} />
-        </div>
-      ),
+      children: <HoldingContent onSwitchTab={setActiveTab} />,
     },
     {
       key: 'trade',
       label: '股份交易',
-      children: (
-        <Table columns={tradeColumns} dataSource={tradeData} rowKey="id" size="middle"
-          scroll={{ x: 900 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }} />
-      ),
+      children: <TradeContent />,
     },
     {
       key: 'dividend',
       label: '投资分红',
-      children: (
-        <Table columns={divColumns} dataSource={divData} rowKey="id" size="middle"
-          scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }} />
-      ),
+      children: <DividendContent />,
     },
   ];
 
