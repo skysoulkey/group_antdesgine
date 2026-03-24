@@ -387,15 +387,17 @@ const LoginPage: React.FC = () => {
                 </Text>
               </div>
 
-              <Form.Item name="otp" rules={[{ required: true, message: '请输入 6 位动态码' }]}>
-                <div style={{ display: 'flex', justifyContent: 'center' }}>
-                  <Input.OTP
-                    length={6}
-                    size="large"
-                    inputStyle={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: 8 }}
-                  />
-                </div>
+              <Form.Item name="otp" rules={[{ required: true, message: '请输入 6 位动态码' }]}
+                style={{ display: 'flex', justifyContent: 'center' }}>
+                <Input.OTP
+                  length={6}
+                  size="large"
+                  inputStyle={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: 8 }}
+                />
               </Form.Item>
+              <div style={{ textAlign: 'center', marginTop: -12, marginBottom: 8 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>演示模式：输入任意 6 位数字即可</Text>
+              </div>
 
               <Form.Item style={{ marginTop: 20, marginBottom: 0 }}>
                 <Button

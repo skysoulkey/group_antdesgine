@@ -139,17 +139,42 @@ border:        none（bordered={false}）
 
 ```tsx
 // 标准配置
-const chartCfg = (data) => ({
+const chartCfg = (data, name) => ({
   data,
   xField: 'date',
   yField: 'value',
-  shape: 'smooth',   // 平滑曲线
-  point: {},          // 显示数据点，hover 有 tooltip
-  height: 220,        // 仪表盘图表固定高度
+  shape: 'smooth',        // 平滑曲线
+  point: false,           // 60天以上数据不显示 point，避免过密
+  height: 200,            // 仪表盘折线图固定高度
   autoFit: true,
+  style: { stroke: '#722ed1' },
+  scale: {
+    color: { range: ['#722ed1'] },
+    x: { tickCount: 6 },  // X轴标签数自适应：约每10天一刻度
+  },
+  axis: {
+    x: {
+      labelFontSize: 10,
+      labelAutoRotate: false,
+      labelFormatter: (v) => v.slice(5), // 只显示 MM-DD，去掉年份
+    },
+  },
+  tooltip: { items: [{ channel: 'y', name }] },
   // 注意：不传 line 属性，避免 v2 渲染双线 bug
 });
 ```
+
+### X 轴间隔规范
+
+| 数据跨度 | tickCount | 标签格式 | 效果 |
+|---------|-----------|---------|------|
+| ≤ 7 天 | 7 | `MM-DD` | 每天1刻度 |
+| 8–31 天 | 6 | `MM-DD` | 约每5天1刻度 |
+| 32–90 天 | 6 | `MM-DD` | 约每10天1刻度 |
+| > 90 天 | 6 | `MM-DD` 或 `MM月` | 自动分布 |
+
+> **规则**：统一使用 `tickCount: 6`（中等数据集）或 `tickCount: 7`（≤7天）；
+> `labelFormatter` 格式化为 `v.slice(5)` 显示 `MM-DD`，节省横向空间，避免旋转。
 
 > **重要**：@ant-design/plots v2 中传入 `line: { style: {...} }` 会触发 CONFIG_SHAPE 处理，
 > 生成额外 line 子 mark，导致渲染双条线。**始终省略 `line` 属性**。

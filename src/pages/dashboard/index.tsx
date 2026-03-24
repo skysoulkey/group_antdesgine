@@ -67,16 +67,20 @@ const chartCfg = (data: { date: string; value: number }[], name: string) => ({
   xField: 'date',
   yField: 'value',
   shape: 'smooth',
-  point: false,                   // 60个点不显示 point
+  point: false,
   height: 200,
   autoFit: true,
   style: { stroke: '#722ed1' },
   scale: {
     color: { range: ['#722ed1'] },
-    x: { tickCount: 10 },         // X轴约10个刻度
   },
   axis: {
-    x: { labelFontSize: 10, labelAutoRotate: true },
+    x: {
+      labelFontSize: 10,
+      labelAutoRotate: false,
+      labelFormatter: (v: string) => v.slice(5),          // 显示 MM-DD
+      tickFilter: (_: string, index: number) => index % 2 === 0, // 只保留偶数刻度，减半
+    },
   },
   tooltip: { items: [{ channel: 'y' as const, name }] },
 });

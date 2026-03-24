@@ -265,6 +265,38 @@ const ColTitle = ({ label, tip }: { label: string; tip?: string }) => (
 
 ---
 
+## 11. @ant-design/plots v2 — X 轴标签过密，tickCount / ticks 无效
+
+**遇到的问题**
+折线图 X 轴日期标签每3天显示一个，60天数据共20个标签，排列密集。
+尝试 `scale.x.tickCount: 3` 和 `scale.x.ticks: [...]` 均无效，标签数量不变。
+
+**根本原因**
+日期字符串在 G2 v5 中被识别为**有序分类（ordinal）轴**，`tickCount` 只是建议值，不强制生效；
+`ticks` 显式数组同样不被 ordinal 轴尊重。
+`labelFormatter` 返回空字符串 `''` 仅隐藏文字，刻度线仍在，会造成视觉重叠（"两个轴"假象）。
+
+**正确解决方案**
+使用 `axis.x.tickFilter`，从 G2 源码确认其签名为 `(value, index, ticks) => boolean`，
+奇数 index 过滤掉，整个刻度（线 + 标签）一起移除：
+
+```tsx
+axis: {
+  x: {
+    labelFontSize: 10,
+    labelAutoRotate: false,
+    labelFormatter: (v: string) => v.slice(5),           // 显示 MM-DD
+    tickFilter: (_: string, index: number) => index % 2 === 0, // 标签减半
+  },
+},
+```
+
+**如何检查**
+所有折线图 X 轴标签间距应均匀，不出现重叠或密集排列。
+`tickCount` 和 `ticks` 出现在 `scale.x` 中时视为无效配置，应删除并改用 `tickFilter`。
+
+---
+
 ## 12. 规范文件体系
 
 每个项目应维护以下规范文档，与代码保持同步：
