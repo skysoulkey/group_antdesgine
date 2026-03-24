@@ -1,4 +1,5 @@
-import { BankOutlined, LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from '@ant-design/icons';
+import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from '@ant-design/icons';
+import logoImg from '../../assets/logo.png';
 import { Button, Checkbox, ConfigProvider, Form, Input, message, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
@@ -242,21 +243,11 @@ const LoginPage: React.FC = () => {
         >
           {/* 顶部 logo 区 */}
           <div style={{ textAlign: 'center', marginBottom: 36 }}>
-            <div
-              style={{
-                width: 64,
-                height: 64,
-                background: 'linear-gradient(135deg, #722ed1 0%, #2f54eb 100%)',
-                borderRadius: 14,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 16,
-                boxShadow: '0 8px 32px rgba(114,46,209,0.45)',
-              }}
-            >
-              <BankOutlined style={{ fontSize: 28, color: '#fff' }} />
-            </div>
+            <img
+              src={logoImg}
+              alt="logo"
+              style={{ width: 72, height: 72, marginBottom: 16, filter: 'drop-shadow(0 8px 24px rgba(114,46,209,0.5))' }}
+            />
             <Title level={4} style={{ margin: 0, color: '#fff', letterSpacing: 1 }}>
               集团公司管理系统
             </Title>
@@ -392,7 +383,7 @@ const LoginPage: React.FC = () => {
                 <Input.OTP
                   length={6}
                   size="large"
-                  inputStyle={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.15)', color: '#fff', borderRadius: 8 }}
+                  autoFocus
                 />
               </Form.Item>
               <div style={{ textAlign: 'center', marginTop: -12, marginBottom: 8 }}>
@@ -433,12 +424,6 @@ const LoginPage: React.FC = () => {
             </Form>
           )}
 
-          {/* 底部说明 */}
-          <div style={{ textAlign: 'center', marginTop: 24, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 16 }}>
-            <Text style={{ color: 'rgba(255,255,255,0.28)', fontSize: 12 }}>
-              本平台采取邀请制，请联系渠道商
-            </Text>
-          </div>
         </div>
       </div>
     </div>

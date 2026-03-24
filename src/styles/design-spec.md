@@ -4,6 +4,20 @@
 
 ---
 
+## 零、品牌资源
+
+| 用途 | 文件路径 | 说明 |
+|------|---------|------|
+| 浏览器 Favicon | `public/favicon.png` | Umi 4 自动识别，需在 `.umirc.ts` 配置 `favicon: '/favicon.png'` |
+| 登录页 Logo | `src/assets/logo.png` | 组件内 `import logoImg from '../../assets/logo.png'` 引用 |
+
+**图片资源引入规范：**
+- 组件使用的图片放 `src/assets/`，通过 import 引入，走 webpack 处理
+- 静态公共资源放 `public/`，构建时原样复制到 `dist/` 根目录
+- TypeScript 识别 `.png/.jpg/.svg` 模块需在 `src/typings.d.ts` 中声明类型
+
+---
+
 ## 一、颜色规范
 
 ### 1.1 品牌色 / 语义色
