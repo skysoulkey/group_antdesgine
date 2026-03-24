@@ -1,5 +1,6 @@
 import {
   ApartmentOutlined,
+  BankOutlined,
   BellOutlined,
   DashboardOutlined,
   FileTextOutlined,
