@@ -139,8 +139,8 @@ const KpiCard: React.FC<KpiCardProps> = ({ title, value, color, icon, sub, toolt
       <>
         <Divider style={{ margin: '10px 0' }} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', rowGap: 4 }}>
-          {sub.map((s) => (
-            <div key={s.label}>
+          {sub.map((s, i) => (
+            <div key={s.label} style={{ textAlign: i % 2 === 0 ? 'left' : 'right' }}>
               <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 2 }}>{s.label}</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: '#262626' }}>{s.value}</div>
             </div>
