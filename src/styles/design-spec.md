@@ -8,7 +8,7 @@
 
 | 用途 | 文件路径 | 说明 |
 |------|---------|------|
-| 浏览器 Favicon | `public/favicon.png` | Umi 4 自动识别，需在 `.umirc.ts` 配置 `favicon: '/favicon.png'` |
+| 浏览器 Favicon | `public/favicon.png` | Umi 4 需在 `.umirc.ts` 配置 `favicons: ['/favicon.png']`（注意是复数数组） |
 | 登录页 Logo | `src/assets/logo.png` | 组件内 `import logoImg from '../../assets/logo.png'` 引用 |
 
 **图片资源引入规范：**
