@@ -1,12 +1,12 @@
 import {
   ApartmentOutlined,
-  BankOutlined,
   BellOutlined,
   DashboardOutlined,
   FileTextOutlined,
   SettingOutlined,
   StockOutlined,
 } from '@ant-design/icons';
+import logoImg from '../assets/logo.png';
 import { Badge, Breadcrumb, Layout, Menu, Select, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -191,7 +191,7 @@ const MainLayout: React.FC = () => {
           background: 'rgba(255,255,255,0.05)',
           overflow: 'hidden',
         }}>
-          <BankOutlined style={{ fontSize: 24, color: '#722ed1', flexShrink: 0 }} />
+          <img src={logoImg} alt="logo" style={{ width: 28, height: 28, flexShrink: 0 }} />
           {!collapsed && (
             <Text strong style={{ color: '#fff', fontSize: 14, marginLeft: 10, whiteSpace: 'nowrap' }}>
               集团管理系统
