@@ -161,9 +161,13 @@ const LoginPage: React.FC = () => {
       .then((d) => {
         if (d.success !== false) {
           setIpInfo({ ip: d.ip, country: d.country, flag: d.flag?.emoji ?? '' });
+        } else {
+          setIpInfo({ ip: '127.0.0.1', country: '本地网络', flag: '🖥️' });
         }
       })
-      .catch(() => {/* 网络不可用时静默忽略 */});
+      .catch(() => {
+        setIpInfo({ ip: '127.0.0.1', country: '本地网络', flag: '🖥️' });
+      });
   }, []);
 
   const refreshCaptcha = () => setCaptcha(generateCode());
