@@ -1,6 +1,6 @@
 import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from '@ant-design/icons';
 import logoImg from '../../assets/logo.png';
-import { Button, Checkbox, ConfigProvider, Form, Input, message, Typography } from 'antd';
+import { Button, ConfigProvider, Form, Input, message, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
 
@@ -147,12 +147,24 @@ const LoginPage: React.FC = () => {
 
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const captchaCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [ipInfo, setIpInfo] = useState<{ ip: string; country: string; flag: string } | null>(null);
 
   useParticleCanvas(bgCanvasRef);
 
   useEffect(() => {
     if (captchaCanvasRef.current) drawCaptchaOnCanvas(captchaCanvasRef.current, captcha);
   }, [captcha]);
+
+  useEffect(() => {
+    fetch('https://ipwho.is/')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success !== false) {
+          setIpInfo({ ip: d.ip, country: d.country, flag: d.flag?.emoji ?? '' });
+        }
+      })
+      .catch(() => {/* 网络不可用时静默忽略 */});
+  }, []);
 
   const refreshCaptcha = () => setCaptcha(generateCode());
 
@@ -340,12 +352,6 @@ const LoginPage: React.FC = () => {
                 </div>
               </Form.Item>
 
-              <Form.Item name="remember" valuePropName="checked" style={{ marginBottom: 20 }}>
-                <Checkbox style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>
-                  记住密码
-                </Checkbox>
-              </Form.Item>
-
               <Form.Item style={{ marginBottom: 0 }}>
                 <Button
                   type="primary"
@@ -423,6 +429,15 @@ const LoginPage: React.FC = () => {
                 </Button>
               </div>
             </Form>
+          )}
+
+          {/* IP 信息 */}
+          {ipInfo && (
+            <div style={{ textAlign: 'center', marginTop: 20, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 14 }}>
+              <Text style={{ color: 'rgba(255,255,255,0.28)', fontSize: 12 }}>
+                {ipInfo.flag} {ipInfo.country} · {ipInfo.ip}
+              </Text>
+            </div>
           )}
 
         </div>
