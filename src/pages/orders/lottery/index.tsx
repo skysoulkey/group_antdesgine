@@ -2,8 +2,8 @@ import { Bar, Column, Pie } from '@ant-design/plots';
 import {
   CaretDownOutlined,
   CaretRightOutlined,
+  CloseCircleFilled,
   FullscreenOutlined,
-  GiftOutlined,
   ReloadOutlined,
   SearchOutlined,
   SettingOutlined,
@@ -14,8 +14,8 @@ import {
   Col,
   ConfigProvider,
   DatePicker,
-  Drawer,
   Divider,
+  Drawer,
   Radio,
   Row,
   Select,
@@ -32,6 +32,18 @@ const { Text } = Typography;
 const { RangePicker } = DatePicker;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+
+const radioTheme = {
+  components: {
+    Radio: {
+      buttonSolidCheckedBg: '#722ed1',
+      buttonSolidCheckedHoverBg: '#9254de',
+      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedColor: '#fff',
+      colorPrimary: '#722ed1',
+    },
+  },
+};
 
 interface LotteryOrder {
   id: string;
@@ -74,18 +86,18 @@ const mockData: LotteryOrder[] = Array.from({ length: 25 }, (_, i) => ({
   source: (['自动', '手动'] as const)[i % 2],
 }));
 
-// ── 图表数据 ──────────────────────────────────────────────────────
+// ── 图表数据（使用真实企业名称，以便图表点击联动筛选）──────────────
 const top5FlowData = [
-  { company: '企业名称5', value: 20 },
-  { company: '企业名称4', value: 28 },
-  { company: '企业名称3', value: 35 },
-  { company: '企业名称2', value: 48 },
-  { company: '企业名称1', value: 56 },
+  { company: ENTERPRISES[4], value: 20 },
+  { company: ENTERPRISES[3], value: 28 },
+  { company: ENTERPRISES[2], value: 35 },
+  { company: ENTERPRISES[1], value: 48 },
+  { company: ENTERPRISES[0], value: 56 },
 ];
 
 const sourceDistData = [
-  { type: '自动转单', value: 300 },
-  { type: '手动转单', value: 384 },
+  { type: '自动', value: 300 },
+  { type: '手动', value: 384 },
 ];
 
 const pnlRankData = ENTERPRISES.map((e, i) => ({
@@ -136,6 +148,15 @@ const LotteryPage: React.FC = () => {
     );
   });
 
+  // 图表点击联动 — 企业
+  const handleEnterpriseClick = (name: string) => {
+    setEnterprise((prev) => (prev === name ? undefined : name));
+  };
+  // 图表点击联动 — 来源
+  const handleSourceClick = (type: string) => {
+    setSourceFilter((prev) => (prev === type ? '全部' : type));
+  };
+
   const columns: ColumnsType<LotteryOrder> = [
     { title: '发起时间', dataIndex: 'startedAt', width: 160 },
     { title: '完成时间', dataIndex: 'completedAt', width: 160 },
@@ -183,73 +204,60 @@ const LotteryPage: React.FC = () => {
     <div>
       {/* ── 筛选区 ── */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
-        {/* 第一行 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 14, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>订单状态：</Text>
-            <Space size={0}>
-              {(['全部', '未结算', '结算中', '已结算']).map((s) => (
-                <Button key={s} size="small"
-                  type={statusFilter === s ? 'primary' : 'default'}
-                  style={{ borderRadius: s === '全部' ? '4px 0 0 4px' : s === '已结算' ? '0 4px 4px 0' : '0' }}
-                  onClick={() => setStatusFilter(s)}>{s}</Button>
-              ))}
-            </Space>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>游戏：</Text>
-            <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
-              <Radio.Group buttonStyle="outline" value={game ?? '全部'}
-                onChange={e => setGame(e.target.value === '全部' ? undefined : e.target.value)}>
-                {(['全部', ...GAMES]).map((v) => (
-                  <Radio.Button key={v} value={v}
-                    style={(game ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
-                    {v}
-                  </Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>发起时间：</Text>
-            <RangePicker showTime style={{ width: 340 }} />
-          </div>
-        </div>
-        {/* 第二行 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>转单来源：</Text>
-            <Space size={0}>
-              {(['全部', '自动', '手动']).map((s) => (
-                <Button key={s} size="small"
-                  type={sourceFilter === s ? 'primary' : 'default'}
-                  style={{ borderRadius: s === '全部' ? '4px 0 0 4px' : s === '手动' ? '0 4px 4px 0' : '0' }}
-                  onClick={() => setSourceFilter(s)}>{s}</Button>
-              ))}
-            </Space>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>搜索：</Text>
-            <Input prefix={<SearchOutlined />} placeholder="下注人昵称、下注人ID、订单ID、订单备注"
-              value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 300 }} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>转单企业：</Text>
-            <Select placeholder="转单企业ID/转单企业名称" value={enterprise} onChange={setEnterprise} allowClear style={{ width: 220 }}
-              options={ENTERPRISES.map((e) => ({ value: e, label: e }))} />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>货币单位：</Text>
-            <Space size={0}>
-              {(['全部', 'USDT', 'PEA']).map((s) => (
-                <Button key={s} size="small"
-                  type={currencyFilter === s ? 'primary' : 'default'}
-                  style={{ borderRadius: s === '全部' ? '4px 0 0 4px' : s === 'PEA' ? '0 4px 4px 0' : '0' }}
-                  onClick={() => setCurrencyFilter(s)}>{s}</Button>
-              ))}
-            </Space>
-          </div>
-        </div>
+        <Space size={24} wrap align="center" style={{ marginBottom: 14 }}>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="全部">全部</Radio.Button>
+              <Radio.Button value="未结算">未结算</Radio.Button>
+              <Radio.Button value="结算中">结算中</Radio.Button>
+              <Radio.Button value="已结算">已结算</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group
+              buttonStyle="solid"
+              value={game ?? '全部'}
+              onChange={(e) => setGame(e.target.value === '全部' ? undefined : e.target.value)}
+            >
+              <Radio.Button value="全部">全部</Radio.Button>
+              {GAMES.map((v) => <Radio.Button key={v} value={v}>{v}</Radio.Button>)}
+            </Radio.Group>
+          </ConfigProvider>
+          <RangePicker showTime style={{ width: 340 }} />
+        </Space>
+
+        <Space size={24} wrap align="center">
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={sourceFilter} onChange={(e) => setSourceFilter(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="全部">全部</Radio.Button>
+              <Radio.Button value="自动">自动</Radio.Button>
+              <Radio.Button value="手动">手动</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={currencyFilter} onChange={(e) => setCurrencyFilter(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="全部">全部</Radio.Button>
+              <Radio.Button value="USDT">USDT</Radio.Button>
+              <Radio.Button value="PEA">PEA</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Select
+            placeholder="转单企业"
+            value={enterprise}
+            onChange={setEnterprise}
+            allowClear
+            style={{ width: 220 }}
+            options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
+          />
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="下注人昵称、下注人ID、订单ID"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            allowClear
+            style={{ width: 280 }}
+          />
+        </Space>
       </Card>
 
       {/* ── 汇总统计栏 ── */}
@@ -274,50 +282,117 @@ const LotteryPage: React.FC = () => {
       {/* ── 图表区 ── */}
       {statExpanded && (
         <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
+          {/* 公司流水TOP5 */}
           <Col xs={24} lg={8}>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-              <Text style={{ fontSize: 13, fontWeight: 600 }}>公司流水TOP5</Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={{ fontSize: 13, fontWeight: 600 }}>公司流水TOP5</Text>
+                {enterprise && (
+                  <Tag
+                    color="purple"
+                    closable
+                    closeIcon={<CloseCircleFilled />}
+                    onClose={() => setEnterprise(undefined)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {enterprise}
+                  </Tag>
+                )}
+              </div>
+              <Text type="secondary" style={{ fontSize: 11 }}>点击柱条快速筛选表格</Text>
               <Bar
                 data={top5FlowData}
                 xField="value"
                 yField="company"
                 height={220}
-                style={{ fill: '#722ed1', marginTop: 8 }}
+                style={{ fill: (d: any) => d.company === enterprise ? '#531dab' : '#722ed1', marginTop: 8, cursor: 'pointer' }}
                 axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
                 scale={{ color: { range: ['#722ed1'] } }}
-                tooltip={{ items: [{ channel: 'x', name: '流水', valueFormatter: (v: number) => `${v.toLocaleString()}.00  USDT` }] }}
+                tooltip={{
+                  items: [(d: any) => ({ name: `${d.company}流水`, value: d.value })],
+                }}
+                onReady={(chart: any) => {
+                  chart.on('interval:click', (e: any) => {
+                    const d = e.data?.data;
+                    if (d?.company) handleEnterpriseClick(d.company);
+                  });
+                }}
               />
             </Card>
           </Col>
+
+          {/* 转单来源分布 */}
           <Col xs={24} lg={8}>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-              <Text style={{ fontSize: 13, fontWeight: 600 }}>转单来源分布</Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={{ fontSize: 13, fontWeight: 600 }}>转单来源分布</Text>
+                {sourceFilter !== '全部' && (
+                  <Tag
+                    color="blue"
+                    closable
+                    closeIcon={<CloseCircleFilled />}
+                    onClose={() => setSourceFilter('全部')}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {sourceFilter}
+                  </Tag>
+                )}
+              </div>
+              <Text type="secondary" style={{ fontSize: 11 }}>点击扇区快速筛选表格</Text>
               <Pie
                 data={sourceDistData}
                 angleField="value"
                 colorField="type"
                 innerRadius={0.55}
                 height={220}
-                style={{ marginTop: 8 }}
+                style={{ marginTop: 8, cursor: 'pointer' }}
                 scale={{ color: { range: ['#d9d9d9', '#722ed1'] } }}
                 legend={{ position: 'bottom' }}
                 label={false}
                 tooltip={{ items: [{ channel: 'y', name: '订单数', valueFormatter: (v: number) => `${v}单` }] }}
+                onReady={(chart: any) => {
+                  chart.on('interval:click', (e: any) => {
+                    const d = e.data?.data;
+                    if (d?.type) handleSourceClick(d.type);
+                  });
+                }}
               />
             </Card>
           </Col>
+
+          {/* 公司盈亏排序 */}
           <Col xs={24} lg={8}>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-              <Text style={{ fontSize: 13, fontWeight: 600 }}>公司盈亏排序</Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                <Text style={{ fontSize: 13, fontWeight: 600 }}>公司盈亏排序</Text>
+                {enterprise && (
+                  <Tag
+                    color="purple"
+                    closable
+                    closeIcon={<CloseCircleFilled />}
+                    onClose={() => setEnterprise(undefined)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {enterprise}
+                  </Tag>
+                )}
+              </div>
+              <Text type="secondary" style={{ fontSize: 11 }}>点击柱条快速筛选表格</Text>
               <Column
                 data={pnlRankData}
                 xField="enterprise"
                 yField="value"
                 height={220}
-                style={{ fill: '#722ed1', marginTop: 8 }}
+                style={{ fill: (d: any) => d.enterprise === enterprise ? '#531dab' : '#722ed1', marginTop: 8, cursor: 'pointer' }}
                 scale={{ color: { range: ['#722ed1'] }, x: { paddingInner: 0.4 } }}
                 axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
                 tooltip={{ items: [{ channel: 'y', name: '盈亏', valueFormatter: (v: number) => `${v.toLocaleString()}.00  USDT` }] }}
+                onReady={(chart: any) => {
+                  chart.on('interval:click', (e: any) => {
+                    const d = e.data?.data;
+                    if (d?.enterprise) handleEnterpriseClick(d.enterprise);
+                  });
+                }}
               />
             </Card>
           </Col>
@@ -327,7 +402,29 @@ const LotteryPage: React.FC = () => {
       {/* ── 订单列表 ── */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, fontWeight: 600 }}>订单列表</Text>
+          <Space size={8}>
+            <Text style={{ fontSize: 14, fontWeight: 600 }}>订单列表</Text>
+            {enterprise && (
+              <Tag
+                color="purple"
+                closable
+                closeIcon={<CloseCircleFilled />}
+                onClose={() => setEnterprise(undefined)}
+              >
+                企业：{enterprise}
+              </Tag>
+            )}
+            {sourceFilter !== '全部' && (
+              <Tag
+                color="blue"
+                closable
+                closeIcon={<CloseCircleFilled />}
+                onClose={() => setSourceFilter('全部')}
+              >
+                来源：{sourceFilter}
+              </Tag>
+            )}
+          </Space>
           <Space size={8}>
             <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
             <SettingOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />

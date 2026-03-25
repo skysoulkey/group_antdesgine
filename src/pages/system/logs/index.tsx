@@ -116,27 +116,21 @@ const SystemLogsPage: React.FC = () => {
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
           <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
             <Space size={24} wrap align="center">
-              <Space size={8} align="center">
-                <Text style={{ whiteSpace: 'nowrap' }}>角色：</Text>
-                <ConfigProvider theme={radioTheme}>
-                  <Radio.Group value={loginRole ?? '全部'} onChange={(e) => setLoginRole(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
-                    {['全部', ...ROLES].map((v) => (
-                      <Radio.Button key={v} value={v} style={(loginRole ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
-                    ))}
-                  </Radio.Group>
-                </ConfigProvider>
-              </Space>
-              <Space size={8} align="center">
-                <Text style={{ whiteSpace: 'nowrap' }}>搜索：</Text>
-                <Input
-                  prefix={<SearchOutlined />}
-                  placeholder="账号名 / 登录IP"
-                  value={loginSearch}
-                  onChange={(e) => setLoginSearch(e.target.value)}
-                  allowClear
-                  style={{ width: 240 }}
-                />
-              </Space>
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group value={loginRole ?? '全部'} onChange={(e) => setLoginRole(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                  {['全部', ...ROLES].map((v) => (
+                    <Radio.Button key={v} value={v} style={(loginRole ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                  ))}
+                </Radio.Group>
+              </ConfigProvider>
+              <Input
+                prefix={<SearchOutlined />}
+                placeholder="账号名 / 登录IP"
+                value={loginSearch}
+                onChange={(e) => setLoginSearch(e.target.value)}
+                allowClear
+                style={{ width: 240 }}
+              />
             </Space>
           </Space>
           <Table

@@ -1,4 +1,4 @@
-import { KeyOutlined, PlusOutlined } from '@ant-design/icons';
+import { KeyOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Card, Col, ConfigProvider, DatePicker, Form, Input, Modal, Radio, Row, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { message } from 'antd';
@@ -7,6 +7,18 @@ import React, { useState } from 'react';
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+
+const radioTheme = {
+  components: {
+    Radio: {
+      buttonSolidCheckedBg: '#722ed1',
+      buttonSolidCheckedHoverBg: '#9254de',
+      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedColor: '#fff',
+      colorPrimary: '#722ed1',
+    },
+  },
+};
 
 interface InviteRecord {
   id: string;
@@ -127,36 +139,30 @@ const EnterpriseInvitePage: React.FC = () => {
 
       {/* 筛选 + 表格 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-          <Space wrap>
-            <Input
-              placeholder="请输入企业认证码"
-              value={searchCode}
-              onChange={(e) => setSearchCode(e.target.value)}
-              allowClear
-              style={{ width: 200 }}
-            />
-            <Space size={4}>
-              <Text style={{ whiteSpace: 'nowrap' }}>邀请状态：</Text>
-              <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
-                <Radio.Group
-                  buttonStyle="outline"
-                  value={inviteStatus ?? '全部'}
-                  onChange={(e) => setInviteStatus(e.target.value === '全部' ? undefined : e.target.value)}
-                >
-                  {(['全部', '已接受', '未接受'] as const).map((v) => (
-                    <Radio.Button key={v} value={v} style={(inviteStatus ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
-                      {v}
-                    </Radio.Button>
-                  ))}
-                </Radio.Group>
-              </ConfigProvider>
-            </Space>
-          </Space>
+        <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group
+              buttonStyle="solid"
+              value={inviteStatus ?? '全部'}
+              onChange={(e) => setInviteStatus(e.target.value === '全部' ? undefined : e.target.value)}
+            >
+              <Radio.Button value="全部">全部</Radio.Button>
+              <Radio.Button value="已接受">已接受</Radio.Button>
+              <Radio.Button value="未接受">未接受</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="请输入企业认证码"
+            value={searchCode}
+            onChange={(e) => setSearchCode(e.target.value)}
+            allowClear
+            style={{ width: 220 }}
+          />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
             生成邀请码
           </Button>
-        </div>
+        </Space>
 
         <Table
           columns={columns}

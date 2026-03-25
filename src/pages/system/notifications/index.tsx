@@ -106,33 +106,24 @@ const NotificationsPage: React.FC = () => {
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
             <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
               <Space size={24} wrap align="center">
-                <Space size={8} align="center">
-                  <Text style={{ whiteSpace: 'nowrap' }}>通知方式：</Text>
-                  <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
-                    {['全部', 'APP', '邮件'].map((v) => (
-                      <Radio.Button key={v} value={v} style={(methodFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
-                    ))}
-                  </Radio.Group>
-                </Space>
-                <Space size={8} align="center">
-                  <Text style={{ whiteSpace: 'nowrap' }}>搜索：</Text>
-                  <Input
-                    placeholder="通知对象"
-                    value={searchKw}
-                    onChange={(e) => setSearchKw(e.target.value)}
-                    allowClear
-                    style={{ width: 200 }}
-                  />
-                </Space>
-              </Space>
-              <Space size={8} align="center">
-                <Text style={{ whiteSpace: 'nowrap' }}>通知类型：</Text>
-                <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
-                  {['全部', ...NOTIF_TYPES].map((v) => (
-                    <Radio.Button key={v} value={v} style={(typeFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                  {['全部', 'APP', '邮件'].map((v) => (
+                    <Radio.Button key={v} value={v} style={(methodFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
                   ))}
                 </Radio.Group>
+                <Input
+                  placeholder="通知对象"
+                  value={searchKw}
+                  onChange={(e) => setSearchKw(e.target.value)}
+                  allowClear
+                  style={{ width: 200 }}
+                />
               </Space>
+              <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                {['全部', ...NOTIF_TYPES].map((v) => (
+                  <Radio.Button key={v} value={v} style={(typeFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                ))}
+              </Radio.Group>
             </Space>
           </ConfigProvider>
           <Table
