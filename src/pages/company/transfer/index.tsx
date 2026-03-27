@@ -358,12 +358,11 @@ const WizardModal: React.FC<WizardModalProps> = ({ mode, open, onClose }) => {
 const radioTheme = {
   components: {
     Radio: {
-      buttonCheckedBg: '#ffffff',
-      buttonSolidCheckedBg: '#ffffff',
-      buttonSolidCheckedColor: '#722ed1',
-      buttonSolidCheckedHoverBg: '#ffffff',
+      buttonSolidCheckedBg: '#722ed1',
+      buttonSolidCheckedHoverBg: '#9254de',
+      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedColor: '#fff',
       colorPrimary: '#722ed1',
-      colorBorder: '#d9d9d9',
     },
   },
 };
@@ -417,50 +416,34 @@ const TransferPage: React.FC = () => {
 
   return (
     <Space direction="vertical" size={16} style={{ display: 'flex' }}>
-      {/* 筛选区 */}
+      {/* 筛选 + 操作（合并一行）*/}
       <Card bordered={false}>
-        <Space direction="vertical" size={16} style={{ display: 'flex' }}>
-          <Space size={24} wrap align="center">
-            <Space size={8} align="center">
-              <Text style={{ whiteSpace: 'nowrap' }}>订单类型：</Text>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="outline">
-                  {['全部', '集团下拨', '集团调回'].map((t) => (
-                    <Radio.Button key={t} value={t} style={orderType === t ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
-                      {t}
-                    </Radio.Button>
-                  ))}
-                </Radio.Group>
-              </ConfigProvider>
-            </Space>
-            <Space size={8} align="center">
-              <Text style={{ whiteSpace: 'nowrap' }}>公司名称：</Text>
-              <Select
-                placeholder="请选择" value={company} onChange={setCompany} allowClear style={{ width: 200 }}
-                options={companies.map((c) => ({ value: c, label: c }))}
-              />
-            </Space>
-            <Space size={8} align="center">
-              <Text style={{ whiteSpace: 'nowrap' }}>搜索：</Text>
-              <Input
-                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                placeholder="订单编号，订单备注"
-                value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 240 }}
-              />
-            </Space>
-          </Space>
-          <Space size={8} align="center">
-            <Text style={{ whiteSpace: 'nowrap' }}>货币单位：</Text>
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="outline">
-                {['全部', 'USDT', 'PEA'].map((c) => (
-                  <Radio.Button key={c} value={c} style={currency === c ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
-                    {c}
-                  </Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
-          </Space>
+        <Space size={16} wrap align="center">
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="全部">全部</Radio.Button>
+              <Radio.Button value="集团下拨">集团下拨</Radio.Button>
+              <Radio.Button value="集团调回">集团调回</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="全部">全部</Radio.Button>
+              <Radio.Button value="USDT">USDT</Radio.Button>
+              <Radio.Button value="PEA">PEA</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Select
+              placeholder="请选择" value={company} onChange={setCompany} allowClear style={{ width: 160 }}
+              options={companies.map((c) => ({ value: c, label: c }))}
+            />
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="搜索订单编号 / 订单备注"
+            value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 220 }}
+          />
+          <Button type="primary" onClick={() => setWizardMode('recall')}>集团调回</Button>
+          <Button type="primary" onClick={() => setWizardMode('allocate')}>集团下拨</Button>
         </Space>
       </Card>
 
@@ -470,8 +453,6 @@ const TransferPage: React.FC = () => {
         title={<Text strong>内部划转记录</Text>}
         extra={
           <Space size={8}>
-            <Button type="primary" onClick={() => setWizardMode('recall')}>集团调回</Button>
-            <Button type="primary" onClick={() => setWizardMode('allocate')}>集团下拨</Button>
             <Button icon={<ReloadOutlined />} type="text" />
             <Button icon={<SettingOutlined />} type="text" />
             <Button icon={<FullscreenOutlined />} type="text" />
