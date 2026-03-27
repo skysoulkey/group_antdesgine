@@ -13,7 +13,7 @@ import {
   Typography,
 } from 'antd';
 import React, { useState } from 'react';
-import { MOCK_ROLE, type Role } from '../../utils/auth';
+import { MOCK_ROLE, type Role } from '../../../utils/auth';
 
 const { Text } = Typography;
 
