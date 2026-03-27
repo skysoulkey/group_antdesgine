@@ -33,6 +33,7 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import dayjs from 'dayjs';
 import React, { useState } from 'react';
 
 const { Text, Title } = Typography;
@@ -138,6 +139,7 @@ const WalletPage: React.FC = () => {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [withdrawAmt, setWithdrawAmt] = useState<number>(0);
   const [currencyFilter, setCurrencyFilter] = useState<'全部' | 'USDT' | 'PEA'>('全部');
+  const [transferDateRange, setTransferDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
   const [depositForm] = Form.useForm();
   const [withdrawForm] = Form.useForm();
 
@@ -170,7 +172,13 @@ const WalletPage: React.FC = () => {
   ];
 
 
-  const filteredTransfer = currencyFilter === '全部' ? transferData : transferData.filter(r => r.currency === currencyFilter);
+  const filteredTransfer = transferData.filter((r) => {
+    const matchCurrency = currencyFilter === '全部' || r.currency === currencyFilter;
+    const matchDate = !transferDateRange || !transferDateRange[0] || !transferDateRange[1]
+      || (r.startTime >= transferDateRange[0].format('YYYY-MM-DD')
+          && r.startTime <= transferDateRange[1].format('YYYY-MM-DD'));
+    return matchCurrency && matchDate;
+  });
 
   // 地址薄
   const AddressBook = () => (
@@ -221,7 +229,12 @@ const WalletPage: React.FC = () => {
         </Space>
         <Space>
           <Text type="secondary" style={{ fontSize: 13 }}>订单时间：</Text>
-          <RangePicker size="small" placeholder={['选择时间范围', '']} style={{ width: 220 }} />
+          <RangePicker
+            size="small"
+            placeholder={['选择时间范围', '']}
+            style={{ width: 220 }}
+            onChange={(dates) => setTransferDateRange(dates as any)}
+          />
         </Space>
       </Space>
 
@@ -231,15 +244,15 @@ const WalletPage: React.FC = () => {
           <Space split={<Divider type="vertical" />}>
             <Space>
               <Text type="secondary">总转出（USDT）<Tooltip title="所有币种折算USDT之和"><span style={{ cursor: 'help' }}>ⓘ</span></Tooltip>：</Text>
-              <Text strong>234,234,244.00</Text>
+              <Text>234,234,244.00</Text>
             </Space>
             <Space>
               <Text type="secondary">转出（USDT）：</Text>
-              <Text strong>234,234,244.00</Text>
+              <Text>234,234,244.00</Text>
             </Space>
             <Space>
               <Text type="secondary">转出（PEA）：</Text>
-              <Text strong>234,234,244.00</Text>
+              <Text>234,234,244.00</Text>
             </Space>
           </Space>
         </div>
@@ -294,12 +307,17 @@ const WalletPage: React.FC = () => {
   const [depCurrency, setDepCurrency] = useState<string>('全部');
   const [depStatus, setDepStatus] = useState<string>('全部');
   const [depSearch, setDepSearch] = useState('');
+  const [depDateRange, setDepDateRange] = useState<any>(null);
 
   const filteredDeposit = depositData.filter((r) => {
     const kw = depSearch.toLowerCase();
+    const matchDate = !depDateRange || !depDateRange[0] || !depDateRange[1]
+      || (r.arrivalTime >= depDateRange[0].format('YYYY-MM-DD')
+          && r.arrivalTime <= depDateRange[1].format('YYYY-MM-DD'));
     return (
       (depCurrency === '全部' || r.currency === depCurrency) &&
       (depStatus === '全部' || r.status === depStatus) &&
+      matchDate &&
       (!kw || r.orderId.includes(kw) || r.account.toLowerCase().includes(kw) || r.remark.toLowerCase().includes(kw))
     );
   });
@@ -348,7 +366,12 @@ const WalletPage: React.FC = () => {
           </Space>
           <Space size={8} align="center">
             <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>到账时间：</Text>
-            <RangePicker size="small" placeholder={['选择时间范围', '']} style={{ width: 220 }} />
+            <RangePicker
+              size="small"
+              placeholder={['选择时间范围', '']}
+              style={{ width: 220 }}
+              onChange={(dates) => setDepDateRange(dates)}
+            />
           </Space>
         </Space>
         <Space size={24} wrap align="center">
