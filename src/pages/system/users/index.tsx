@@ -40,6 +40,8 @@ const isExpired = (validPeriod: string): boolean => {
   return new Date(validPeriod) < new Date(new Date().toDateString());
 };
 const mockRole = (localStorage.getItem('mock_role') ?? 'group_admin') as Role;
+// 当前登录用户所属集团（mock）
+const CURRENT_GROUP = 'UU Talk';
 
 const { Text } = Typography;
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
@@ -139,7 +141,10 @@ const buildTreeData = (data: UserRecord[]) => {
 };
 
 const UserManagePage: React.FC = () => {
-  const [users, setUsers] = useState<UserRecord[]>(initialData);
+  const visibleData = mockRole === 'system_admin'
+    ? initialData
+    : initialData.filter((r) => r.group === CURRENT_GROUP);
+  const [users, setUsers] = useState<UserRecord[]>(visibleData);
 
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string | undefined>();
@@ -224,7 +229,7 @@ const UserManagePage: React.FC = () => {
         <Space size={0}>
           <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => { setCurrentUser(r); setViewOpen(true); }}>查看</Button>
           <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => openEdit(r)}>编辑</Button>
-          {mockRole === 'system_admin' && r.status === '启用' && (
+          {r.status === '启用' && (
             <Popconfirm
               title={r.isLocked ? '确认解除临时锁定？' : '确认临时锁定该账号？'}
               onConfirm={() => toggleLock(r.id)}
