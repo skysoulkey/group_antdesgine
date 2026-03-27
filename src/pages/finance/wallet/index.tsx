@@ -174,9 +174,12 @@ const WalletPage: React.FC = () => {
 
   const filteredTransfer = transferData.filter((r) => {
     const matchCurrency = currencyFilter === '全部' || r.currency === currencyFilter;
-    const matchDate = !transferDateRange || !transferDateRange[0] || !transferDateRange[1]
-      || (r.startTime >= transferDateRange[0].format('YYYY-MM-DD')
-          && r.startTime <= transferDateRange[1].format('YYYY-MM-DD'));
+    const matchDate =
+      !transferDateRange ||
+      !transferDateRange[0] ||
+      !transferDateRange[1] ||
+      (!dayjs(r.startTime).isBefore(transferDateRange[0].startOf('day')) &&
+        !dayjs(r.startTime).isAfter(transferDateRange[1].endOf('day')));
     return matchCurrency && matchDate;
   });
 
@@ -307,13 +310,16 @@ const WalletPage: React.FC = () => {
   const [depCurrency, setDepCurrency] = useState<string>('全部');
   const [depStatus, setDepStatus] = useState<string>('全部');
   const [depSearch, setDepSearch] = useState('');
-  const [depDateRange, setDepDateRange] = useState<any>(null);
+  const [depDateRange, setDepDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
 
   const filteredDeposit = depositData.filter((r) => {
     const kw = depSearch.toLowerCase();
-    const matchDate = !depDateRange || !depDateRange[0] || !depDateRange[1]
-      || (r.arrivalTime >= depDateRange[0].format('YYYY-MM-DD')
-          && r.arrivalTime <= depDateRange[1].format('YYYY-MM-DD'));
+    const matchDate =
+      !depDateRange ||
+      !depDateRange[0] ||
+      !depDateRange[1] ||
+      (!dayjs(r.arrivalTime).isBefore(depDateRange[0].startOf('day')) &&
+        !dayjs(r.arrivalTime).isAfter(depDateRange[1].endOf('day')));
     return (
       (depCurrency === '全部' || r.currency === depCurrency) &&
       (depStatus === '全部' || r.status === depStatus) &&
