@@ -72,7 +72,7 @@ const MyWalletPage: React.FC = () => {
     <div>
       {/* 余额卡片 */}
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
               <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -85,7 +85,7 @@ const MyWalletPage: React.FC = () => {
             </div>
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
+        <Col xs={24} sm={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
               <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -121,7 +121,6 @@ const MyWalletPage: React.FC = () => {
             </Space>
           </Descriptions.Item>
           <Descriptions.Item label="归属集团">UU Talk 集团</Descriptions.Item>
-          <Descriptions.Item label="通知账号">@Miya_miya</Descriptions.Item>
         </Descriptions>
       </Card>
 
