@@ -1,4 +1,4 @@
-import { Column, Pie } from '@ant-design/plots';
+import { Column } from '@ant-design/plots';
 import {
   CopyOutlined,
   FullscreenOutlined,
@@ -14,6 +14,7 @@ import {
   Button,
   Card,
   Col,
+  ConfigProvider,
   DatePicker,
   Divider,
   Form,
@@ -21,9 +22,8 @@ import {
   InputNumber,
   message,
   Modal,
-  Popover,
+  Radio,
   Row,
-  Segmented,
   Select,
   Space,
   Table,
@@ -44,16 +44,11 @@ const BALANCE_PEA  = 341234234.00;
 const CURRENT_BALANCE = 178283.09;
 
 // ── 地址薄数据 ────────────────────────────────────────────────────
-interface AddressItem { id: string; name: string; protocol: string; address: string; type: 'chain' | 'user'; account?: string }
+interface AddressItem { id: string; name: string; type: 'user'; account: string }
 const addressBook: AddressItem[] = [
-  { id: '1', name: 'Miya', protocol: 'TRC20', address: 'TBA2838...jHid8OINS03', type: 'chain' },
-  { id: '2', name: 'Miya', protocol: 'TRC20', address: 'TBA293hjHUh9020sjdio293', type: 'chain' },
-  { id: '3', name: 'Miya', protocol: 'TRC20', address: 'TBA2838...jHid8OINS03', type: 'chain' },
-  { id: '4', name: 'Miya', protocol: 'TRC20', address: 'TBA2838...jHid8OINS03', type: 'chain' },
-  { id: '5', name: 'Miya', protocol: 'TRC20', address: 'TBA2838...jHid8OINS03', type: 'chain' },
-  { id: '6', name: 'Miya', account: 'ji****1111', type: 'user' } as AddressItem,
-  { id: '7', name: 'Miya', account: 'ji****1111', type: 'user' } as AddressItem,
-  { id: '8', name: 'Miya', account: 'ji****1111', type: 'user' } as AddressItem,
+  { id: '6', name: 'Miya', type: 'user', account: 'ji****1111' },
+  { id: '7', name: 'Miya', type: 'user', account: 'ji****1111' },
+  { id: '8', name: 'Miya', type: 'user', account: 'ji****1111' },
 ];
 
 // ── 转出记录数据 ──────────────────────────────────────────────────
@@ -62,7 +57,7 @@ interface TransferRow {
   startTime: string;
   endTime: string;
   orderId: string;
-  method: '链上转出' | '转账用户';
+  method: '转账用户';
   receiver: string;
   currency: string;
   amount: string;
@@ -73,8 +68,8 @@ const transferData: TransferRow[] = Array.from({ length: 15 }, (_, i) => ({
   startTime: `2025-10-10 12:23:23`,
   endTime: `2025-10-10 12:23:23`,
   orderId: String(73720 + i),
-  method: i % 2 === 0 ? '链上转出' : '转账用户',
-  receiver: i % 2 === 0 ? `地址名称（TBAnfjos99...02hidhndOU）` : `Miya（@MI）`,
+  method: '转账用户' as const,
+  receiver: `Miya（@MI）`,
   currency: i % 2 === 0 ? 'USDT' : 'PEA',
   amount: i % 2 === 0 ? '873,233' : '73,233',
 }));
@@ -87,7 +82,7 @@ interface DepositRow {
   id: string;
   arrivalTime: string;
   orderId: string;
-  method: '链上充值' | '平台充值';
+  method: '平台充值';
   account: string;
   status: DepositStatus;
   currency: string;
@@ -101,8 +96,8 @@ const depositData: DepositRow[] = Array.from({ length: 20 }, (_, i) => ({
   id: `D${String(i + 1).padStart(7, '0')}`,
   arrivalTime: `2025-10-${String((i % 28) + 1).padStart(2, '0')} 12:23:23`,
   orderId: String(83720 + i),
-  method: i % 2 === 0 ? '链上充值' : '平台充值',
-  account: i % 2 === 0 ? `地址名称（TBAnfjos99...02hidhndOU）` : `Miya（@MI）`,
+  method: '平台充值' as const,
+  account: `Miya（@MI）`,
   status: DEPOSIT_STATUSES[i % 4],
   currency: i % 3 === 0 ? 'PEA' : 'USDT',
   amount: 50000 + i * 8000,
@@ -127,53 +122,34 @@ const monthlyData = [
   { month: '12月', type: 'USDT', value: 22 }, { month: '12月', type: 'PEA', value: 20 },
 ];
 
-const pieData = [
-  { type: '平台转账', value: 341 },
-  { type: '链上转账', value: 682 },
-];
-
 // ── 费用计算 ──────────────────────────────────────────────────────
 const TAX_RATE = 0.05;
 const TAX_EXEMPT = 1000;
-const CHAIN_FEE = 1;
 
-function calcFee(amount: number, method: string) {
+function calcFee(amount: number) {
   const taxable = Math.max(0, amount - TAX_EXEMPT);
   const tax = parseFloat((taxable * TAX_RATE).toFixed(2));
-  const fee = method === '链上转出' ? CHAIN_FEE : 0;
-  const final = amount + tax + fee;
-  return { tax, fee, final };
+  return { tax, final: amount + tax };
 }
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const WalletPage: React.FC = () => {
   const [depositOpen, setDepositOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
-  const [depositMethod, setDepositMethod] = useState<'链上充值' | '平台收款'>('链上充值');
-  const [withdrawMethod, setWithdrawMethod] = useState<'平台转出' | '链上转出'>('平台转出');
   const [withdrawAmt, setWithdrawAmt] = useState<number>(0);
   const [currencyFilter, setCurrencyFilter] = useState<'全部' | 'USDT' | 'PEA'>('全部');
   const [depositForm] = Form.useForm();
   const [withdrawForm] = Form.useForm();
 
-  const { tax, fee, final } = calcFee(withdrawAmt, withdrawMethod);
+  const { tax, final } = calcFee(withdrawAmt);
 
   // 打开转出弹窗（可从地址薄预填数据）
-  const openWithdrawModal = (
-    method: '平台转出' | '链上转出',
-    receiver?: string,
-    note?: string,
-  ) => {
-    setWithdrawMethod(method);
+  const openWithdrawModal = (receiver?: string, note?: string) => {
     setWithdrawAmt(0);
     withdrawForm.resetFields();
     if (receiver || note) {
       setTimeout(() => {
-        withdrawForm.setFieldsValue({
-          method,
-          receiver,
-          accountNote: note,
-        });
+        withdrawForm.setFieldsValue({ receiver, accountNote: note });
       }, 0);
     }
     setWithdrawOpen(true);
@@ -186,7 +162,7 @@ const WalletPage: React.FC = () => {
     { title: '订单编号', dataIndex: 'orderId', width: 90 },
     {
       title: '交易方式', dataIndex: 'method', width: 100,
-      render: (v) => <Tag color={v === '链上转出' ? 'purple' : 'blue'}>{v}</Tag>,
+      render: (v) => <Tag color="blue">{v}</Tag>,
     },
     { title: '接收账户', dataIndex: 'receiver', ellipsis: true },
     { title: '货币单位', dataIndex: 'currency', width: 80 },
@@ -202,27 +178,8 @@ const WalletPage: React.FC = () => {
       <Text strong style={{ fontSize: 14 }}>地址薄</Text>
       <Input prefix={<SearchOutlined style={{ color: '#bfbfbf' }} />} placeholder="请输入名称" size="small" style={{ margin: '10px 0', borderRadius: 6 }} />
 
-      <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 8 }}>▾ 链上地址</div>
-      {addressBook.filter(a => a.type === 'chain').map(a => (
-        <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #fafafa' }}>
-          <Space size={6}>
-            <Avatar size={28} style={{ background: '#f0f0f0', color: '#888', fontSize: 11 }}>T</Avatar>
-            <div>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>{a.name} <Tag style={{ fontSize: 10, padding: '0 4px', margin: 0 }}>{a.protocol}</Tag></div>
-              <div style={{ fontSize: 11, color: '#888' }}>{a.address}</div>
-            </div>
-          </Space>
-          <Space size={4}>
-            <Button type="primary" size="small"
-              style={{ fontSize: 11, height: 22, padding: '0 6px', background: '#722ed1', borderColor: '#722ed1' }}
-              onClick={() => openWithdrawModal('链上转出', a.address, a.name)}>转账</Button>
-            <CopyOutlined style={{ fontSize: 12, color: '#722ed1', cursor: 'pointer' }} onClick={() => { navigator.clipboard.writeText(a.address ?? ''); message.success('已复制'); }} />
-          </Space>
-        </div>
-      ))}
-
-      <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', margin: '12px 0 8px' }}>▾ 平台用户</div>
-      {addressBook.filter(a => a.type === 'user').map(a => (
+      <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 8 }}>▾ 平台用户</div>
+      {addressBook.map(a => (
         <div key={a.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #fafafa' }}>
           <Space size={6}>
             <Avatar size={28} icon={<UserOutlined />} style={{ background: '#e6f4ff' }} />
@@ -234,8 +191,7 @@ const WalletPage: React.FC = () => {
           <Space size={4}>
             <Button type="primary" size="small"
               style={{ fontSize: 11, height: 22, padding: '0 6px', background: '#722ed1', borderColor: '#722ed1' }}
-              onClick={() => openWithdrawModal('平台转出', a.account, a.name)}>转账</Button>
-            <span style={{ fontSize: 16, color: '#722ed1', cursor: 'pointer' }}>⇄</span>
+              onClick={() => openWithdrawModal(a.account, a.name)}>转账</Button>
           </Space>
         </div>
       ))}
@@ -292,7 +248,7 @@ const WalletPage: React.FC = () => {
       {/* 图表区 */}
       {isTx && (
         <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={16}>
+          <Col span={24}>
             <Card bordered={false} style={{ borderRadius: 8, boxShadow: CARD_SHADOW }}>
               <Text style={{ fontSize: 13, fontWeight: 600 }}>每月转出总额</Text>
               <div style={{ marginTop: 8 }}>
@@ -309,23 +265,6 @@ const WalletPage: React.FC = () => {
                   tooltip={{ items: [{ channel: 'y', valueFormatter: (v: number) => `${v}次` }] }}
                 />
               </div>
-            </Card>
-          </Col>
-          <Col span={8}>
-            <Card bordered={false} style={{ borderRadius: 8, boxShadow: CARD_SHADOW, height: '100%' }}>
-              <Text style={{ fontSize: 13, fontWeight: 600 }}>转账方式</Text>
-              <Pie
-                data={pieData}
-                angleField="value"
-                colorField="type"
-                innerRadius={0.6}
-                height={333}
-                style={{ marginTop: 8 }}
-                scale={{ color: { range: ['#722ed1', '#b37feb'] } }}
-                legend={{ position: 'bottom' }}
-                label={false}
-                tooltip={{ items: [{ channel: 'color', name: '转账方式' }, { channel: 'y', name: '次数', valueFormatter: (v: number) => `${v}次` }] }}
-              />
             </Card>
           </Col>
         </Row>
@@ -353,7 +292,6 @@ const WalletPage: React.FC = () => {
 
   // ── 充值记录独立内容区 ─────────────────────────────────────────
   const [depCurrency, setDepCurrency] = useState<string>('全部');
-  const [depMethod, setDepMethod] = useState<string>('全部');
   const [depStatus, setDepStatus] = useState<string>('全部');
   const [depSearch, setDepSearch] = useState('');
 
@@ -361,7 +299,6 @@ const WalletPage: React.FC = () => {
     const kw = depSearch.toLowerCase();
     return (
       (depCurrency === '全部' || r.currency === depCurrency) &&
-      (depMethod === '全部' || r.method === depMethod) &&
       (depStatus === '全部' || r.status === depStatus) &&
       (!kw || r.orderId.includes(kw) || r.account.toLowerCase().includes(kw) || r.remark.toLowerCase().includes(kw))
     );
@@ -370,10 +307,6 @@ const WalletPage: React.FC = () => {
   const depositCols: ColumnsType<DepositRow> = [
     { title: '到账时间', dataIndex: 'arrivalTime', width: 160 },
     { title: '订单编号', dataIndex: 'orderId', width: 90 },
-    {
-      title: '交易方式', dataIndex: 'method', width: 100,
-      render: (v) => <Tag color={v === '链上充值' ? 'purple' : 'blue'}>{v}</Tag>,
-    },
     { title: '充值账号', dataIndex: 'account', ellipsis: true },
     {
       title: '状态', dataIndex: 'status', width: 130,
@@ -409,16 +342,6 @@ const WalletPage: React.FC = () => {
               <Radio.Group value={depCurrency} onChange={(e) => setDepCurrency(e.target.value)} buttonStyle="outline">
                 {['全部', 'USDT', 'PEA'].map((v) => (
                   <Radio.Button key={v} value={v} style={depCurrency === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
-          </Space>
-          <Space size={8} align="center">
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>交易方式：</Text>
-            <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
-              <Radio.Group value={depMethod} onChange={(e) => setDepMethod(e.target.value)} buttonStyle="outline">
-                {['全部', '链上充值', '平台充值'].map((v) => (
-                  <Radio.Button key={v} value={v} style={depMethod === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
                 ))}
               </Radio.Group>
             </ConfigProvider>
@@ -508,19 +431,6 @@ const WalletPage: React.FC = () => {
                   <CopyOutlined style={{ fontSize: 12, color: '#722ed1', cursor: 'pointer' }}
                     onClick={() => { navigator.clipboard.writeText('UHBOWunhfi8974nnf'); message.success('已复制'); }} />
                 </Tooltip>
-                <Popover
-                  trigger="hover"
-                  content={
-                    <div style={{ textAlign: 'center', padding: 4 }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, marginBottom: 8 }}>
-                        {[0,1,2,3].map(i => <QrcodeOutlined key={i} style={{ fontSize: 52, color: '#141414', display: 'block' }} />)}
-                      </div>
-                      <Text style={{ fontFamily: 'monospace', fontSize: 11, color: '#888' }}>UHBOWunhfi8974nnf</Text>
-                    </div>
-                  }
-                >
-                  <QrcodeOutlined style={{ fontSize: 12, color: '#722ed1', cursor: 'pointer' }} />
-                </Popover>
               </Space>
             </div>
           </Space>
@@ -542,9 +452,9 @@ const WalletPage: React.FC = () => {
           <Space size={16} align="center">
             <Tag color="purple" style={{ fontSize: 13, padding: '2px 10px' }}>USDT</Tag>
             <Button size="small" style={{ background: '#722ed1', borderColor: '#722ed1', color: '#fff' }}
-              onClick={() => { setDepositMethod('链上充值'); setDepositOpen(true); }}>充值</Button>
+              onClick={() => setDepositOpen(true)}>充值</Button>
             <Button size="small" style={{ background: '#9254de', borderColor: '#9254de', color: '#fff' }}
-              onClick={() => openWithdrawModal('平台转出')}>转账</Button>
+              onClick={() => openWithdrawModal()}>转账</Button>
             <Text style={{ fontSize: 22, fontWeight: 700 }}>
               {BALANCE_USDT.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </Text>
@@ -554,9 +464,9 @@ const WalletPage: React.FC = () => {
           <Space size={16} align="center">
             <Tag color="default" style={{ fontSize: 13, padding: '2px 10px' }}>PEA</Tag>
             <Button size="small" style={{ background: '#722ed1', borderColor: '#722ed1', color: '#fff' }}
-              onClick={() => { setDepositMethod('平台收款'); setDepositOpen(true); }}>充值</Button>
+              onClick={() => setDepositOpen(true)}>充值</Button>
             <Button size="small" style={{ background: '#9254de', borderColor: '#9254de', color: '#fff' }}
-              onClick={() => openWithdrawModal('链上转出')}>转账</Button>
+              onClick={() => openWithdrawModal()}>转账</Button>
             <Text style={{ fontSize: 22, fontWeight: 700 }}>
               {BALANCE_PEA.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </Text>
@@ -583,66 +493,23 @@ const WalletPage: React.FC = () => {
         width={480}
       >
         <Form form={depositForm} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item label="充值方式" name="method" initialValue={depositMethod} rules={[{ required: true }]}>
-            <Select
-              options={[{ value: '链上充值', label: '链上充值' }, { value: '平台收款', label: '平台收款' }]}
-              onChange={(v) => setDepositMethod(v)}
-            />
+          <Form.Item label={<span><span style={{ color: '#ff4d4f' }}>* </span>集团平台账户</span>}>
+            <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 4, padding: '4px 10px', fontSize: 13 }}>
+              @KjidnfHJNDO8nd
+            </div>
           </Form.Item>
-
-          {depositMethod === '链上充值' ? (
-            <>
-              <Form.Item label={<span><span style={{ color: '#ff4d4f' }}>* </span>集团链上账户</span>}>
-                <Space.Compact>
-                  <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: '4px 0 0 4px', padding: '4px 10px', fontSize: 13 }}>TRC20</div>
-                  <div style={{ flex: 1, background: '#fafafa', border: '1px solid #d9d9d9', borderLeft: 'none', borderRadius: '0 4px 4px 0', padding: '4px 10px', fontSize: 13, fontFamily: 'monospace' }}>
-                    wjeoifnorinorngorngirngoerngenrgoe
-                  </div>
-                </Space.Compact>
-              </Form.Item>
-              {/* QR code placeholder */}
-              <div style={{ textAlign: 'center', margin: '12px 0' }}>
-                <div style={{ display: 'inline-block', padding: 12, border: '1px solid #f0f0f0', borderRadius: 8 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
-                    {[0,1,2,3].map(i => <QrcodeOutlined key={i} style={{ fontSize: 88, color: '#141414', display: 'block' }} />)}
-                  </div>
-                </div>
-                <div style={{ marginTop: 8 }}>
-                  <Space>
-                    <Text style={{ fontFamily: 'monospace', fontSize: 12 }}>wjeoifnorinorngorngirngoerngenrgoe</Text>
-                    <CopyOutlined style={{ color: '#722ed1', cursor: 'pointer' }}
-                      onClick={() => { navigator.clipboard.writeText('wjeoifnorinorngorngirngoerngenrgoe'); message.success('已复制'); }} />
-                  </Space>
-                </div>
+          <div style={{ textAlign: 'center', margin: '12px 0' }}>
+            <div style={{ display: 'inline-block', padding: 12, border: '1px solid #f0f0f0', borderRadius: 8 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
+                {[0,1,2,3].map(i => <QrcodeOutlined key={i} style={{ fontSize: 88, color: '#141414', display: 'block' }} />)}
               </div>
-              <div style={{ background: '#fafafa', borderRadius: 6, padding: '10px 14px', fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
-                <Text style={{ fontSize: 12 }}>充值说明：</Text>
-                <div>1、转账网络为 USDT-TRC20，转账时请确认地址，否则不可到账不可找回；</div>
-                <div>2、最小充值数量为 1 USDT；</div>
-                <div>3、在线充值请等待5分钟到账，刷新页面后查看余额。</div>
-              </div>
-            </>
-          ) : (
-            <>
-              <Form.Item label={<span><span style={{ color: '#ff4d4f' }}>* </span>集团平台账户</span>}>
-                <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 4, padding: '4px 10px', fontSize: 13 }}>
-                  @KjidnfHJNDO8nd
-                </div>
-              </Form.Item>
-              <div style={{ textAlign: 'center', margin: '12px 0' }}>
-                <div style={{ display: 'inline-block', padding: 12, border: '1px solid #f0f0f0', borderRadius: 8 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3 }}>
-                    {[0,1,2,3].map(i => <QrcodeOutlined key={i} style={{ fontSize: 88, color: '#141414', display: 'block' }} />)}
-                  </div>
-                </div>
-              </div>
-              <div style={{ background: '#fafafa', borderRadius: 6, padding: '10px 14px', fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
-                <Text style={{ fontSize: 12 }}>收款说明：</Text>
-                <div>1、使用移动端扫码可以进行转账。</div>
-                <div>2、转账实时到账，到账后刷新钱包页面可以看到当前余额。</div>
-              </div>
-            </>
-          )}
+            </div>
+          </div>
+          <div style={{ background: '#fafafa', borderRadius: 6, padding: '10px 14px', fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
+            <Text style={{ fontSize: 12 }}>收款说明：</Text>
+            <div>1、使用移动端扫码可以进行转账。</div>
+            <div>2、转账实时到账，到账后刷新钱包页面可以看到当前余额。</div>
+          </div>
         </Form>
       </Modal>
 
@@ -658,36 +525,12 @@ const WalletPage: React.FC = () => {
       >
         <Form form={withdrawForm} layout="vertical" style={{ marginTop: 16 }}>
 
-          {/* ─ 方式切换（Segmented） ─ */}
-          <div style={{ marginBottom: 20 }}>
-            <Segmented
-              block
-              value={withdrawMethod}
-              options={['平台转出', '链上转出']}
-              onChange={(v) => {
-                setWithdrawMethod(v as '平台转出' | '链上转出');
-                setWithdrawAmt(0);
-                withdrawForm.resetFields(['receiver', 'amount']);
-              }}
-            />
-          </div>
-
-          {/* ─ 分段标题 ─ */}
-          <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 16 }}>{withdrawMethod}</Text>
-
           <Form.Item label="账户备注" name="accountNote">
             <Input placeholder="Miya" />
           </Form.Item>
 
           <Form.Item label="转至账户" name="receiver" rules={[{ required: true, message: '请填写转至账户' }]}>
-            {withdrawMethod === '平台转出' ? (
-              <Input placeholder="@KjidnfHJNDO8nd" />
-            ) : (
-              <Space.Compact style={{ width: '100%' }}>
-                <Select defaultValue="TRC20" style={{ width: 90 }} options={[{ value: 'TRC20', label: 'TRC20' }]} />
-                <Input placeholder="请输入链上地址" style={{ flex: 1 }} />
-              </Space.Compact>
-            )}
+            <Input placeholder="@KjidnfHJNDO8nd" />
           </Form.Item>
 
           <Form.Item label="转出金额" name="amount" rules={[{ required: true, message: '请输入转出金额' }]}>
@@ -723,17 +566,6 @@ const WalletPage: React.FC = () => {
                 <Text type="secondary" style={{ fontSize: 12 }}>免税额度：1000.00 USDT</Text>
                 <Text type="secondary" style={{ fontSize: 12 }}>税率：5%</Text>
               </div>
-
-              {/* 手续费（仅链上转出） */}
-              {withdrawMethod === '链上转出' && (
-                <>
-                  <Text style={{ fontSize: 13, color: '#ff4d4f' }}>* 手续费</Text>
-                  <div style={{ background: '#f5f5f5', border: '1px solid #d9d9d9', borderRadius: 4, padding: '5px 11px', fontSize: 13 }}>
-                    {CHAIN_FEE.toFixed(2)} USDT
-                  </div>
-                  <div />
-                </>
-              )}
             </div>
           </div>
 
@@ -775,20 +607,9 @@ const WalletPage: React.FC = () => {
 
           {/* 说明 */}
           <div style={{ background: '#fafafa', borderRadius: 6, padding: '10px 14px', fontSize: 12, color: 'rgba(0,0,0,0.65)' }}>
-            {withdrawMethod === '平台转出' ? (
-              <>
-                <div style={{ marginBottom: 4 }}>转出说明：</div>
-                <div>1、使用移动端扫码可以进行转账。</div>
-                <div>2、转账实时到账，到账后刷新钱包页面可以看到当前余额。</div>
-              </>
-            ) : (
-              <>
-                <div style={{ marginBottom: 4 }}>转出说明：</div>
-                <div>1、转账网络为 USDT-TRC20，转账时请确认地址，否则不可到账不可找回；</div>
-                <div>2、最小充币数量为 1 USDT；</div>
-                <div>3、在线充值请等待5分钟到账，刷新页面后查看余额。</div>
-              </>
-            )}
+            <div style={{ marginBottom: 4 }}>转出说明：</div>
+            <div>1、使用移动端扫码可以进行转账。</div>
+            <div>2、转账实时到账，到账后刷新钱包页面可以看到当前余额。</div>
           </div>
         </Form>
       </Modal>
