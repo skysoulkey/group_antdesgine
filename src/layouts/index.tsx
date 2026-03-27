@@ -25,16 +25,17 @@ const allMenuItems: MenuItem[] = [
     key: 'dashboard',
     icon: <DashboardOutlined />,
     label: '仪表盘',
+    roles: ['group_admin', 'company_admin'],
     children: [
-      { key: '/dashboard',         label: '集团仪表盘', roles: ['group_admin', 'system_admin'] },
-      { key: '/dashboard/company', label: '公司仪表盘', roles: ['company_admin', 'system_admin'] },
+      { key: '/dashboard',         label: '集团仪表盘', roles: ['group_admin'] },
+      { key: '/dashboard/company', label: '公司仪表盘', roles: ['company_admin'] },
     ],
   },
   {
     key: 'group',
     icon: <BankOutlined />,
     label: '集团管理',
-    roles: ['group_admin', 'system_admin'],
+    roles: ['group_admin'],
     children: [
       { key: '/company/list',      label: '公司清单' },
       { key: '/company/transfer',  label: '内部划转' },
@@ -45,7 +46,7 @@ const allMenuItems: MenuItem[] = [
     key: 'company',
     icon: <StockOutlined />,
     label: '公司管理',
-    roles: ['company_admin', 'system_admin'],
+    roles: ['company_admin'],
     children: [
       { key: '/company/shareholding', label: '公司持股' },
       { key: '/company/revenue',      label: '公司收益' },
@@ -55,7 +56,7 @@ const allMenuItems: MenuItem[] = [
     key: 'enterprise',
     icon: <ApartmentOutlined />,
     label: '企业管理',
-    roles: ['company_admin', 'system_admin'],
+    roles: ['company_admin'],
     children: [
       { key: '/enterprise/list',   label: '企业清单' },
       { key: '/enterprise/invite', label: '邀请企业' },
@@ -65,7 +66,7 @@ const allMenuItems: MenuItem[] = [
     key: 'orders',
     icon: <FileTextOutlined />,
     label: '公司订单',
-    roles: ['company_admin', 'system_admin'],
+    roles: ['company_admin'],
     children: [
       { key: '/orders/lottery', label: '东方彩票' },
       { key: '/commission',     label: '佣金订单' },
@@ -76,12 +77,12 @@ const allMenuItems: MenuItem[] = [
     icon: <SettingOutlined />,
     label: '设置中心',
     children: [
-      { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_admin', 'system_admin'] },
-      { key: '/finance/company-wallet', label: '公司钱包',  roles: ['company_admin', 'system_admin'] },
+      { key: '/finance/my-wallet',      label: '公司钱包',  roles: ['company_admin'] },
+      { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_admin'] },
       { key: '/system/profile',         label: '基础信息' },
       { key: '/system/users',           label: '用户管理' },
       { key: '/system/logs',            label: '系统日志' },
-      { key: '/system/notifications',   label: '通知管理' },
+      { key: '/system/notifications',   label: '通知管理',  roles: ['group_admin', 'company_admin'] },
     ],
   },
 ];
@@ -111,8 +112,8 @@ const breadcrumbMap: Record<string, string[]> = {
   '/enterprise/invite':      ['企业管理', '邀请企业'],
   '/orders/lottery':         ['公司订单', '东方彩票'],
   '/commission':             ['公司订单', '佣金订单'],
+  '/finance/my-wallet':      ['设置中心', '公司钱包'],
   '/finance/wallet':         ['设置中心', '集团钱包'],
-  '/finance/company-wallet': ['设置中心', '公司钱包'],
   '/system/profile':         ['设置中心', '基础信息'],
   '/system/users':           ['设置中心', '用户管理'],
   '/system/logs':            ['设置中心', '系统日志'],
@@ -237,10 +238,12 @@ const MainLayout: React.FC = () => {
                 { value: 'system_admin',  label: '系统管理员' },
               ]}
             />
-            <Space size={4}>
-              <Text type="secondary" style={{ fontSize: 12 }}>余额:</Text>
-              <Text strong style={{ color: '#722ed1' }}>178,283.09 USDT</Text>
-            </Space>
+            {role !== 'system_admin' && (
+              <Space size={4}>
+                <Text type="secondary" style={{ fontSize: 12 }}>余额:</Text>
+                <Text strong style={{ color: '#722ed1' }}>178,283.09 USDT</Text>
+              </Space>
+            )}
             <Badge count={3} size="small">
               <BellOutlined
                 style={{ fontSize: 18, cursor: 'pointer', color: '#595959' }}

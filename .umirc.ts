@@ -36,8 +36,8 @@ export default defineConfig({
     { path: '/commission',     component: 'commission/index' },
 
     // 设置中心
+    { path: '/finance/my-wallet',       component: 'finance/my-wallet/index' },
     { path: '/finance/wallet',          component: 'finance/wallet/index' },
-    { path: '/finance/company-wallet',  component: 'finance/company-wallet/index' },
     { path: '/system/profile',          component: 'system/profile/index' },
     { path: '/system/users',            component: 'system/users/index' },
     { path: '/system/roles',            component: 'system/roles/index' },
