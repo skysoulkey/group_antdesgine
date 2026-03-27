@@ -9,7 +9,6 @@ import {
   Modal,
   Space,
   Switch,
-  Tabs,
   Tag,
   Typography,
 } from 'antd';
@@ -23,13 +22,6 @@ const ProfilePage: React.FC = () => {
   const [pwdOpen, setPwdOpen] = useState(false);
   const [pwdForm] = Form.useForm();
 
-  const companyInfo = {
-    name: '炸雷第一波',
-    group: 'UU Talk',
-    notifyAccounts: '@Miya_miya;@Tom_admin',
-    createdAt: '2025-11-23 13:56:21',
-  };
-
   const personalInfo = {
     username: 'Miya',
     role: '集团管理员',
@@ -42,74 +34,40 @@ const ProfilePage: React.FC = () => {
     mfaEnabled: false,
   };
 
-  const tabItems = [
-    {
-      key: 'company',
-      label: '公司信息',
-      children: (
-        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
-          <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130 }} bordered>
-            <Descriptions.Item label="公司名称">
-              <Text strong>{companyInfo.name}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="归属集团">
-              <Tag color="blue">{companyInfo.group}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="通知账号">
-              <Space wrap size={4}>
-                {companyInfo.notifyAccounts.split(';').map((a) => (
-                  <Tag key={a}>{a}</Tag>
-                ))}
-              </Space>
-            </Descriptions.Item>
-            <Descriptions.Item label="创建时间">{companyInfo.createdAt}</Descriptions.Item>
-          </Descriptions>
-        </Card>
-      ),
-    },
-    {
-      key: 'personal',
-      label: '个人设置',
-      children: (
-        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
-          <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130 }} bordered>
-            <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
-            <Descriptions.Item label="角色">
-              <Tag color="blue">{personalInfo.role}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="邮箱">{personalInfo.email}</Descriptions.Item>
-            <Descriptions.Item label="账户有效期">
-              <Text type="success">{personalInfo.validPeriod}</Text>
-            </Descriptions.Item>
-            <Descriptions.Item label="最近登录IP">
-              <Space>
-                <Text style={{ fontFamily: 'monospace' }}>{personalInfo.lastLoginIp}</Text>
-                <Text>{personalInfo.lastLoginCountry}</Text>
-              </Space>
-            </Descriptions.Item>
-            <Descriptions.Item label="最近登录时间">{personalInfo.lastLoginTime}</Descriptions.Item>
-            <Descriptions.Item label="账号创建时间">{personalInfo.createdAt}</Descriptions.Item>
-            <Descriptions.Item label="MFA 认证">
-              <Switch defaultChecked={personalInfo.mfaEnabled} />
-            </Descriptions.Item>
-            <Descriptions.Item label="登录密码">
-              <Button
-                size="small"
-                icon={<LockOutlined />}
-                onClick={() => setPwdOpen(true)}
-              >
-                修改密码
-              </Button>
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-      ),
-    },
-  ];
-
   return (
     <div>
-      <Tabs items={tabItems} defaultActiveKey="personal" />
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
+        <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130 }} bordered>
+          <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
+          <Descriptions.Item label="角色">
+            <Tag color="blue">{personalInfo.role}</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="邮箱">{personalInfo.email}</Descriptions.Item>
+          <Descriptions.Item label="账户有效期">
+            <Text type="success">{personalInfo.validPeriod}</Text>
+          </Descriptions.Item>
+          <Descriptions.Item label="最近登录IP">
+            <Space>
+              <Text style={{ fontFamily: 'monospace' }}>{personalInfo.lastLoginIp}</Text>
+              <Text>{personalInfo.lastLoginCountry}</Text>
+            </Space>
+          </Descriptions.Item>
+          <Descriptions.Item label="最近登录时间">{personalInfo.lastLoginTime}</Descriptions.Item>
+          <Descriptions.Item label="账号创建时间">{personalInfo.createdAt}</Descriptions.Item>
+          <Descriptions.Item label="MFA 认证">
+            <Switch defaultChecked={personalInfo.mfaEnabled} />
+          </Descriptions.Item>
+          <Descriptions.Item label="登录密码">
+            <Button
+              size="small"
+              icon={<LockOutlined />}
+              onClick={() => setPwdOpen(true)}
+            >
+              修改密码
+            </Button>
+          </Descriptions.Item>
+        </Descriptions>
+      </Card>
 
       {/* 修改密码弹窗 */}
       <Modal
