@@ -1,4 +1,4 @@
-import { InfoCircleOutlined, PlusOutlined, QrcodeOutlined, SearchOutlined, SwapOutlined } from '@ant-design/icons';
+import { InfoCircleOutlined, PlusOutlined, SearchOutlined, SwapOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
@@ -387,7 +387,6 @@ const CompanyListPage: React.FC = () => {
           <Form.Item
             label="消息通知账号"
             name="notifyAccounts"
-            rules={[{ required: true, message: '公司管理员必须配置消息通知账号' }]}
           >
             <Input placeholder="请输入 APP 用户名，如 @miya_miya" />
           </Form.Item>
@@ -435,34 +434,6 @@ const CompanyListPage: React.FC = () => {
             }
           </Form.Item>
 
-          <Divider style={{ margin: '12px 0' }} />
-
-          {/* ── MFA 绑定 ── */}
-          <Form.Item label="绑定 MFA 设备" name="bindMfa" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-          <Form.Item noStyle shouldUpdate={(p, c) => p.bindMfa !== c.bindMfa}>
-            {({ getFieldValue }) =>
-              getFieldValue('bindMfa') ? (
-                <div style={{ background: '#f9f0ff', border: '1px solid #d3adf7', borderRadius: 8, padding: 16, textAlign: 'center', marginBottom: 16 }}>
-                  <QrcodeOutlined style={{ fontSize: 64, color: '#722ed1', marginBottom: 8 }} />
-                  <div style={{ fontSize: 12, color: '#595959', marginBottom: 6 }}>
-                    请使用 Google Authenticator 或其他 TOTP 应用扫描二维码完成绑定
-                  </div>
-                  <div style={{ fontSize: 11, color: '#8c8c8c', background: '#fff', borderRadius: 4, padding: '4px 10px', display: 'inline-block', border: '1px solid #e8e8e8' }}>
-                    密钥：JBSWY3DPEHPK3PXP
-                  </div>
-                  <Form.Item
-                    name="mfaCode"
-                    rules={[{ required: true, len: 6, message: '请输入 6 位验证码' }]}
-                    style={{ marginTop: 12, marginBottom: 0 }}
-                  >
-                    <Input placeholder="输入 MFA 验证码确认绑定" maxLength={6} style={{ width: 220 }} />
-                  </Form.Item>
-                </div>
-              ) : null
-            }
-          </Form.Item>
 
         </Form>
       </Modal>
