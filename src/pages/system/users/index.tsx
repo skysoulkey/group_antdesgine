@@ -35,6 +35,12 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useMemo, useState } from 'react';
 import { type Role } from '../../utils/auth';
 
+const isExpired = (validPeriod: string): boolean => {
+  if (validPeriod === '永久有效') return false;
+  return new Date(validPeriod) < new Date(new Date().toDateString());
+};
+const mockRole = (localStorage.getItem('mock_role') ?? 'group_admin') as Role;
+
 const { Text } = Typography;
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
@@ -82,14 +88,30 @@ interface UserRecord {
   ipWhitelist: string;
   validPeriod: string;
   notifyAccounts: string;
+  isLocked: boolean;
 }
 
 const initialData: UserRecord[] = [
-  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', group: 'UU Talk', company: '滴滴答答', role: '集团管理员', status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya' },
-  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin' },
-  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
-  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '公司管理员', status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@alice_finance' },
-  { id: 'U005', username: 'SysAdmin', phone: '+65 6888 8888', email: 'sysadmin@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-07-01 08:00:00', ipRestrict: true, ipWhitelist: '203.0.113.0/24', validPeriod: '永久有效', notifyAccounts: '' },
+  // U001 — 启用，永久有效，正常
+  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', group: 'UU Talk', company: '滴滴答答', role: '集团管理员', status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya', isLocked: false },
+  // U002 — 启用，有效期内，正常
+  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin', isLocked: false },
+  // U003 — 停用（管理员手动停用）
+  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '', isLocked: false },
+  // U004 — 启用，已过期
+  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '公司管理员', status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-01-01', notifyAccounts: '@alice_finance', isLocked: false },
+  // U005 — 启用，已锁定（安全锁定）
+  { id: 'U005', username: 'SysAdmin', phone: '+65 6888 8888', email: 'sysadmin@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-07-01 08:00:00', ipRestrict: true, ipWhitelist: '203.0.113.0/24', validPeriod: '永久有效', notifyAccounts: '', isLocked: true },
+  // U006 — 启用，已过期 + 已锁定
+  { id: 'U006', username: 'Leo', phone: '+65 9123 4567', email: 'leo@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-06-10 10:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-03-01', notifyAccounts: '@leo_ops', isLocked: true },
+  // U007 — 停用，已过期（停用且到期）
+  { id: 'U007', username: 'Nina', phone: '+86 139 8888 7777', email: 'nina@stargame.io', group: 'Star Game', company: 'Nova Corp', role: '公司管理员', status: '停用', createdAt: '2025-05-20 09:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-06-30', notifyAccounts: '', isLocked: false },
+  // U008 — 集团管理员，启用，有效期内，正常
+  { id: 'U008', username: 'Ryan', phone: '+65 8234 5678', email: 'ryan@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '集团管理员', status: '启用', createdAt: '2025-04-15 08:00:00', ipRestrict: true, ipWhitelist: '192.168.1.0/24', validPeriod: '2027-06-30', notifyAccounts: '@ryan_admin', isLocked: false },
+  // U009 — 平台管理员，启用，永久有效，正常
+  { id: 'U009', username: 'Eve', phone: '+65 6777 9999', email: 'eve@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-03-01 12:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '', isLocked: false },
+  // U010 — 启用，即将到期（2026-04-30），正常（用于对比）
+  { id: 'U010', username: 'Mark', phone: '+86 188 0000 1234', email: 'mark@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '启用', createdAt: '2025-02-18 15:45:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2026-04-30', notifyAccounts: '@mark_ops', isLocked: false },
 ];
 
 // ── 集团-公司-管理员 树数据 ────────────────────────────────────────
@@ -138,11 +160,11 @@ const UserManagePage: React.FC = () => {
 
   const [editIpRestrict, setEditIpRestrict] = useState(false);
 
-  // 快速锁定
+  // 临时锁定/解锁（不改变 status，仅翻转 isLocked）
   const toggleLock = (id: string) => {
     setUsers((prev) =>
       prev.map((u) =>
-        u.id === id ? { ...u, status: u.status === '启用' ? '停用' : '启用' } : u,
+        u.id === id ? { ...u, isLocked: !u.isLocked } : u,
       ),
     );
   };
@@ -159,8 +181,13 @@ const UserManagePage: React.FC = () => {
 
   const filtered = treeFilteredBase.filter((r) => {
     const kw = search.toLowerCase();
+    const statusMatch =
+      statusFilter === '全部'   ? true :
+      statusFilter === '锁定'   ? r.isLocked :
+      statusFilter === '已过期' ? isExpired(r.validPeriod) :
+      r.status === statusFilter;
     return (
-      (statusFilter === '全部' || r.status === statusFilter) &&
+      statusMatch &&
       (!roleFilter || r.role === roleFilter) &&
       (!kw || r.username.toLowerCase().includes(kw) || r.email.toLowerCase().includes(kw) || r.phone.includes(kw))
     );
@@ -181,32 +208,40 @@ const UserManagePage: React.FC = () => {
     { title: '归属公司', dataIndex: 'company', width: 110 },
     { title: '角色', dataIndex: 'role', width: 110, render: (v: UserRole) => <Tag color={roleColors[v]}>{v}</Tag> },
     {
-      title: '状态', dataIndex: 'status', width: 80,
-      render: (v: UserStatus) => <Tag color={v === '启用' ? 'success' : 'default'}>{v}</Tag>,
+      title: '状态', dataIndex: 'status', width: 160,
+      render: (v: UserStatus, r: UserRecord) => (
+        <Space size={4} wrap>
+          <Tag color={v === '启用' ? 'success' : 'default'}>{v}</Tag>
+          {isExpired(r.validPeriod) && <Tag color="warning">已过期</Tag>}
+          {r.isLocked && <Tag color="error">已锁定</Tag>}
+        </Space>
+      ),
     },
     { title: '创建时间', dataIndex: 'createdAt', width: 160 },
     {
-      title: '操作', width: 150, fixed: 'right' as const,
+      title: '操作', width: 170, fixed: 'right' as const,
       render: (_, r) => (
         <Space size={0}>
           <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => { setCurrentUser(r); setViewOpen(true); }}>查看</Button>
           <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => openEdit(r)}>编辑</Button>
-          <Popconfirm
-            title={r.status === '启用' ? '确认锁定该账号？' : '确认解锁该账号？'}
-            onConfirm={() => toggleLock(r.id)}
-            okText="确认"
-            cancelText="取消"
-          >
-            <Button
-              type="link"
-              size="small"
-              danger={r.status === '启用'}
-              style={{ padding: '0 4px' }}
-              icon={r.status === '启用' ? <LockOutlined /> : <UnlockOutlined />}
+          {mockRole === 'system_admin' && r.status === '启用' && (
+            <Popconfirm
+              title={r.isLocked ? '确认解除临时锁定？' : '确认临时锁定该账号？'}
+              onConfirm={() => toggleLock(r.id)}
+              okText="确认"
+              cancelText="取消"
             >
-              {r.status === '启用' ? '锁定' : '解锁'}
-            </Button>
-          </Popconfirm>
+              <Button
+                type="link"
+                size="small"
+                danger={!r.isLocked}
+                style={{ padding: '0 4px' }}
+                icon={r.isLocked ? <UnlockOutlined /> : <LockOutlined />}
+              >
+                {r.isLocked ? '解锁' : '锁定'}
+              </Button>
+            </Popconfirm>
+          )}
         </Space>
       ),
     },
@@ -255,6 +290,8 @@ const UserManagePage: React.FC = () => {
                   <Radio.Button value="全部">全部</Radio.Button>
                   <Radio.Button value="启用">启用</Radio.Button>
                   <Radio.Button value="停用">停用</Radio.Button>
+                  <Radio.Button value="锁定">锁定</Radio.Button>
+                  <Radio.Button value="已过期">已过期</Radio.Button>
                 </Radio.Group>
               </ConfigProvider>
               <Select
@@ -292,7 +329,7 @@ const UserManagePage: React.FC = () => {
               dataSource={filtered}
               rowKey="id"
               size="middle"
-              scroll={{ x: 1100 }}
+              scroll={{ x: 1200 }}
               pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
               rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
             />
@@ -308,29 +345,50 @@ const UserManagePage: React.FC = () => {
         footer={<Button onClick={() => setViewOpen(false)}>关 闭</Button>}
         width={520}
       >
-        {currentUser && (
-          <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}>
-            <Descriptions.Item label="用户名">{currentUser.username}</Descriptions.Item>
-            <Descriptions.Item label="手机号">{currentUser.phone}</Descriptions.Item>
-            <Descriptions.Item label="邮箱">{currentUser.email}</Descriptions.Item>
-            <Descriptions.Item label="归属集团">{currentUser.group}</Descriptions.Item>
-            <Descriptions.Item label="归属公司">{currentUser.company}</Descriptions.Item>
-            <Descriptions.Item label="角色"><Tag color={roleColors[currentUser.role]}>{currentUser.role}</Tag></Descriptions.Item>
-            <Descriptions.Item label="状态"><Tag color={currentUser.status === '启用' ? 'success' : 'default'}>{currentUser.status}</Tag></Descriptions.Item>
-            <Descriptions.Item label="账户有效期">{currentUser.validPeriod}</Descriptions.Item>
-            <Descriptions.Item label="IP限制">{currentUser.ipRestrict ? '已开启' : '未开启'}</Descriptions.Item>
-            {currentUser.ipRestrict && <Descriptions.Item label="IP白名单">{currentUser.ipWhitelist}</Descriptions.Item>}
-            {currentUser.notifyAccounts && <Descriptions.Item label="消息通知">{currentUser.notifyAccounts}</Descriptions.Item>}
-            <Descriptions.Item label="创建时间">{currentUser.createdAt}</Descriptions.Item>
-          </Descriptions>
-        )}
+          {(() => {
+          const u = users.find((x) => x.id === currentUser?.id) ?? currentUser;
+          return u ? (
+            <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}>
+              <Descriptions.Item label="用户名">{u.username}</Descriptions.Item>
+              <Descriptions.Item label="手机号">{u.phone}</Descriptions.Item>
+              <Descriptions.Item label="邮箱">{u.email}</Descriptions.Item>
+              <Descriptions.Item label="归属集团">{u.group}</Descriptions.Item>
+              <Descriptions.Item label="归属公司">{u.company}</Descriptions.Item>
+              <Descriptions.Item label="角色"><Tag color={roleColors[u.role]}>{u.role}</Tag></Descriptions.Item>
+              <Descriptions.Item label="状态">
+                <Space size={4} wrap>
+                  <Tag color={u.status === '启用' ? 'success' : 'default'}>{u.status}</Tag>
+                  {isExpired(u.validPeriod) && <Tag color="warning">已过期</Tag>}
+                  {u.isLocked && <Tag color="error">已锁定</Tag>}
+                </Space>
+              </Descriptions.Item>
+              <Descriptions.Item label="账户有效期">{u.validPeriod}</Descriptions.Item>
+              <Descriptions.Item label="IP限制">{u.ipRestrict ? '已开启' : '未开启'}</Descriptions.Item>
+              {u.ipRestrict && <Descriptions.Item label="IP白名单">{u.ipWhitelist}</Descriptions.Item>}
+              {u.notifyAccounts && <Descriptions.Item label="消息通知">{u.notifyAccounts}</Descriptions.Item>}
+              <Descriptions.Item label="创建时间">{u.createdAt}</Descriptions.Item>
+            </Descriptions>
+          ) : null;
+        })()}
       </Modal>
 
       {/* ── 编辑弹窗 ─────────────────────────────────────────────── */}
       <Modal
         title="编辑用户"
         open={editOpen}
-        onOk={() => editForm.validateFields().then(() => { setEditOpen(false); message.success('保存成功'); })}
+        onOk={() =>
+          editForm.validateFields().then((values) => {
+            setUsers((prev) =>
+              prev.map((u) =>
+                u.id === currentUser?.id
+                  ? { ...u, role: values.role, status: values.status, validPeriod: values.validPeriod, ipRestrict: values.ipRestrict ?? false, ipWhitelist: values.ipRestrict ? (values.ipWhitelist ?? '') : '' }
+                  : u,
+              ),
+            );
+            setEditOpen(false);
+            message.success('保存成功');
+          })
+        }
         onCancel={() => setEditOpen(false)}
         okText="保 存"
         cancelText="取 消"
@@ -362,7 +420,33 @@ const UserManagePage: React.FC = () => {
       <Modal
         title="创建用户"
         open={createOpen}
-        onOk={() => createForm.validateFields().then(() => { setCreateOpen(false); message.success('用户创建成功'); })}
+        onOk={() =>
+          createForm.validateFields().then((values) => {
+            const newId = `U${String(Date.now()).slice(-4)}`;
+            const newUser: UserRecord = {
+              id: newId,
+              username: values.username,
+              phone: '',
+              email: '',
+              group: values.group ?? '全部集团',
+              company: values.company ?? '全部公司',
+              role: values.role,
+              status: values.status,
+              createdAt: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-'),
+              ipRestrict: values.ipRestrict ?? false,
+              ipWhitelist: values.ipRestrict ? (values.ipWhitelist ?? '') : '',
+              validPeriod: values.validPeriod === '自定义' && values.expireDate
+                ? values.expireDate.format('YYYY-MM-DD')
+                : '永久有效',
+              notifyAccounts: values.notifyAccounts ?? '',
+              isLocked: false,
+            };
+            setUsers((prev) => [...prev, newUser]);
+            setCreateOpen(false);
+            createForm.resetFields();
+            message.success('用户创建成功');
+          })
+        }
         onCancel={() => setCreateOpen(false)}
         okText="创 建"
         cancelText="取 消"
@@ -502,30 +586,6 @@ const UserManagePage: React.FC = () => {
             }
           </Form.Item>
 
-          <Divider style={{ margin: '12px 0' }} />
-
-          {/* MFA 绑定 */}
-          <Form.Item label="绑定 MFA 设备" name="bindMfa" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-          <Form.Item noStyle shouldUpdate={(p, c) => p.bindMfa !== c.bindMfa}>
-            {({ getFieldValue }) =>
-              getFieldValue('bindMfa') ? (
-                <div style={{ background: '#f9f0ff', border: '1px solid #d3adf7', borderRadius: 8, padding: '16px', textAlign: 'center', marginBottom: 16 }}>
-                  <QrcodeOutlined style={{ fontSize: 64, color: '#722ed1', marginBottom: 8 }} />
-                  <div style={{ fontSize: 12, color: '#595959', marginBottom: 6 }}>
-                    请使用 Google Authenticator 或其他 TOTP 应用扫描二维码完成绑定
-                  </div>
-                  <div style={{ fontSize: 11, color: '#8c8c8c', background: '#fff', borderRadius: 4, padding: '4px 10px', display: 'inline-block', border: '1px solid #e8e8e8' }}>
-                    密钥：JBSWY3DPEHPK3PXP
-                  </div>
-                  <Form.Item name="mfaCode" rules={[{ required: true, len: 6, message: '请输入6位验证码' }]} style={{ marginTop: 12, marginBottom: 0 }}>
-                    <Input placeholder="输入 MFA 验证码确认绑定" maxLength={6} style={{ width: 220 }} />
-                  </Form.Item>
-                </div>
-              ) : null
-            }
-          </Form.Item>
         </Form>
       </Modal>
     </div>
