@@ -90,6 +90,46 @@ const WalletPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('全部');
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
 
+  const filteredOrders = orders.filter((r) => {
+    const matchType = typeFilter === '全部' || r.type === typeFilter;
+    const matchStatus = statusFilter === '全部' || r.status === statusFilter;
+    const matchDate =
+      !dateRange || !dateRange[0] || !dateRange[1] ||
+      (!dayjs(r.startTime).isBefore(dateRange[0].startOf('day')) &&
+       !dayjs(r.startTime).isAfter(dateRange[1].endOf('day')));
+    return matchType && matchStatus && matchDate;
+  });
+
+  const statusColorMap: Record<OrderStatus, string> = {
+    '待审批': 'warning',
+    '成功':   'success',
+    '失败':   'error',
+  };
+
+  const orderColumns: ColumnsType<OrderRecord> = [
+    { title: '发起时间', dataIndex: 'startTime', width: 160 },
+    { title: '结束时间', dataIndex: 'endTime',   width: 160, render: (v) => v || '—' },
+    { title: '订单号',   dataIndex: 'orderId',   width: 120 },
+    {
+      title: '类型', dataIndex: 'type', width: 80,
+      render: (v: OrderType) => <Tag color={v === '入金' ? 'blue' : 'orange'}>{v}</Tag>,
+    },
+    { title: '币种', dataIndex: 'currency', width: 70 },
+    {
+      title: '金额', dataIndex: 'amount', width: 130, align: 'right',
+      render: (v: number) => (
+        <span style={{ fontWeight: 400, color: '#141414' }}>
+          {v.toLocaleString('en', { minimumFractionDigits: 2 })}
+        </span>
+      ),
+    },
+    {
+      title: '状态', dataIndex: 'status', width: 90,
+      render: (v: OrderStatus) => <Tag color={statusColorMap[v]}>{v}</Tag>,
+    },
+    { title: '备注', dataIndex: 'remark', ellipsis: true, render: (v) => v || '—' },
+  ];
+
   return (
     <div>
       {/* ── 余额卡片 ──────────────────────────────────────────────── */}
@@ -161,7 +201,52 @@ const WalletPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* 订单记录卡片 — Task 3 填充 */}
+      {/* ── 订单记录 ────────────────────────────────────────────────── */}
+      <Card
+        bordered={false}
+        style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+        title="订单记录"
+        extra={
+          <Space wrap>
+            <Select
+              value={typeFilter}
+              onChange={setTypeFilter}
+              style={{ width: 110 }}
+              options={[
+                { value: '全部', label: '全部类型' },
+                { value: '入金', label: '入金' },
+                { value: '出金', label: '出金' },
+              ]}
+            />
+            <Select
+              value={statusFilter}
+              onChange={setStatusFilter}
+              style={{ width: 110 }}
+              options={[
+                { value: '全部', label: '全部状态' },
+                { value: '待审批', label: '待审批' },
+                { value: '成功',   label: '成功' },
+                { value: '失败',   label: '失败' },
+              ]}
+            />
+            <DatePicker.RangePicker
+              style={{ width: 240 }}
+              placeholder={['开始时间', '结束时间']}
+              onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
+            />
+          </Space>
+        }
+      >
+        <Table
+          columns={orderColumns}
+          dataSource={filteredOrders}
+          rowKey="id"
+          size="middle"
+          scroll={{ x: 1000 }}
+          pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+        />
+      </Card>
 
       {/* 弹窗 — Task 4 & 5 填充 */}
     </div>
