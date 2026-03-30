@@ -102,7 +102,6 @@ const FinanceRevenuePage: React.FC = () => {
       {/* 账单列表 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Space style={{ marginBottom: 16 }} wrap align="center">
-          <Text style={{ whiteSpace: 'nowrap' }}>账单状态：</Text>
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group
               buttonStyle="outline"

@@ -10,7 +10,6 @@ import {
 } from '@ant-design/icons';
 import {
   Avatar,
-  Badge,
   Button,
   Card,
   Col,
@@ -76,7 +75,7 @@ const transferData: TransferRow[] = Array.from({ length: 15 }, (_, i) => ({
 }));
 
 // ── 充值记录数据 ──────────────────────────────────────────────────
-const DEPOSIT_STATUSES = ['充值成功', '资金风险待处理', '充值退回', '资金已封禁'] as const;
+const DEPOSIT_STATUSES = ['充值成功', '充值失败'] as const;
 type DepositStatus = typeof DEPOSIT_STATUSES[number];
 
 interface DepositRow {
@@ -99,7 +98,7 @@ const depositData: DepositRow[] = Array.from({ length: 20 }, (_, i) => ({
   orderId: String(83720 + i),
   method: '平台充值' as const,
   account: `Miya（@MI）`,
-  status: DEPOSIT_STATUSES[i % 4],
+  status: DEPOSIT_STATUSES[i % 2],
   currency: i % 3 === 0 ? 'PEA' : 'USDT',
   amount: 50000 + i * 8000,
   balance: 873233.23,
@@ -215,7 +214,6 @@ const WalletPage: React.FC = () => {
       {/* 筛选 */}
       <Space style={{ marginBottom: 16 }} wrap>
         <Space size={0}>
-          <Text type="secondary" style={{ marginRight: 6, fontSize: 13 }}>货币单位：</Text>
           {(['全部', 'USDT', 'PEA'] as const).map(v => (
             <Button
               key={v}
@@ -226,19 +224,12 @@ const WalletPage: React.FC = () => {
             >{v}</Button>
           ))}
         </Space>
-        <Space>
-          <Text type="secondary" style={{ fontSize: 13 }}>搜索：</Text>
-          <Input placeholder="订单编号，订单备注" size="small" suffix={<SearchOutlined />} style={{ width: 180 }} />
-        </Space>
-        <Space>
-          <Text type="secondary" style={{ fontSize: 13 }}>订单时间：</Text>
-          <RangePicker
-            size="small"
-            placeholder={['选择时间范围', '']}
-            style={{ width: 220 }}
+        <Input placeholder="订单编号，订单备注" suffix={<SearchOutlined />} style={{ width: 200 }} />
+        <RangePicker
+            placeholder={['开始时间', '结束时间']}
+            style={{ width: 240 }}
             onChange={(dates) => setTransferDateRange(dates as any)}
           />
-        </Space>
       </Space>
 
       {/* 统计数字 */}
@@ -335,7 +326,7 @@ const WalletPage: React.FC = () => {
     {
       title: '状态', dataIndex: 'status', width: 130,
       render: (v: DepositStatus) => {
-        const colorMap: Record<DepositStatus, string> = { '充值成功': 'success', '资金风险待处理': 'warning', '充值退回': 'default', '资金已封禁': 'error' };
+        const colorMap: Record<DepositStatus, string> = { '充值成功': 'success', '充值失败': 'error' };
         return <Tag color={colorMap[v]}>{v}</Tag>;
       },
     },
@@ -360,48 +351,35 @@ const WalletPage: React.FC = () => {
     <div>
       <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
         <Space size={24} wrap align="center">
-          <Space size={8} align="center">
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>货币单位：</Text>
-            <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
-              <Radio.Group value={depCurrency} onChange={(e) => setDepCurrency(e.target.value)} buttonStyle="outline">
-                {['全部', 'USDT', 'PEA'].map((v) => (
-                  <Radio.Button key={v} value={v} style={depCurrency === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
-          </Space>
-          <Space size={8} align="center">
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>到账时间：</Text>
-            <RangePicker
-              size="small"
-              placeholder={['选择时间范围', '']}
-              style={{ width: 220 }}
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Radio.Group value={depCurrency} onChange={(e) => setDepCurrency(e.target.value)} buttonStyle="outline">
+              {['全部', 'USDT', 'PEA'].map((v) => (
+                <Radio.Button key={v} value={v} style={depCurrency === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
+          <RangePicker
+              placeholder={['开始时间', '结束时间']}
+              style={{ width: 240 }}
               onChange={(dates) => setDepDateRange(dates)}
-            />
-          </Space>
+          />
         </Space>
         <Space size={24} wrap align="center">
-          <Space size={8} align="center">
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>状态：</Text>
-            <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
-              <Radio.Group value={depStatus} onChange={(e) => setDepStatus(e.target.value)} buttonStyle="outline">
-                {['全部', ...DEPOSIT_STATUSES].map((v) => (
-                  <Radio.Button key={v} value={v} style={depStatus === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
-          </Space>
-          <Space size={8} align="center">
-            <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>搜索：</Text>
-            <Input
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+            <Radio.Group value={depStatus} onChange={(e) => setDepStatus(e.target.value)} buttonStyle="outline">
+              {['全部', ...DEPOSIT_STATUSES].map((v) => (
+                <Radio.Button key={v} value={v} style={depStatus === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
+          <Input
               placeholder="充值账号，订单编号，备注"
               value={depSearch}
               onChange={(e) => setDepSearch(e.target.value)}
               allowClear
               suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
               style={{ width: 240 }}
-            />
-          </Space>
+          />
         </Space>
       </Space>
 
@@ -429,7 +407,7 @@ const WalletPage: React.FC = () => {
   const tabItems = [
     {
       key: 'transfer',
-      label: <Badge count={1} size="small" offset={[8, -2]}>转出记录</Badge>,
+      label: '转出记录',
       children: (
         <div style={{ display: 'flex', gap: 20 }}>
           <AddressBook />
@@ -478,27 +456,27 @@ const WalletPage: React.FC = () => {
         {/* 余额行 */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
           {/* USDT */}
-          <Space size={16} align="center">
-            <Tag color="purple" style={{ fontSize: 13, padding: '2px 10px' }}>USDT</Tag>
-            <Button size="small" style={{ background: '#722ed1', borderColor: '#722ed1', color: '#fff' }}
-              onClick={() => setDepositOpen(true)}>充值</Button>
-            <Button size="small" style={{ background: '#9254de', borderColor: '#9254de', color: '#fff' }}
-              onClick={() => openWithdrawModal()}>转账</Button>
+          <Space size={6} align="center">
+            <Tag color="purple" style={{ fontSize: 13, padding: '2px 10px', marginRight: 0 }}>USDT</Tag>
             <Text style={{ fontSize: 22, fontWeight: 700 }}>
               {BALANCE_USDT.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </Text>
           </Space>
 
           {/* PEA */}
-          <Space size={16} align="center">
-            <Tag color="default" style={{ fontSize: 13, padding: '2px 10px' }}>PEA</Tag>
+          <Space size={6} align="center">
+            <Tag color="default" style={{ fontSize: 13, padding: '2px 10px', marginRight: 0 }}>PEA</Tag>
+            <Text style={{ fontSize: 22, fontWeight: 700 }}>
+              {BALANCE_PEA.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </Text>
+          </Space>
+
+          {/* 操作按钮 */}
+          <Space size={8} align="center">
             <Button size="small" style={{ background: '#722ed1', borderColor: '#722ed1', color: '#fff' }}
               onClick={() => setDepositOpen(true)}>充值</Button>
             <Button size="small" style={{ background: '#9254de', borderColor: '#9254de', color: '#fff' }}
               onClick={() => openWithdrawModal()}>转账</Button>
-            <Text style={{ fontSize: 22, fontWeight: 700 }}>
-              {BALANCE_PEA.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-            </Text>
           </Space>
 
           {/* 日期 */}

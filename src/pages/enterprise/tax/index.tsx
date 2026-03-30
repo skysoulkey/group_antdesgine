@@ -98,8 +98,7 @@ export default function EnterpriseTax() {
           <Input prefix={<SearchOutlined />} placeholder="搜索订单编号 / 企业名称"
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
-        <Col style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Text style={{ whiteSpace: 'nowrap' }}>税收类型：</Text>
+        <Col>
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group
               buttonStyle="outline"
@@ -114,8 +113,7 @@ export default function EnterpriseTax() {
             </Radio.Group>
           </ConfigProvider>
         </Col>
-        <Col style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Text style={{ whiteSpace: 'nowrap' }}>状态：</Text>
+        <Col>
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group
               buttonStyle="outline"

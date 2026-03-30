@@ -297,7 +297,55 @@ axis: {
 
 ---
 
-## 12. 规范文件体系
+## 12. useParams 路由参数必须用于实际数据展示
+
+**遇到的问题**
+详情页通过 `useParams` 取到了路由 id，但页面上的 KPI 数据、表格、图表全部是静态 mock，未根据 id 做任何区分。实际上无论跳转哪个详情，展示的都是同一份数据。
+
+**规则**
+- 路由详情页获取到 `id`/`enterpriseId` 等参数后，**必须**将其用于：
+  1. 页面头部展示对应实体的基本信息（名称、状态、归属等）
+  2. 接口联调时作为请求参数，过滤并展示该实体的数据
+- Mock 阶段最低要求：建立 id → 基本信息的查找表（如 `ENTERPRISE_MAP`），让头部 Banner 能显示正确的名称和状态，而非留空或写死一份
+- 不允许详情页完全忽视 `useParams` 返回值
+
+**如何检查**
+每次新开发详情页时，检查：
+1. 是否有 `useParams` 取到的 id
+2. 该 id 是否出现在页面渲染逻辑或接口调用中（不能只是展示 id 字符串本身）
+3. 至少有一个数据块（头部/表格/图表）的内容依赖于该 id
+
+---
+
+## 13. 筛选器组件必须接入 onChange 和筛选逻辑
+
+**遇到的问题**
+页面中放置了 `RangePicker`、`Select`、`Radio.Group`、`Input` 等筛选器组件，但 `onChange` 未绑定 state，或 state 有了但未加入数据 `filter()` 逻辑，导致操作筛选器没有任何效果，仅是 UI 摆设。
+
+**规则**
+- 每个筛选器组件上线前，必须同时满足以下三点：
+  1. 绑定了 `onChange`，更新对应 state
+  2. 该 state 被用于 `filter()` 或传给接口参数
+  3. 筛选结果反映在表格/图表的 `dataSource` 或 `data` 上
+- `RangePicker` 额外注意：`onChange` 回调的值类型为 `[Dayjs, Dayjs] | null`，需显式 cast：
+  ```tsx
+  onChange={(v) => setRange(v as [Dayjs, Dayjs] | null)}
+  ```
+- 过滤日期时使用 `dayjs` 比较，避免字符串直接对比失效：
+  ```tsx
+  const inRange = (dateStr: string, range: [Dayjs, Dayjs] | null) => {
+    if (!range || !dateStr || dateStr === '—') return true;
+    const d = dayjs(dateStr);
+    return !d.isBefore(range[0].startOf('day')) && !d.isAfter(range[1].endOf('day'));
+  };
+  ```
+
+**如何检查**
+新增任何筛选器组件后，手动操作该组件，观察表格/图表数据是否发生变化。若无变化，必须排查以上三点，确保链路完整。
+
+---
+
+## 15. 规范文件体系
 
 每个项目应维护以下规范文档，与代码保持同步：
 

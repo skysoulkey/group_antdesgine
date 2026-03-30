@@ -16,7 +16,7 @@ import {
   TrophyOutlined,
   UsergroupAddOutlined,
 } from '@ant-design/icons';
-import { Line } from '@ant-design/plots';
+import { Area } from '@ant-design/plots';
 import {
   Badge,
   Button,
@@ -76,10 +76,9 @@ const chartCfg = (data: { date: string; value: number }[], name: string) => ({
   xField: 'date',
   yField: 'value',
   shape: 'smooth',
-  point: false,
   height: 220,
   autoFit: true,
-  style: { stroke: '#722ed1' },
+  style: { fill: 'l(270) 0:rgba(114,46,209,0) 1:rgba(114,46,209,0.2)' },
   scale: {
     color: { range: ['#722ed1'] },
   },
@@ -206,7 +205,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, value, data, tooltip }) =>
     <div style={{ marginBottom: 16 }}>
       <span style={{ fontSize: 26, fontWeight: 700, color: '#141414', letterSpacing: -0.5 }}>{value}</span>
     </div>
-    <Line {...chartCfg(data, title)} />
+    <Area {...chartCfg(data, title)} />
   </Card>
 );
 

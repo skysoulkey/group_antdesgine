@@ -94,8 +94,7 @@ export default function CompanyTransferIn() {
           <Input prefix={<SearchOutlined />} placeholder="搜索划转单号 / 公司名称"
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
-        <Col style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>划转方向：</Text>
+        <Col>
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group buttonStyle="outline" value={directionFilter ?? 'all'}
               onChange={e => setDirectionFilter(e.target.value === 'all' ? undefined : e.target.value)}>
@@ -108,8 +107,7 @@ export default function CompanyTransferIn() {
             </Radio.Group>
           </ConfigProvider>
         </Col>
-        <Col style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Text type="secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }}>状态：</Text>
+        <Col>
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group buttonStyle="outline" value={statusFilter ?? 'all'}
               onChange={e => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}>

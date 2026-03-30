@@ -9,7 +9,8 @@ import {
   StockOutlined,
   TrophyOutlined,
 } from '@ant-design/icons';
-import { Line } from '@ant-design/plots';
+
+import { Area } from '@ant-design/plots';
 import {
   Badge,
   Button,
@@ -18,6 +19,7 @@ import {
   ConfigProvider,
   Divider,
   Input,
+  Radio,
   Row,
   Segmented,
   Select,
@@ -36,6 +38,18 @@ const { Text, Title } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
+
+const radioTheme = {
+  components: {
+    Radio: {
+      buttonSolidCheckedBg: '#722ed1',
+      buttonSolidCheckedHoverBg: '#9254de',
+      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedColor: '#fff',
+      colorPrimary: '#722ed1',
+    },
+  },
+};
 
 // ── 公司列表（切换用）────────────────────────────────────────────
 const COMPANIES = [
@@ -58,10 +72,9 @@ const chartCfg = (data: { date: string; value: number }[], name: string) => ({
   xField: 'date',
   yField: 'value',
   shape: 'smooth',
-  point: { style: { fill: '#722ed1', stroke: '#722ed1' } },
   height: 220,
   autoFit: true,
-  style: { stroke: '#722ed1' },
+  style: { fill: 'l(270) 0:rgba(114,46,209,0) 1:rgba(114,46,209,0.2)' },
   tooltip: { items: [{ channel: 'y' as const, name }] },
 });
 
@@ -187,11 +200,14 @@ const groupTransferData: GroupTransfer[] = Array.from({ length: 10 }, (_, i) => 
 }));
 
 const groupTransferColumns: ColumnsType<GroupTransfer> = [
-  { title: '订单类型', dataIndex: 'orderType', width: 140, render: (v) => <Tag color={v === '集团资金下拨' ? 'success' : 'warning'}>{v}</Tag> },
   { title: '订单时间', dataIndex: 'orderTime', width: 170 },
   { title: '订单编号', dataIndex: 'orderNo', width: 160 },
+  { title: '订单类型', dataIndex: 'orderType', width: 140, render: (v) => <Tag color={v === '集团资金下拨' ? 'success' : 'warning'}>{v}</Tag> },
   { title: '货币单位', dataIndex: 'currency', width: 90 },
-  { title: '交易金额', dataIndex: 'amount', width: 130, align: 'right' },
+  {
+    title: '交易金额', dataIndex: 'amount', width: 130, align: 'right',
+    sorter: (a, b) => parseFloat(a.amount.replace(/,/g, '')) - parseFloat(b.amount.replace(/,/g, '')),
+  },
   { title: '订单备注', dataIndex: 'remark' },
 ];
 
@@ -213,33 +229,41 @@ const groupContribColumns: ColumnsType<GroupContrib> = [
 
 // ── 持股估值 mock ─────────────────────────────────────────────────
 interface HoldingValuation {
-  id: string; targetEnterprise: string; shareRatio: string;
-  investAmount: string; currentValue: string; unrealizedPnl: string;
-  returnRate: string; status: string; investTime: string;
+  id: string;
+  enterpriseId: string;
+  enterpriseName: string;
+  shareRatio: string;
+  status: string;   // '持股' | '已退'
+  currency: string; // 'USDT' | 'PEA'
+  holdingValue: string;
+  totalAssets: string;
+  shareRevenue: string;
+  exitTime: string;
 }
-const holdingData: HoldingValuation[] = Array.from({ length: 6 }, (_, i) => ({
+const ENTERPRISE_NAMES = ['UU Talk企业', 'Hey Talk企业', '炸雷一期', 'Cyber Bot', 'Star Tech', '龙虎斗基金', '东方彩票', '星海基金'];
+const holdingData: HoldingValuation[] = Array.from({ length: 8 }, (_, i) => ({
   id: `HV${i + 1}`,
-  targetEnterprise: ['UU Talk企业', 'Hey Talk企业', '炸雷一期', 'Cyber Bot', 'Star Tech', '龙虎斗基金'][i],
-  shareRatio: `${(3 + i * 2).toFixed(1)}%`,
-  investAmount: `${(20000 + i * 8000).toLocaleString()}.00`,
-  currentValue: `${(22000 + i * 9000).toLocaleString()}.00`,
-  unrealizedPnl: i % 3 === 1 ? `-${(1000 + i * 200).toLocaleString()}.00` : `${(2000 + i * 1000).toLocaleString()}.00`,
-  returnRate: i % 3 === 1 ? `-${(3 + i).toFixed(1)}%` : `+${(8 + i * 3).toFixed(1)}%`,
-  status: i % 4 === 3 ? '已退出' : '持仓中',
-  investTime: `2025-0${i + 1}-10 09:00:00`,
+  enterpriseId: String(287402 + i),
+  enterpriseName: ENTERPRISE_NAMES[i],
+  shareRatio: `${(3 + i * 2).toFixed(2)}%`,
+  status: i % 4 === 3 ? '已退' : '持股',
+  currency: i % 3 === 0 ? 'PEA' : 'USDT',
+  holdingValue: `${(22000 + i * 9000).toLocaleString()}.00`,
+  totalAssets: `${(60000 + i * 15000).toLocaleString()}.00`,
+  shareRevenue: `${(6000 + i * 1500).toLocaleString()}.00`,
+  exitTime: i % 4 === 3 ? `2025-0${i + 1}-15 14:00:00` : '—',
 }));
 const holdingColumns: ColumnsType<HoldingValuation> = [
-  { title: '标的企业', dataIndex: 'targetEnterprise', width: 130 },
-  { title: '持股比例', dataIndex: 'shareRatio', width: 90, align: 'right' },
-  { title: '投入金额', dataIndex: 'investAmount', width: 120, align: 'right' },
-  { title: '当前估值', dataIndex: 'currentValue', width: 120, align: 'right' },
-  { title: '未实现盈亏', dataIndex: 'unrealizedPnl', width: 130, align: 'right',
-    render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
-  { title: '收益率', dataIndex: 'returnRate', width: 90, align: 'right',
-    render: (v: string) => <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text> },
-  { title: '状态', dataIndex: 'status', width: 90,
-    render: (v) => <Tag color={v === '持仓中' ? 'processing' : 'default'}>{v}</Tag> },
-  { title: '投入时间', dataIndex: 'investTime', width: 170 },
+  { title: '企业ID',       dataIndex: 'enterpriseId',   width: 90 },
+  { title: '企业名称',     dataIndex: 'enterpriseName', width: 140 },
+  { title: '持股比例',     dataIndex: 'shareRatio',     width: 90,  align: 'right' },
+  { title: '公司持股状态', dataIndex: 'status',         width: 110,
+    render: (v) => <Tag color={v === '持股' ? 'success' : 'default'}>{v}</Tag> },
+  { title: '货币单位',     dataIndex: 'currency',       width: 90 },
+  { title: '持股估值',     dataIndex: 'holdingValue',   width: 130, align: 'right' },
+  { title: '企业总资产快照', dataIndex: 'totalAssets',  width: 150, align: 'right' },
+  { title: '股份收益',     dataIndex: 'shareRevenue',   width: 120, align: 'right' },
+  { title: '最后退出时间', dataIndex: 'exitTime',       width: 170 },
 ];
 
 // ── 主组件 ────────────────────────────────────────────────────────
@@ -247,6 +271,11 @@ const CompanyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [currency, setCurrency] = useState('USDT');
+  const [transferSearch, setTransferSearch] = useState('');
+  const [transferTypeFilter, setTransferTypeFilter] = useState('全部');
+  const [holdingSearch, setHoldingSearch] = useState('');
+  const [holdingCurrency, setHoldingCurrency] = useState('全部');
+  const [holdingStatus, setHoldingStatus] = useState('全部');
 
   const currentCompany = COMPANIES.find((c) => c.value === id) ?? COMPANIES[0];
 
@@ -351,13 +380,13 @@ const CompanyDetail: React.FC = () => {
         <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
             title={<Text style={{ fontWeight: 600 }}>公司总资产走势</Text>}>
-            <Line {...chartCfg(assetData, '公司总资产')} />
+            <Area {...chartCfg(assetData, '公司总资产')} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
             title={<Text style={{ fontWeight: 600 }}>公司盈亏走势</Text>}>
-            <Line {...chartCfg(profitData, '公司盈亏')} />
+            <Area {...chartCfg(profitData, '公司盈亏')} />
           </Card>
         </Col>
       </Row>
@@ -400,58 +429,88 @@ const CompanyDetail: React.FC = () => {
     {
       key: 'groupTransfer',
       label: '集团转账',
-      children: (
-        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-          <Space style={{ marginBottom: 16 }} wrap>
-            <Input placeholder="搜索订单编号/备注" prefix={<SearchOutlined />} style={{ width: 220 }} allowClear />
-            <Select placeholder="订单类型" style={{ width: 160 }} allowClear options={[
-              { value: '集团资金下拨', label: '集团资金下拨' },
-              { value: '集团资金调回', label: '集团资金调回' },
-            ]} />
-          </Space>
-          <Table columns={groupTransferColumns} dataSource={groupTransferData} rowKey="id"
-            size="middle" pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-        </Card>
-      ),
-    },
-    {
-      key: 'groupContrib',
-      label: '贡献集团',
-      children: (
-        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-          <Table columns={groupContribColumns} dataSource={groupContribData} rowKey="id"
-            size="middle" pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-        </Card>
-      ),
+      children: (() => {
+        const filteredTransfer = groupTransferData.filter((r) => {
+          const kw = transferSearch.toLowerCase();
+          return (
+            (transferTypeFilter === '全部' || r.orderType === transferTypeFilter) &&
+            (!kw || r.orderNo.toLowerCase().includes(kw) || r.remark.toLowerCase().includes(kw))
+          );
+        });
+        return (
+          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+            <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
+              <Space size={24} wrap align="center">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group
+                    value={transferTypeFilter}
+                    onChange={(e) => setTransferTypeFilter(e.target.value)}
+                    buttonStyle="solid"
+                  >
+                    <Radio.Button value="全部">全部</Radio.Button>
+                    <Radio.Button value="集团资金下拨">集团资金下拨</Radio.Button>
+                    <Radio.Button value="集团资金调回">集团资金调回</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+                <Input
+                    suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                    placeholder="订单编号、订单备注"
+                    value={transferSearch}
+                    onChange={(e) => setTransferSearch(e.target.value)}
+                    allowClear
+                    style={{ width: 220 }}
+                  />
+              </Space>
+            </Space>
+            <Table columns={groupTransferColumns} dataSource={filteredTransfer} rowKey="id"
+              size="middle" pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+          </Card>
+        );
+      })(),
     },
     {
       key: 'holding',
       label: '持股估值',
-      children: (
-        <div>
-          <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-            {[
-              { label: '累计投入（USDT）', value: '188,000.00', color: '#722ed1' },
-              { label: '当前估值（USDT）', value: '216,000.00', color: '#722ed1' },
-              { label: '未实现盈亏（USDT）', value: '+28,000.00', color: '#52c41a' },
-            ].map((item) => (
-              <Col key={item.label} xs={24} sm={8}>
-                <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-                  <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)', marginBottom: 8 }}>{item.label}</div>
-                  <div style={{ fontSize: 26, fontWeight: 700, color: item.color }}>{item.value}</div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+      children: (() => {
+        const kw = holdingSearch.toLowerCase();
+        const filteredHolding = holdingData.filter((r) =>
+          (holdingCurrency === '全部' || r.currency === holdingCurrency) &&
+          (holdingStatus === '全部' || r.status === holdingStatus) &&
+          (!kw || r.enterpriseName.toLowerCase().includes(kw) || r.enterpriseId.includes(holdingSearch))
+        );
+        return (
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-            <Table columns={holdingColumns} dataSource={holdingData} rowKey="id"
-              size="middle" scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group value={holdingCurrency} onChange={(e) => setHoldingCurrency(e.target.value)} buttonStyle="solid">
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="USDT">USDT</Radio.Button>
+                  <Radio.Button value="PEA">PEA</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group value={holdingStatus} onChange={(e) => setHoldingStatus(e.target.value)} buttonStyle="solid">
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="持股">持股</Radio.Button>
+                  <Radio.Button value="已退">已退</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+              <Input
+                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                  placeholder="企业名称、企业ID"
+                  value={holdingSearch}
+                  onChange={(e) => setHoldingSearch(e.target.value)}
+                  allowClear
+                  style={{ width: 200 }}
+                />
+            </Space>
+            <Table columns={holdingColumns} dataSource={filteredHolding} rowKey="id"
+              size="middle" scroll={{ x: 1100 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
               rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
           </Card>
-        </div>
-      ),
+        );
+      })(),
     },
   ];
 

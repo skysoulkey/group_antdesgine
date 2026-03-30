@@ -138,7 +138,6 @@ const FinanceRevenueDetail: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <Title level={5} style={{ margin: 0 }}>月度公司贡献盈亏汇总</Title>
           <Space>
-            <Text type="secondary" style={{ fontSize: 13 }}>汇算月份：</Text>
             <Select
               value={selectedMonth}
               onChange={setSelectedMonth}

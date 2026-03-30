@@ -102,8 +102,7 @@ export default function CompanyTax() {
           <Select placeholder="公司筛选" value={companyFilter} onChange={setCompanyFilter} allowClear
             style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
         </Col>
-        <Col style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Text style={{ whiteSpace: 'nowrap' }}>状态：</Text>
+        <Col>
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group
               buttonStyle="outline"

@@ -151,47 +151,72 @@ border:        none（bordered={false}）
 
 ## 八、折线图规范（@ant-design/plots v2）
 
+### 8.1 组件选型
+
+**全项目统一使用 `Area` 组件**，渲染折线 + 线下渐变填充。禁止单独使用 `Line` 组件渲染趋势图。
+
 ```tsx
-// 标准配置
-const chartCfg = (data, name) => ({
+import { Area } from '@ant-design/plots';
+```
+
+### 8.2 标准配置（长周期数据，如 60 天）
+
+```tsx
+const chartCfg = (data: { date: string; value: number }[], name: string) => ({
   data,
   xField: 'date',
   yField: 'value',
-  shape: 'smooth',        // 平滑曲线
-  point: false,           // 60天以上数据不显示 point，避免过密
-  height: 200,            // 仪表盘折线图固定高度
+  shape: 'smooth',          // 平滑曲线
+  height: 200,              // 仪表盘固定高度（详情页可用 220/180）
   autoFit: true,
-  style: { stroke: '#722ed1' },
-  scale: {
-    color: { range: ['#722ed1'] },
-    x: { tickCount: 6 },  // X轴标签数自适应：约每10天一刻度
+  style: {
+    fill: 'l(270) 0:rgba(114,46,209,0) 1:rgba(114,46,209,0.2)',
+    // l(270) = 从底部到顶部；位置 0（底部）透明，位置 1（顶部）20% 不透明
   },
+  scale: { color: { range: ['#722ed1'] } },
   axis: {
     x: {
       labelFontSize: 10,
       labelAutoRotate: false,
-      labelFormatter: (v) => v.slice(5), // 只显示 MM-DD，去掉年份
+      labelFormatter: (v: string) => v.slice(5),          // 显示 MM-DD
+      tickFilter: (_: string, index: number) => index % 2 === 0, // 减半刻度
     },
   },
-  tooltip: { items: [{ channel: 'y', name }] },
-  // 注意：不传 line 属性，避免 v2 渲染双线 bug
+  tooltip: { items: [{ channel: 'y' as const, name }] },
 });
+
+<Area {...chartCfg(data, '图表名称')} />
 ```
 
-### X 轴间隔规范
+### 8.3 多色迷你图（各色独立渐变）
 
-| 数据跨度 | tickCount | 标签格式 | 效果 |
-|---------|-----------|---------|------|
-| ≤ 7 天 | 7 | `MM-DD` | 每天1刻度 |
-| 8–31 天 | 6 | `MM-DD` | 约每5天1刻度 |
-| 32–90 天 | 6 | `MM-DD` | 约每10天1刻度 |
-| > 90 天 | 6 | `MM-DD` 或 `MM月` | 自动分布 |
+当图表颜色不固定（如企业详情 4 色迷你图），用 8 位 hex（后两位为 alpha）生成渐变：
 
-> **规则**：统一使用 `tickCount: 6`（中等数据集）或 `tickCount: 7`（≤7天）；
-> `labelFormatter` 格式化为 `v.slice(5)` 显示 `MM-DD`，节省横向空间，避免旋转。
+```tsx
+style={{ fill: `l(270) 0:${color}00 1:${color}33` }}
+// 00 = 完全透明，33 ≈ 20% 不透明
+```
 
-> **重要**：@ant-design/plots v2 中传入 `line: { style: {...} }` 会触发 CONFIG_SHAPE 处理，
-> 生成额外 line 子 mark，导致渲染双条线。**始终省略 `line` 属性**。
+| 颜色 | hex | 渐变写法 |
+|------|-----|---------|
+| 紫色（主色） | `#722ed1` | `l(270) 0:#722ed100 1:#722ed133` |
+| 橙色 | `#fa8c16` | `l(270) 0:#fa8c1600 1:#fa8c1633` |
+| 蓝色 | `#1677ff` | `l(270) 0:#1677ff00 1:#1677ff33` |
+| 绿色 | `#52c41a` | `l(270) 0:#52c41a00 1:#52c41a33` |
+
+### 8.4 注意事项
+
+- `Area` 组件**不接受 `point: false`**，直接省略 `point` 属性
+- `style` 中**不加 `stroke` / `lineWidth`**，否则会在整个多边形外框（含底边）绘制边框线
+- 不传 `line` 属性，避免 v2 渲染双线 bug（见 dev-pitfalls 第1条）
+
+### 8.5 X 轴间隔规范
+
+| 数据跨度 | 处理方式 | 标签格式 |
+|---------|---------|---------|
+| ≤ 7 天 | 不过滤 | `M/D`（dayjs 格式化） |
+| 8–90 天 | `tickFilter: i % 2 === 0` | `MM-DD` |
+| > 90 天 | `tickFilter: i % 3 === 0` | `MM-DD` |
 
 ---
 
