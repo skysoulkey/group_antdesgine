@@ -1,6 +1,6 @@
 import { WalletOutlined } from '@ant-design/icons';
 import {
-  Button, Card, Col, DatePicker, Descriptions, Divider,
+  Button, Card, Col, DatePicker, Descriptions,
   Form, Input, InputNumber, message, Modal, Row,
   Select, Space, Table, Tag, Typography,
 } from 'antd';
@@ -317,7 +317,11 @@ const WalletPage: React.FC = () => {
             </Form>
             <div style={{ textAlign: 'right', marginTop: 8 }}>
               <Space>
-                <Button onClick={() => setDepositStep(1)}>返回修改</Button>
+                <Button onClick={() => {
+                  const el = document.getElementById('deposit-mfa') as HTMLInputElement | null;
+                  if (el) el.value = '';
+                  setDepositStep(1);
+                }}>返回修改</Button>
                 <Button
                   type="primary"
                   style={{ background: '#722ed1', borderColor: '#722ed1' }}
