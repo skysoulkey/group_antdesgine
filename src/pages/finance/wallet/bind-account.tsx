@@ -2,9 +2,9 @@ import { ArrowLeftOutlined } from '@ant-design/icons';
 import { Button, Card, Descriptions, Divider, Form, Input, message, Space, Typography } from 'antd';
 import React from 'react';
 import { useNavigate } from 'umi';
+import { CARD_SHADOW } from './constants';
 
 const { Text } = Typography;
-const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
 // mock 当前绑定账号（实际应从全局 state 或 context 读取，此处独立 mock）
 const CURRENT_BOUND = { accountId: 'UHBOWunhfi8974nnf', accountName: 'Miya（@miya_sg）', platform: 'UU Talk Platform' };

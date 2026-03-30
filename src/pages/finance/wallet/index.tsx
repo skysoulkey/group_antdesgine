@@ -2,16 +2,15 @@ import { WalletOutlined } from '@ant-design/icons';
 import {
   Button, Card, Col, DatePicker, Descriptions,
   Form, Input, InputNumber, message, Modal, Row,
-  Select, Space, Table, Tag, Typography,
+  Select, Space, Table, Tag, Typography, type InputRef,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'umi';
+import { CARD_SHADOW } from './constants';
 
 const { Text } = Typography;
-
-const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const BALANCE_USDT = 341_234_234.00;
 const BALANCE_PEA  = 341_234_234.00;
 
@@ -79,6 +78,8 @@ const WalletPage: React.FC = () => {
   // 弹窗表单
   const [depositForm] = Form.useForm();
   const [withdrawForm] = Form.useForm();
+  const depositMfaRef = useRef<InputRef>(null);
+  const withdrawMfaRef = useRef<InputRef>(null);
 
   // 订单列表 state（含新增）
   const [orders, setOrders] = useState<OrderRecord[]>(mockOrders);
@@ -307,7 +308,7 @@ const WalletPage: React.FC = () => {
             <Form layout="vertical">
               <Form.Item label="MFA 验证码" required>
                 <Input
-                  id="deposit-mfa"
+                  ref={depositMfaRef}
                   placeholder="请输入 6 位 MFA 验证码"
                   maxLength={6}
                   style={{ letterSpacing: 4, textAlign: 'center' }}
@@ -317,15 +318,14 @@ const WalletPage: React.FC = () => {
             <div style={{ textAlign: 'right', marginTop: 8 }}>
               <Space>
                 <Button onClick={() => {
-                  const el = document.getElementById('deposit-mfa') as HTMLInputElement | null;
-                  if (el) el.value = '';
+                  if (depositMfaRef.current?.input) depositMfaRef.current.input.value = '';
                   setDepositStep(1);
                 }}>返回修改</Button>
                 <Button
                   type="primary"
                   style={{ background: '#722ed1', borderColor: '#722ed1' }}
                   onClick={() => {
-                    const mfa = (document.getElementById('deposit-mfa') as HTMLInputElement)?.value;
+                    const mfa = depositMfaRef.current?.input?.value ?? '';
                     if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
                     // mock: 任意6位通过
                     const ts = Date.now();
@@ -415,7 +415,7 @@ const WalletPage: React.FC = () => {
             <Form layout="vertical">
               <Form.Item label="MFA 验证码" required>
                 <Input
-                  id="withdraw-mfa"
+                  ref={withdrawMfaRef}
                   placeholder="请输入 6 位 MFA 验证码"
                   maxLength={6}
                   style={{ letterSpacing: 4, textAlign: 'center' }}
@@ -425,15 +425,14 @@ const WalletPage: React.FC = () => {
             <div style={{ textAlign: 'right', marginTop: 8 }}>
               <Space>
                 <Button onClick={() => {
-                  const el = document.getElementById('withdraw-mfa') as HTMLInputElement | null;
-                  if (el) el.value = '';
+                  if (withdrawMfaRef.current?.input) withdrawMfaRef.current.input.value = '';
                   setWithdrawStep(1);
                 }}>返回修改</Button>
                 <Button
                   type="primary"
                   style={{ background: '#722ed1', borderColor: '#722ed1' }}
                   onClick={() => {
-                    const mfa = (document.getElementById('withdraw-mfa') as HTMLInputElement)?.value;
+                    const mfa = withdrawMfaRef.current?.input?.value ?? '';
                     if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
                     // mock: 任意6位通过；出金初始状态为「待审批」
                     const ts = Date.now();
