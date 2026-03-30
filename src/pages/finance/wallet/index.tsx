@@ -105,14 +105,14 @@ const WalletPage: React.FC = () => {
   };
 
   const orderColumns: ColumnsType<OrderRecord> = [
-    { title: '发起时间', dataIndex: 'startTime', width: 160 },
-    { title: '结束时间', dataIndex: 'endTime',   width: 160, render: (v) => v || '—' },
-    { title: '订单号',   dataIndex: 'orderId',   width: 120 },
+    { title: '发起时间', dataIndex: 'startTime', width: 180, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
+    { title: '结束时间', dataIndex: 'endTime',   width: 180, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v || '—'}</span> },
+    { title: '订单号',   dataIndex: 'orderId',   width: 130 },
     {
       title: '类型', dataIndex: 'type', width: 80,
       render: (v: OrderType) => <Tag color={v === '入金' ? 'blue' : 'orange'}>{v}</Tag>,
     },
-    { title: '币种', dataIndex: 'currency', width: 70 },
+    { title: '币种', dataIndex: 'currency', width: 80 },
     {
       title: '金额', dataIndex: 'amount', width: 130, align: 'right',
       render: (v: number) => (
@@ -240,7 +240,7 @@ const WalletPage: React.FC = () => {
           dataSource={filteredOrders}
           rowKey="id"
           size="middle"
-          scroll={{ x: 1000 }}
+          scroll={{ x: 1100 }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />

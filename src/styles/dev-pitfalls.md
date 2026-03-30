@@ -345,6 +345,46 @@ axis: {
 
 ---
 
+## 14. 表格时间列宽度与换行
+
+**遇到的问题**
+时间列（如"发起时间"、"结束时间"）宽度设为 160px，`YYYY-MM-DD HH:mm:ss`（19 个字符）在某些容器宽度下会被强制换行，变成两行显示，严重影响表格可读性。
+
+**规则**
+- 时间列（精确到秒，格式 `YYYY-MM-DD HH:mm:ss`）宽度设置为 **180px**，并在 render 中加 `whiteSpace: 'nowrap'`：
+
+```tsx
+{
+  title: '发起时间', dataIndex: 'startTime', width: 180,
+  render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span>,
+},
+{
+  title: '结束时间', dataIndex: 'endTime', width: 180,
+  render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v || '—'}</span>,
+},
+```
+
+- **表格整体列宽分配参考**（含时间列的记录表格）：
+
+| 列 | 推荐宽度 | 说明 |
+|----|---------|------|
+| 时间列（精确到秒） | 180px | 19字符，必须 nowrap |
+| 订单号/ID（10位） | 130px | |
+| 类型（2字+Tag）   | 80px  | |
+| 币种（4字以内）   | 80px  | |
+| 金额（右对齐）    | 140px | |
+| 状态（Tag）       | 90px  | |
+| 备注              | 不设宽 | ellipsis 自动填充剩余空间 |
+
+- `scroll={{ x: ... }}` 取各固定列宽之和 + 约 220px（备注列弹性空间），例如 7 列固定 880px → `scroll={{ x: 1100 }}`
+
+**如何检查**
+缩小浏览器窗口到 1280px 宽，观察时间列内容是否仍单行显示。若出现换行，检查：
+1. 列 `width` 是否 ≥ 180px
+2. render 中是否加了 `whiteSpace: 'nowrap'`
+
+---
+
 ## 15. 规范文件体系
 
 每个项目应维护以下规范文档，与代码保持同步：
