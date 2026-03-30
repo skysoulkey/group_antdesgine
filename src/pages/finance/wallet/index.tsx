@@ -355,7 +355,112 @@ const WalletPage: React.FC = () => {
         )}
       </Modal>
 
-      {/* 出金弹窗占位 — Task 5 填充 */}
+      {/* ── 出金弹窗 ─────────────────────────────────────────────────── */}
+      <Modal
+        title={withdrawStep === 1 ? '出金' : '确认信息'}
+        open={withdrawOpen}
+        onCancel={() => setWithdrawOpen(false)}
+        footer={null}
+        width={480}
+        destroyOnClose
+      >
+        {withdrawStep === 1 ? (
+          <Form form={withdrawForm} layout="vertical" style={{ marginTop: 16 }}>
+            <Form.Item label="绑定账号">
+              <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 12px', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{boundAccount.accountName}（{boundAccount.accountId}）</span>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0, fontSize: 12 }}
+                  onClick={() => { setWithdrawOpen(false); navigate('/finance/wallet/bind-account'); }}
+                >
+                  修改 →
+                </Button>
+              </div>
+            </Form.Item>
+            <Form.Item label="币种" name="currency" initialValue="USDT" rules={[{ required: true }]}>
+              <Select options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]} />
+            </Form.Item>
+            <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
+              <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder="请输入出金金额" />
+            </Form.Item>
+            <Form.Item label="备注" name="remark">
+              <Input.TextArea rows={2} placeholder="选填，不超过50字" maxLength={50} showCount />
+            </Form.Item>
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <Space>
+                <Button onClick={() => setWithdrawOpen(false)}>取消</Button>
+                <Button
+                  type="primary"
+                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  onClick={() => withdrawForm.validateFields().then(() => setWithdrawStep(2))}
+                >
+                  下一步
+                </Button>
+              </Space>
+            </div>
+          </Form>
+        ) : (
+          <div style={{ marginTop: 16 }}>
+            <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
+              <Descriptions.Item label="绑定账号">{boundAccount.accountName}（{boundAccount.accountId}）</Descriptions.Item>
+              <Descriptions.Item label="类型"><Tag color="orange">出金</Tag></Descriptions.Item>
+              <Descriptions.Item label="币种">{withdrawForm.getFieldValue('currency')}</Descriptions.Item>
+              <Descriptions.Item label="金额">
+                {Number(withdrawForm.getFieldValue('amount') ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })}
+              </Descriptions.Item>
+              <Descriptions.Item label="备注">{withdrawForm.getFieldValue('remark') || '—'}</Descriptions.Item>
+            </Descriptions>
+            <Form layout="vertical">
+              <Form.Item label="MFA 验证码" required>
+                <Input
+                  id="withdraw-mfa"
+                  placeholder="请输入 6 位 MFA 验证码"
+                  maxLength={6}
+                  style={{ letterSpacing: 4, textAlign: 'center' }}
+                />
+              </Form.Item>
+            </Form>
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <Space>
+                <Button onClick={() => {
+                  const el = document.getElementById('withdraw-mfa') as HTMLInputElement | null;
+                  if (el) el.value = '';
+                  setWithdrawStep(1);
+                }}>返回修改</Button>
+                <Button
+                  type="primary"
+                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  onClick={() => {
+                    const mfa = (document.getElementById('withdraw-mfa') as HTMLInputElement)?.value;
+                    if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
+                    // mock: 任意6位通过；出金初始状态为「待审批」
+                    const newOrder: OrderRecord = {
+                      id: String(Date.now()),
+                      startTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                      endTime: '',
+                      orderId: `ORD${String(Date.now()).slice(-7)}`,
+                      type: '出金',
+                      currency: withdrawForm.getFieldValue('currency'),
+                      amount: withdrawForm.getFieldValue('amount'),
+                      status: '待审批',
+                      remark: withdrawForm.getFieldValue('remark') ?? '',
+                    };
+                    setOrders((prev) => [newOrder, ...prev]);
+                    message.success('出金申请已提交，等待审批');
+                    setWithdrawOpen(false);
+                    withdrawForm.resetFields();
+                    setWithdrawStep(1);
+                  }}
+                >
+                  确认提交
+                </Button>
+              </Space>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
