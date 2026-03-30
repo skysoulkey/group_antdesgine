@@ -171,6 +171,7 @@ const WalletPage: React.FC = () => {
               <Text type="secondary" style={{ fontSize: 12, fontFamily: 'monospace' }}>{boundAccount.accountId}</Text>
               <Text type="secondary" style={{ fontSize: 12 }}>{boundAccount.platform}</Text>
             </div>
+            {/* 修改绑定账号入口 — 暂时隐藏，待后端对接后开启
             <div style={{ marginTop: 6 }}>
               <Button
                 type="link"
@@ -181,6 +182,7 @@ const WalletPage: React.FC = () => {
                 修改绑定账号 →
               </Button>
             </div>
+            */}
           </div>
           <Space size={8}>
             <Button
@@ -262,6 +264,7 @@ const WalletPage: React.FC = () => {
             <Form.Item label="绑定账号">
               <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 12px', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>{boundAccount.accountName}（{boundAccount.accountId}）</span>
+                {/* 修改入口暂时隐藏
                 <Button
                   type="link"
                   size="small"
@@ -270,6 +273,7 @@ const WalletPage: React.FC = () => {
                 >
                   修改 →
                 </Button>
+                */}
               </div>
             </Form.Item>
             <Form.Item label="币种" name="currency" initialValue="USDT" rules={[{ required: true }]}>
@@ -369,6 +373,7 @@ const WalletPage: React.FC = () => {
             <Form.Item label="绑定账号">
               <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 12px', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>{boundAccount.accountName}（{boundAccount.accountId}）</span>
+                {/* 修改入口暂时隐藏
                 <Button
                   type="link"
                   size="small"
@@ -377,6 +382,7 @@ const WalletPage: React.FC = () => {
                 >
                   修改 →
                 </Button>
+                */}
               </div>
             </Form.Item>
             <Form.Item label="币种" name="currency" initialValue="USDT" rules={[{ required: true }]}>
