@@ -10,7 +10,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'umi';
 
 const { Text } = Typography;
-const { RangePicker } = DatePicker;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const BALANCE_USDT = 341_234_234.00;
@@ -248,7 +247,111 @@ const WalletPage: React.FC = () => {
         />
       </Card>
 
-      {/* 弹窗 — Task 4 & 5 填充 */}
+      {/* ── 入金弹窗 ─────────────────────────────────────────────────── */}
+      <Modal
+        title={depositStep === 1 ? '入金' : '确认信息'}
+        open={depositOpen}
+        onCancel={() => setDepositOpen(false)}
+        footer={null}
+        width={480}
+        destroyOnClose
+      >
+        {depositStep === 1 ? (
+          <Form form={depositForm} layout="vertical" style={{ marginTop: 16 }}>
+            {/* 绑定账号只读 */}
+            <Form.Item label="绑定账号">
+              <div style={{ background: '#fafafa', border: '1px solid #d9d9d9', borderRadius: 6, padding: '6px 12px', fontSize: 13, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>{boundAccount.accountName}（{boundAccount.accountId}）</span>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0, fontSize: 12 }}
+                  onClick={() => { setDepositOpen(false); navigate('/finance/wallet/bind-account'); }}
+                >
+                  修改 →
+                </Button>
+              </div>
+            </Form.Item>
+            <Form.Item label="币种" name="currency" initialValue="USDT" rules={[{ required: true }]}>
+              <Select options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]} />
+            </Form.Item>
+            <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
+              <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder="请输入入金金额" />
+            </Form.Item>
+            <Form.Item label="备注" name="remark">
+              <Input.TextArea rows={2} placeholder="选填，不超过50字" maxLength={50} showCount />
+            </Form.Item>
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <Space>
+                <Button onClick={() => setDepositOpen(false)}>取消</Button>
+                <Button
+                  type="primary"
+                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  onClick={() => depositForm.validateFields().then(() => setDepositStep(2))}
+                >
+                  下一步
+                </Button>
+              </Space>
+            </div>
+          </Form>
+        ) : (
+          <div style={{ marginTop: 16 }}>
+            <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
+              <Descriptions.Item label="绑定账号">{boundAccount.accountName}（{boundAccount.accountId}）</Descriptions.Item>
+              <Descriptions.Item label="类型"><Tag color="blue">入金</Tag></Descriptions.Item>
+              <Descriptions.Item label="币种">{depositForm.getFieldValue('currency')}</Descriptions.Item>
+              <Descriptions.Item label="金额">
+                {Number(depositForm.getFieldValue('amount') ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })}
+              </Descriptions.Item>
+              <Descriptions.Item label="备注">{depositForm.getFieldValue('remark') || '—'}</Descriptions.Item>
+            </Descriptions>
+            <Form layout="vertical">
+              <Form.Item label="MFA 验证码" required>
+                <Input
+                  id="deposit-mfa"
+                  placeholder="请输入 6 位 MFA 验证码"
+                  maxLength={6}
+                  style={{ letterSpacing: 4, textAlign: 'center' }}
+                />
+              </Form.Item>
+            </Form>
+            <div style={{ textAlign: 'right', marginTop: 8 }}>
+              <Space>
+                <Button onClick={() => setDepositStep(1)}>返回修改</Button>
+                <Button
+                  type="primary"
+                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  onClick={() => {
+                    const mfa = (document.getElementById('deposit-mfa') as HTMLInputElement)?.value;
+                    if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
+                    // mock: 任意6位通过
+                    const newOrder: OrderRecord = {
+                      id: String(Date.now()),
+                      startTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                      endTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+                      orderId: `ORD${String(Date.now()).slice(-7)}`,
+                      type: '入金',
+                      currency: depositForm.getFieldValue('currency'),
+                      amount: depositForm.getFieldValue('amount'),
+                      status: '成功',
+                      remark: depositForm.getFieldValue('remark') ?? '',
+                    };
+                    setOrders((prev) => [newOrder, ...prev]);
+                    message.success('入金申请已提交');
+                    setDepositOpen(false);
+                    depositForm.resetFields();
+                    setDepositStep(1);
+                  }}
+                >
+                  确认提交
+                </Button>
+              </Space>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 出金弹窗占位 — Task 5 填充 */}
     </div>
   );
 };
