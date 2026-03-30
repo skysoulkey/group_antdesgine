@@ -39,98 +39,56 @@ const { Text, Title } = Typography;
 const { RangePicker } = DatePicker;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
-const BALANCE_USDT = 341234234.00;
-const BALANCE_PEA  = 341234234.00;
-const CURRENT_BALANCE = 178283.09;
+const BALANCE_USDT = 341_234_234.00;
+const BALANCE_PEA  = 341_234_234.00;
 
-// ── 地址薄数据 ────────────────────────────────────────────────────
-interface AddressItem { id: string; name: string; type: 'user'; account: string }
-const addressBook: AddressItem[] = [
-  { id: '6', name: 'Miya', type: 'user', account: 'ji****1111' },
-  { id: '7', name: 'Miya', type: 'user', account: 'ji****1111' },
-  { id: '8', name: 'Miya', type: 'user', account: 'ji****1111' },
-];
+// ── 绑定账号（从外部平台同步，mock 硬编码）────────────────────────
+interface BoundAccount {
+  accountId: string;
+  accountName: string;
+  platform: string;
+  syncedAt: string;
+}
 
-// ── 转出记录数据 ──────────────────────────────────────────────────
-interface TransferRow {
+const mockBoundAccount: BoundAccount = {
+  accountId: 'UHBOWunhfi8974nnf',
+  accountName: 'Miya（@miya_sg）',
+  platform: 'UU Talk Platform',
+  syncedAt: '2026-03-30 10:00:00',
+};
+
+// ── 订单记录 ──────────────────────────────────────────────────────
+const ORDER_TYPES = ['入金', '出金'] as const;
+const ORDER_STATUSES = ['待审批', '成功', '失败'] as const;
+type OrderType = typeof ORDER_TYPES[number];
+type OrderStatus = typeof ORDER_STATUSES[number];
+
+interface OrderRecord {
   id: string;
   startTime: string;
   endTime: string;
   orderId: string;
-  method: '转账用户';
-  receiver: string;
-  currency: string;
-  amount: string;
-}
-
-const transferData: TransferRow[] = Array.from({ length: 15 }, (_, i) => ({
-  id: `T${String(i + 1).padStart(7, '0')}`,
-  startTime: `2025-10-10 12:23:23`,
-  endTime: `2025-10-10 12:23:23`,
-  orderId: String(73720 + i),
-  method: '转账用户' as const,
-  receiver: `Miya（@MI）`,
-  currency: i % 2 === 0 ? 'USDT' : 'PEA',
-  amount: i % 2 === 0 ? '873,233' : '73,233',
-}));
-
-// ── 充值记录数据 ──────────────────────────────────────────────────
-const DEPOSIT_STATUSES = ['充值成功', '充值失败'] as const;
-type DepositStatus = typeof DEPOSIT_STATUSES[number];
-
-interface DepositRow {
-  id: string;
-  arrivalTime: string;
-  orderId: string;
-  method: '平台充值';
-  account: string;
-  status: DepositStatus;
-  currency: string;
+  type: OrderType;
+  currency: 'USDT' | 'PEA';
   amount: number;
-  balance: number;
-  taxExempt: number;
+  status: OrderStatus;
   remark: string;
 }
 
-const depositData: DepositRow[] = Array.from({ length: 20 }, (_, i) => ({
-  id: `D${String(i + 1).padStart(7, '0')}`,
-  arrivalTime: `2025-10-${String((i % 28) + 1).padStart(2, '0')} 12:23:23`,
-  orderId: String(83720 + i),
-  method: '平台充值' as const,
-  account: `Miya（@MI）`,
-  status: DEPOSIT_STATUSES[i % 2],
-  currency: i % 3 === 0 ? 'PEA' : 'USDT',
-  amount: 50000 + i * 8000,
-  balance: 873233.23,
-  taxExempt: 73233.23,
-  remark: i % 3 === 0 ? '我是一个备注' : '',
-}));
-
-// ── 月度图表数据 ──────────────────────────────────────────────────
-const monthlyData = [
-  { month: '1月',  type: 'USDT', value: 32 }, { month: '1月',  type: 'PEA', value: 40 },
-  { month: '2月',  type: 'USDT', value: 28 }, { month: '2月',  type: 'PEA', value: 18 },
-  { month: '3月',  type: 'USDT', value: 45 }, { month: '3月',  type: 'PEA', value: 25 },
-  { month: '4月',  type: 'USDT', value: 20 }, { month: '4月',  type: 'PEA', value: 38 },
-  { month: '5月',  type: 'USDT', value: 22 }, { month: '5月',  type: 'PEA', value: 32 },
-  { month: '6月',  type: 'USDT', value: 30 }, { month: '6月',  type: 'PEA', value: 35 },
-  { month: '7月',  type: 'USDT', value: 42 }, { month: '7月',  type: 'PEA', value: 38 },
-  { month: '8月',  type: 'USDT', value: 25 }, { month: '8月',  type: 'PEA', value: 18 },
-  { month: '9月',  type: 'USDT', value: 40 }, { month: '9月',  type: 'PEA', value: 32 },
-  { month: '10月', type: 'USDT', value: 43 }, { month: '10月', type: 'PEA', value: 40 },
-  { month: '11月', type: 'USDT', value: 20 }, { month: '11月', type: 'PEA', value: 38 },
-  { month: '12月', type: 'USDT', value: 22 }, { month: '12月', type: 'PEA', value: 20 },
+const mockOrders: OrderRecord[] = [
+  { id: '1',  startTime: '2026-03-01 09:12:00', endTime: '2026-03-01 09:12:05', orderId: 'ORD0000001', type: '入金', currency: 'USDT', amount: 50000,   status: '成功',   remark: '首次入金' },
+  { id: '2',  startTime: '2026-03-02 10:30:00', endTime: '2026-03-02 10:30:02', orderId: 'ORD0000002', type: '入金', currency: 'PEA',  amount: 200000,  status: '成功',   remark: '' },
+  { id: '3',  startTime: '2026-03-03 14:00:00', endTime: '2026-03-03 14:00:01', orderId: 'ORD0000003', type: '入金', currency: 'USDT', amount: 10000,   status: '失败',   remark: '余额不足' },
+  { id: '4',  startTime: '2026-03-05 09:00:00', endTime: '',                    orderId: 'ORD0000004', type: '出金', currency: 'USDT', amount: 30000,   status: '待审批', remark: '3月运营提现' },
+  { id: '5',  startTime: '2026-03-06 11:20:00', endTime: '2026-03-07 15:00:00', orderId: 'ORD0000005', type: '出金', currency: 'PEA',  amount: 80000,   status: '成功',   remark: '' },
+  { id: '6',  startTime: '2026-03-08 16:45:00', endTime: '2026-03-09 10:00:00', orderId: 'ORD0000006', type: '出金', currency: 'USDT', amount: 15000,   status: '失败',   remark: '账号异常' },
+  { id: '7',  startTime: '2026-03-10 08:30:00', endTime: '2026-03-10 08:30:03', orderId: 'ORD0000007', type: '入金', currency: 'USDT', amount: 100000,  status: '成功',   remark: '' },
+  { id: '8',  startTime: '2026-03-12 13:00:00', endTime: '',                    orderId: 'ORD0000008', type: '出金', currency: 'PEA',  amount: 50000,   status: '待审批', remark: '季度结算' },
+  { id: '9',  startTime: '2026-03-15 10:10:00', endTime: '2026-03-15 10:10:02', orderId: 'ORD0000009', type: '入金', currency: 'PEA',  amount: 300000,  status: '成功',   remark: '追加入金' },
+  { id: '10', startTime: '2026-03-18 09:00:00', endTime: '',                    orderId: 'ORD0000010', type: '出金', currency: 'USDT', amount: 25000,   status: '待审批', remark: '' },
+  { id: '11', startTime: '2026-03-20 14:30:00', endTime: '2026-03-20 14:30:04', orderId: 'ORD0000011', type: '入金', currency: 'USDT', amount: 75000,   status: '成功',   remark: '月中补充' },
+  { id: '12', startTime: '2026-03-22 11:00:00', endTime: '2026-03-23 09:00:00', orderId: 'ORD0000012', type: '出金', currency: 'USDT', amount: 40000,   status: '失败',   remark: '' },
 ];
-
-// ── 费用计算 ──────────────────────────────────────────────────────
-const TAX_RATE = 0.05;
-const TAX_EXEMPT = 1000;
-
-function calcFee(amount: number) {
-  const taxable = Math.max(0, amount - TAX_EXEMPT);
-  const tax = parseFloat((taxable * TAX_RATE).toFixed(2));
-  return { tax, final: amount + tax };
-}
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const WalletPage: React.FC = () => {
