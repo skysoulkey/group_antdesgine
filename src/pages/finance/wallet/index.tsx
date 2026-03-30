@@ -67,9 +67,8 @@ const mockOrders: OrderRecord[] = [
 const WalletPage: React.FC = () => {
   const navigate = useNavigate();
 
-  // 绑定账号（可被修改页更新，mock 用 state 持有）
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [boundAccount, setBoundAccount] = useState<BoundAccount>(mockBoundAccount);
+  // 绑定账号（mock 只读；实际需从全局 state 或 context 读取以在修改后刷新）
+  const [boundAccount] = useState<BoundAccount>(mockBoundAccount);
 
   // 弹窗控制
   const [depositOpen, setDepositOpen] = useState(false);
