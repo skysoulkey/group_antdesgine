@@ -30,7 +30,7 @@ const mockBoundAccount: BoundAccount = {
 };
 
 // ── 订单记录 ──────────────────────────────────────────────────────
-const ORDER_TYPES = ['入金', '出金'] as const;
+const ORDER_TYPES = ['充值', '转出'] as const;
 const ORDER_STATUSES = ['待审批', '成功', '失败'] as const;
 type OrderType = typeof ORDER_TYPES[number];
 type OrderStatus = typeof ORDER_STATUSES[number];
@@ -48,18 +48,18 @@ interface OrderRecord {
 }
 
 const mockOrders: OrderRecord[] = [
-  { id: '1',  startTime: '2026-03-01 09:12:00', endTime: '2026-03-01 09:12:05', orderId: 'ORD0000001', type: '入金', currency: 'USDT', amount: 50000,   status: '成功',   remark: '首次入金' },
-  { id: '2',  startTime: '2026-03-02 10:30:00', endTime: '2026-03-02 10:30:02', orderId: 'ORD0000002', type: '入金', currency: 'PEA',  amount: 200000,  status: '成功',   remark: '' },
-  { id: '3',  startTime: '2026-03-03 14:00:00', endTime: '2026-03-03 14:00:01', orderId: 'ORD0000003', type: '入金', currency: 'USDT', amount: 10000,   status: '失败',   remark: '余额不足' },
-  { id: '4',  startTime: '2026-03-05 09:00:00', endTime: '',                    orderId: 'ORD0000004', type: '出金', currency: 'USDT', amount: 30000,   status: '待审批', remark: '3月运营提现' },
-  { id: '5',  startTime: '2026-03-06 11:20:00', endTime: '2026-03-07 15:00:00', orderId: 'ORD0000005', type: '出金', currency: 'PEA',  amount: 80000,   status: '成功',   remark: '' },
-  { id: '6',  startTime: '2026-03-08 16:45:00', endTime: '2026-03-09 10:00:00', orderId: 'ORD0000006', type: '出金', currency: 'USDT', amount: 15000,   status: '失败',   remark: '账号异常' },
-  { id: '7',  startTime: '2026-03-10 08:30:00', endTime: '2026-03-10 08:30:03', orderId: 'ORD0000007', type: '入金', currency: 'USDT', amount: 100000,  status: '成功',   remark: '' },
-  { id: '8',  startTime: '2026-03-12 13:00:00', endTime: '',                    orderId: 'ORD0000008', type: '出金', currency: 'PEA',  amount: 50000,   status: '待审批', remark: '季度结算' },
-  { id: '9',  startTime: '2026-03-15 10:10:00', endTime: '2026-03-15 10:10:02', orderId: 'ORD0000009', type: '入金', currency: 'PEA',  amount: 300000,  status: '成功',   remark: '追加入金' },
-  { id: '10', startTime: '2026-03-18 09:00:00', endTime: '',                    orderId: 'ORD0000010', type: '出金', currency: 'USDT', amount: 25000,   status: '待审批', remark: '' },
-  { id: '11', startTime: '2026-03-20 14:30:00', endTime: '2026-03-20 14:30:04', orderId: 'ORD0000011', type: '入金', currency: 'USDT', amount: 75000,   status: '成功',   remark: '月中补充' },
-  { id: '12', startTime: '2026-03-22 11:00:00', endTime: '2026-03-23 09:00:00', orderId: 'ORD0000012', type: '出金', currency: 'USDT', amount: 40000,   status: '失败',   remark: '' },
+  { id: '1',  startTime: '2026-03-01 09:12:00', endTime: '2026-03-01 09:12:05', orderId: 'ORD0000001', type: '充值', currency: 'USDT', amount: 50000,   status: '成功',   remark: '首次充值' },
+  { id: '2',  startTime: '2026-03-02 10:30:00', endTime: '2026-03-02 10:30:02', orderId: 'ORD0000002', type: '充值', currency: 'PEA',  amount: 200000,  status: '成功',   remark: '' },
+  { id: '3',  startTime: '2026-03-03 14:00:00', endTime: '2026-03-03 14:00:01', orderId: 'ORD0000003', type: '充值', currency: 'USDT', amount: 10000,   status: '失败',   remark: '余额不足' },
+  { id: '4',  startTime: '2026-03-05 09:00:00', endTime: '',                    orderId: 'ORD0000004', type: '转出', currency: 'USDT', amount: 30000,   status: '待审批', remark: '3月运营提现' },
+  { id: '5',  startTime: '2026-03-06 11:20:00', endTime: '2026-03-07 15:00:00', orderId: 'ORD0000005', type: '转出', currency: 'PEA',  amount: 80000,   status: '成功',   remark: '' },
+  { id: '6',  startTime: '2026-03-08 16:45:00', endTime: '2026-03-09 10:00:00', orderId: 'ORD0000006', type: '转出', currency: 'USDT', amount: 15000,   status: '失败',   remark: '账号异常' },
+  { id: '7',  startTime: '2026-03-10 08:30:00', endTime: '2026-03-10 08:30:03', orderId: 'ORD0000007', type: '充值', currency: 'USDT', amount: 100000,  status: '成功',   remark: '' },
+  { id: '8',  startTime: '2026-03-12 13:00:00', endTime: '',                    orderId: 'ORD0000008', type: '转出', currency: 'PEA',  amount: 50000,   status: '待审批', remark: '季度结算' },
+  { id: '9',  startTime: '2026-03-15 10:10:00', endTime: '2026-03-15 10:10:02', orderId: 'ORD0000009', type: '充值', currency: 'PEA',  amount: 300000,  status: '成功',   remark: '追加充值' },
+  { id: '10', startTime: '2026-03-18 09:00:00', endTime: '',                    orderId: 'ORD0000010', type: '转出', currency: 'USDT', amount: 25000,   status: '待审批', remark: '' },
+  { id: '11', startTime: '2026-03-20 14:30:00', endTime: '2026-03-20 14:30:04', orderId: 'ORD0000011', type: '充值', currency: 'USDT', amount: 75000,   status: '成功',   remark: '月中补充' },
+  { id: '12', startTime: '2026-03-22 11:00:00', endTime: '2026-03-23 09:00:00', orderId: 'ORD0000012', type: '转出', currency: 'USDT', amount: 40000,   status: '失败',   remark: '' },
 ];
 
 // ── 主组件 ────────────────────────────────────────────────────────
@@ -111,7 +111,7 @@ const WalletPage: React.FC = () => {
     { title: '订单号',   dataIndex: 'orderId',   width: 130 },
     {
       title: '类型', dataIndex: 'type', width: 80,
-      render: (v: OrderType) => <Tag color={v === '入金' ? 'blue' : 'orange'}>{v}</Tag>,
+      render: (v: OrderType) => <Tag color={v === '充值' ? 'blue' : 'orange'}>{v}</Tag>,
     },
     { title: '币种', dataIndex: 'currency', width: 80 },
     {
@@ -188,13 +188,13 @@ const WalletPage: React.FC = () => {
               style={{ background: '#722ed1', borderColor: '#722ed1' }}
               onClick={() => { setDepositStep(1); depositForm.resetFields(); setDepositOpen(true); }}
             >
-              入金
+              充值
             </Button>
             <Button
               style={{ borderColor: '#722ed1', color: '#722ed1' }}
               onClick={() => { setWithdrawStep(1); withdrawForm.resetFields(); setWithdrawOpen(true); }}
             >
-              出金
+              转出
             </Button>
           </Space>
         </div>
@@ -213,8 +213,8 @@ const WalletPage: React.FC = () => {
               style={{ width: 110 }}
               options={[
                 { value: '全部', label: '全部类型' },
-                { value: '入金', label: '入金' },
-                { value: '出金', label: '出金' },
+                { value: '充值', label: '充值' },
+                { value: '转出', label: '转出' },
               ]}
             />
             <Select
@@ -247,9 +247,9 @@ const WalletPage: React.FC = () => {
         />
       </Card>
 
-      {/* ── 入金弹窗 ─────────────────────────────────────────────────── */}
+      {/* ── 充值弹窗 ─────────────────────────────────────────────────── */}
       <Modal
-        title={depositStep === 1 ? '入金' : '确认信息'}
+        title={depositStep === 1 ? '充值' : '确认信息'}
         open={depositOpen}
         onCancel={() => { setDepositOpen(false); setDepositStep(1); }}
         footer={null}
@@ -276,7 +276,7 @@ const WalletPage: React.FC = () => {
               <Select options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]} />
             </Form.Item>
             <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
-              <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder="请输入入金金额" />
+              <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder="请输入充值金额" />
             </Form.Item>
             <Form.Item label="备注" name="remark">
               <Input.TextArea rows={2} placeholder="选填，不超过50字" maxLength={50} showCount />
@@ -298,7 +298,7 @@ const WalletPage: React.FC = () => {
           <div style={{ marginTop: 16 }}>
             <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
               <Descriptions.Item label="绑定账号">{boundAccount.accountName}（{boundAccount.accountId}）</Descriptions.Item>
-              <Descriptions.Item label="类型"><Tag color="blue">入金</Tag></Descriptions.Item>
+              <Descriptions.Item label="类型"><Tag color="blue">充值</Tag></Descriptions.Item>
               <Descriptions.Item label="币种">{depositForm.getFieldValue('currency')}</Descriptions.Item>
               <Descriptions.Item label="金额">
                 {Number(depositForm.getFieldValue('amount') ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })}
@@ -334,14 +334,14 @@ const WalletPage: React.FC = () => {
                       startTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
                       endTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
                       orderId: `ORD${String(ts).slice(-7)}`,
-                      type: '入金',
+                      type: '充值',
                       currency: depositForm.getFieldValue('currency'),
                       amount: depositForm.getFieldValue('amount'),
                       status: '成功',
                       remark: depositForm.getFieldValue('remark') ?? '',
                     };
                     setOrders((prev) => [newOrder, ...prev]);
-                    message.success('入金申请已提交');
+                    message.success('充值申请已提交');
                     setDepositOpen(false);
                     depositForm.resetFields();
                     setDepositStep(1);
@@ -355,9 +355,9 @@ const WalletPage: React.FC = () => {
         )}
       </Modal>
 
-      {/* ── 出金弹窗 ─────────────────────────────────────────────────── */}
+      {/* ── 转出弹窗 ─────────────────────────────────────────────────── */}
       <Modal
-        title={withdrawStep === 1 ? '出金' : '确认信息'}
+        title={withdrawStep === 1 ? '转出' : '确认信息'}
         open={withdrawOpen}
         onCancel={() => { setWithdrawOpen(false); setWithdrawStep(1); }}
         footer={null}
@@ -383,7 +383,7 @@ const WalletPage: React.FC = () => {
               <Select options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]} />
             </Form.Item>
             <Form.Item label="金额" name="amount" rules={[{ required: true, message: '请输入金额' }]}>
-              <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder="请输入出金金额" />
+              <InputNumber style={{ width: '100%' }} min={0.01} precision={2} placeholder="请输入转出金额" />
             </Form.Item>
             <Form.Item label="备注" name="remark">
               <Input.TextArea rows={2} placeholder="选填，不超过50字" maxLength={50} showCount />
@@ -405,7 +405,7 @@ const WalletPage: React.FC = () => {
           <div style={{ marginTop: 16 }}>
             <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
               <Descriptions.Item label="绑定账号">{boundAccount.accountName}（{boundAccount.accountId}）</Descriptions.Item>
-              <Descriptions.Item label="类型"><Tag color="orange">出金</Tag></Descriptions.Item>
+              <Descriptions.Item label="类型"><Tag color="orange">转出</Tag></Descriptions.Item>
               <Descriptions.Item label="币种">{withdrawForm.getFieldValue('currency')}</Descriptions.Item>
               <Descriptions.Item label="金额">
                 {Number(withdrawForm.getFieldValue('amount') ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })}
@@ -434,21 +434,21 @@ const WalletPage: React.FC = () => {
                   onClick={() => {
                     const mfa = withdrawMfaRef.current?.input?.value ?? '';
                     if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
-                    // mock: 任意6位通过；出金初始状态为「待审批」
+                    // mock: 任意6位通过；转出初始状态为「待审批」
                     const ts = Date.now();
                     const newOrder: OrderRecord = {
                       id: String(ts),
                       startTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
                       endTime: '',
                       orderId: `ORD${String(ts).slice(-7)}`,
-                      type: '出金',
+                      type: '转出',
                       currency: withdrawForm.getFieldValue('currency'),
                       amount: withdrawForm.getFieldValue('amount'),
                       status: '待审批',
                       remark: withdrawForm.getFieldValue('remark') ?? '',
                     };
                     setOrders((prev) => [newOrder, ...prev]);
-                    message.success('出金申请已提交，等待审批');
+                    message.success('转出申请已提交，等待审批');
                     setWithdrawOpen(false);
                     withdrawForm.resetFields();
                     setWithdrawStep(1);
