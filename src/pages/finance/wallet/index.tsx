@@ -251,7 +251,7 @@ const WalletPage: React.FC = () => {
       <Modal
         title={depositStep === 1 ? '入金' : '确认信息'}
         open={depositOpen}
-        onCancel={() => setDepositOpen(false)}
+        onCancel={() => { setDepositOpen(false); setDepositStep(1); }}
         footer={null}
         width={480}
         destroyOnClose
@@ -287,7 +287,7 @@ const WalletPage: React.FC = () => {
                 <Button
                   type="primary"
                   style={{ background: '#722ed1', borderColor: '#722ed1' }}
-                  onClick={() => depositForm.validateFields().then(() => setDepositStep(2))}
+                  onClick={() => depositForm.validateFields().then(() => setDepositStep(2)).catch(() => {})}
                 >
                   下一步
                 </Button>
@@ -329,11 +329,12 @@ const WalletPage: React.FC = () => {
                     const mfa = (document.getElementById('deposit-mfa') as HTMLInputElement)?.value;
                     if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
                     // mock: 任意6位通过
+                    const ts = Date.now();
                     const newOrder: OrderRecord = {
-                      id: String(Date.now()),
+                      id: String(ts),
                       startTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
                       endTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-                      orderId: `ORD${String(Date.now()).slice(-7)}`,
+                      orderId: `ORD${String(ts).slice(-7)}`,
                       type: '入金',
                       currency: depositForm.getFieldValue('currency'),
                       amount: depositForm.getFieldValue('amount'),
@@ -359,7 +360,7 @@ const WalletPage: React.FC = () => {
       <Modal
         title={withdrawStep === 1 ? '出金' : '确认信息'}
         open={withdrawOpen}
-        onCancel={() => setWithdrawOpen(false)}
+        onCancel={() => { setWithdrawOpen(false); setWithdrawStep(1); }}
         footer={null}
         width={480}
         destroyOnClose
@@ -394,7 +395,7 @@ const WalletPage: React.FC = () => {
                 <Button
                   type="primary"
                   style={{ background: '#722ed1', borderColor: '#722ed1' }}
-                  onClick={() => withdrawForm.validateFields().then(() => setWithdrawStep(2))}
+                  onClick={() => withdrawForm.validateFields().then(() => setWithdrawStep(2)).catch(() => {})}
                 >
                   下一步
                 </Button>
@@ -436,11 +437,12 @@ const WalletPage: React.FC = () => {
                     const mfa = (document.getElementById('withdraw-mfa') as HTMLInputElement)?.value;
                     if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
                     // mock: 任意6位通过；出金初始状态为「待审批」
+                    const ts = Date.now();
                     const newOrder: OrderRecord = {
-                      id: String(Date.now()),
+                      id: String(ts),
                       startTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
                       endTime: '',
-                      orderId: `ORD${String(Date.now()).slice(-7)}`,
+                      orderId: `ORD${String(ts).slice(-7)}`,
                       type: '出金',
                       currency: withdrawForm.getFieldValue('currency'),
                       amount: withdrawForm.getFieldValue('amount'),
