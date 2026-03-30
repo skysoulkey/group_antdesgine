@@ -31,7 +31,8 @@ export const ROUTE_PERMISSIONS: Record<string, Role[]> = {
 
   // 设置中心
   '/finance/my-wallet':      ['company_admin'],
-  '/finance/wallet':         ['group_admin'],
+  '/finance/wallet':                ['group_admin'],
+  '/finance/wallet/bind-account':   ['group_admin'],
   '/system/notifications':   ['group_admin', 'company_admin'],
 };
 
