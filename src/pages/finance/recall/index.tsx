@@ -74,7 +74,7 @@ export default function FinanceRecall() {
     {
       title: '调回金额', dataIndex: 'amount', width: 170, align: 'right',
       render: (v, r) => (
-        <Text style={{ color: '#fa8c16' }}>
+        <Text style={{ color: '#141414' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -93,7 +93,7 @@ export default function FinanceRecall() {
         <Col xs={24} sm={12}>
           <Card bordered={false} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>本月调回总额（USDT）</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#fa8c16' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#141414' }}>
               {monthTotal.toLocaleString('en', { minimumFractionDigits: 2 })}
             </div>
           </Card>
@@ -101,7 +101,7 @@ export default function FinanceRecall() {
         <Col xs={24} sm={12}>
           <Card bordered={false} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>本月调回次数</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#722ed1' }}>{monthCount}</div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#1677ff' }}>{monthCount}</div>
           </Card>
         </Col>
       </Row>
@@ -118,7 +118,7 @@ export default function FinanceRecall() {
         </div>
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col>
-            <Input prefix={<SearchOutlined />} placeholder="搜索订单编号 / 公司名称"
+            <Input prefix={<SearchOutlined />} placeholder="订单编号 / 公司名称"
               value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
           </Col>
           <Col>
@@ -132,6 +132,7 @@ export default function FinanceRecall() {
           <Col><RangePicker style={{ width: 280 }} /></Col>
         </Row>
         <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1200 }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
       </Card>
 

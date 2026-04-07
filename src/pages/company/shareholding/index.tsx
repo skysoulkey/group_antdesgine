@@ -22,19 +22,21 @@ import React, { useState } from 'react';
 
 const { Text } = Typography;
 
+const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+
 const radioTheme = {
   components: {
     Radio: {
       buttonBg: '#fff',
-      buttonCheckedBg: '#722ed1',
+      buttonCheckedBg: '#1677ff',
       buttonColor: 'rgba(0,0,0,0.65)',
       buttonCheckedColor: '#fff',
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
-      colorPrimary: '#722ed1',
-      colorPrimaryHover: '#9254de',
-      colorPrimaryActive: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
+      colorPrimary: '#1677ff',
+      colorPrimaryHover: '#4096ff',
+      colorPrimaryActive: '#0958d9',
     },
   },
 };
@@ -177,7 +179,7 @@ const HoldingContent: React.FC<{ onSwitchTab: (t: string, enterprise?: string) =
       dataIndex: 'valuation',
       width: 140,
       align: 'right',
-      render: (v: number) => <Text style={{ color: '#722ed1' }}>{fmt(v)}</Text>,
+      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v)}</Text>,
     },
     {
       title: <TipTitle title="企业总资产" tip="当前企业最新资产" />,
@@ -217,9 +219,9 @@ const HoldingContent: React.FC<{ onSwitchTab: (t: string, enterprise?: string) =
     <div>
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         {[
-          { label: `持股估值合计（${currency === 'all' ? 'USDT' : currency}）`, value: fmt(totalValuation), color: '#722ed1' },
-          { label: `股份收益合计（${currency === 'all' ? 'USDT' : currency}）`, value: fmt(totalRevenue), color: totalRevenue >= 0 ? '#52c41a' : '#ff4d4f' },
-          { label: '持股企业数', value: `${holdingCount} 家`, color: '#722ed1' },
+          { label: `持股估值合计（${currency === 'all' ? 'USDT' : currency}）`, value: fmt(totalValuation), color: '#141414' },
+          { label: `股份收益合计（${currency === 'all' ? 'USDT' : currency}）`, value: fmt(totalRevenue), color: '#141414' },
+          { label: '持股企业数', value: `${holdingCount} 家`, color: '#141414' },
         ].map((s) => (
           <Col xs={24} sm={8} key={s.label}>
             <Card bordered={false} style={{ textAlign: 'center', borderRadius: 8 }}>
@@ -229,31 +231,34 @@ const HoldingContent: React.FC<{ onSwitchTab: (t: string, enterprise?: string) =
           </Col>
         ))}
       </Row>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-        <ConfigProvider theme={radioTheme}>
-          <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
-            <Radio.Button value="all">全部</Radio.Button>
-            <Radio.Button value="USDT">USDT</Radio.Button>
-            <Radio.Button value="PEA">PEA</Radio.Button>
-          </Radio.Group>
-        </ConfigProvider>
-        <Input
-          suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-          placeholder="企业名称 / 企业ID"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          allowClear
-          style={{ width: 220 }}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="all">全部</Radio.Button>
+              <Radio.Button value="USDT">USDT</Radio.Button>
+              <Radio.Button value="PEA">PEA</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="企业名称 / 企业ID"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            allowClear
+            style={{ width: 220 }}
+          />
+        </div>
+        <Table
+          columns={columns}
+          dataSource={filtered}
+          rowKey="id"
+          size="middle"
+          scroll={{ x: 1200 }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
         />
-      </div>
-      <Table
-        columns={columns}
-        dataSource={filtered}
-        rowKey="id"
-        size="middle"
-        scroll={{ x: 1200 }}
-        pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-      />
+      </Card>
     </div>
   );
 };
@@ -286,12 +291,7 @@ const TradeContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnterpr
     { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
     { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
     { title: '订单编号', dataIndex: 'orderId', width: 130 },
-    {
-      title: '订单类型',
-      dataIndex: 'orderType',
-      width: 100,
-      render: (v) => <Tag color={v === '购买股份' ? 'success' : 'error'}>{v}</Tag>,
-    },
+    { title: '订单类型', dataIndex: 'orderType', width: 100 },
     { title: '变动比例', dataIndex: 'changeRatio', width: 90, align: 'right' },
     { title: '货币单位', dataIndex: 'currency', width: 90 },
     { title: '订单金额', dataIndex: 'amount', width: 130, align: 'right', sorter: (a, b) => a.amount - b.amount, render: (v) => fmt(v) },
@@ -314,7 +314,7 @@ const TradeContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnterpr
   ];
 
   return (
-    <div>
+    <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <ConfigProvider theme={radioTheme}>
           <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
@@ -353,9 +353,10 @@ const TradeContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnterpr
         rowKey="id"
         size="middle"
         scroll={{ x: 1200 }}
+        rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
       />
-    </div>
+    </Card>
   );
 };
 
@@ -405,7 +406,7 @@ const DividendContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnte
     { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
     { title: '企业名称', dataIndex: 'enterpriseName', width: 110 },
     { title: '订单编号', dataIndex: 'orderId', width: 130 },
-    { title: '订单类型', dataIndex: 'orderType', width: 90, render: (v) => <Tag color={v === '分红' ? 'success' : 'error'}>{v}</Tag> },
+    { title: '订单类型', dataIndex: 'orderType', width: 90 },
     { title: '订单金额', dataIndex: 'amount', width: 130, align: 'right', sorter: (a, b) => a.amount - b.amount, render: (v) => fmt(v) },
     { title: '税费', dataIndex: 'tax', width: 110, align: 'right', sorter: (a, b) => a.tax - b.tax, render: (v) => fmt(v) },
     { title: '货币单位', dataIndex: 'currency', width: 90 },
@@ -416,42 +417,45 @@ const DividendContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnte
   ];
 
   return (
-    <div>
-      {/* 筛选行 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-        <ConfigProvider theme={radioTheme}>
-          <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
-            <Radio.Button value="all">全部</Radio.Button>
-            <Radio.Button value="分红">分红</Radio.Button>
-            <Radio.Button value="投资">投资</Radio.Button>
-          </Radio.Group>
-        </ConfigProvider>
-        <Select
-          placeholder="企业名称"
-          value={enterprise}
-          onChange={setEnterprise}
-          allowClear
-          style={{ width: 140 }}
-          options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
-        />
-        <Input
-          suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-          placeholder="订单编号"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          allowClear
-          style={{ width: 180 }}
-        />
-      </div>
+    <>
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+        {/* 筛选行 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
+              <Radio.Button value="all">全部</Radio.Button>
+              <Radio.Button value="分红">分红</Radio.Button>
+              <Radio.Button value="投资">投资</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Select
+            placeholder="企业名称"
+            value={enterprise}
+            onChange={setEnterprise}
+            allowClear
+            style={{ width: 140 }}
+            options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
+          />
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="订单编号"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            allowClear
+            style={{ width: 180 }}
+          />
+        </div>
 
-      <Table
-        columns={columns}
-        dataSource={filtered}
-        rowKey="id"
-        size="middle"
-        scroll={{ x: 1000 }}
-        pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-      />
+        <Table
+          columns={columns}
+          dataSource={filtered}
+          rowKey="id"
+          size="middle"
+          scroll={{ x: 1000 }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+        />
+      </Card>
 
       {/* 详情弹窗 */}
       <Modal
@@ -482,7 +486,7 @@ const DividendContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnte
           </>
         )}
       </Modal>
-    </div>
+    </>
   );
 };
 
@@ -514,7 +518,20 @@ const CompanyShareholding: React.FC = () => {
     },
   ];
 
-  return <Tabs items={tabItems} type="card" activeKey={activeTab} onChange={setActiveTab} />;
+  return (
+    <div style={{ marginTop: -16 }}>
+      <Tabs
+        items={tabItems}
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        tabBarStyle={{
+          background: '#fff',
+          margin: '0 -24px',
+          padding: '0 24px',
+        }}
+      />
+    </div>
+  );
 };
 
 export default CompanyShareholding;

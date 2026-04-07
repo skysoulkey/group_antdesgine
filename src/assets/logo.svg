@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+
+  <!-- 气泡主体（单层蓝色） -->
+  <rect x="40" y="40" width="432" height="380" rx="72" ry="72" fill="#1677ff"/>
+
+  <!-- 底部气泡尾巴（更大、更柔和的曲线） -->
+  <path d="M100,390 Q100,390 140,410 Q160,460 150,490 Q120,440 80,410 Q90,400 100,390 Z" fill="#1677ff"/>
+  <rect x="96" y="385" width="130" height="28" rx="4" fill="#1677ff"/>
+
+  <!-- 三个大圆点 -->
+  <circle cx="172" cy="230" r="40" fill="rgba(255,255,255,0.75)"/>
+  <circle cx="268" cy="230" r="40" fill="rgba(255,255,255,0.45)"/>
+  <circle cx="364" cy="230" r="40" fill="rgba(255,255,255,0.9)"/>
+
+  <!-- 装饰气泡 -->
+  <circle cx="400" cy="96" r="22" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+  <circle cx="440" cy="60" r="12" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  <circle cx="460" cy="100" r="7" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+
+  <!-- 左下角小气泡 -->
+  <circle cx="80" cy="360" r="18" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.22)" stroke-width="1.2"/>
+  <circle cx="52" cy="330" r="10" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+  <circle cx="110" cy="385" r="7" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+
+  <!-- 右下角小气泡 -->
+  <circle cx="432" cy="360" r="16" fill="rgba(255,255,255,0.13)" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/>
+  <circle cx="460" cy="330" r="9" fill="rgba(255,255,255,0.10)" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>
+</svg>

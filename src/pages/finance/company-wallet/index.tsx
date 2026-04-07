@@ -1,5 +1,5 @@
-import { CopyOutlined, WalletOutlined } from '@ant-design/icons';
-import { Card, Col, Descriptions, message, Row, Space, Table, Tag, Typography } from 'antd';
+import { CopyOutlined } from '@ant-design/icons';
+import { Button, Card, Descriptions, message, Space, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React from 'react';
 
@@ -27,70 +27,65 @@ const flowData: FlowRecord[] = Array.from({ length: 12 }, (_, i) => ({
 
 const columns: ColumnsType<FlowRecord> = [
   { title: '流水号', dataIndex: 'id', width: 110 },
-  {
-    title: '类型', dataIndex: 'type', width: 100,
-    render: (v) => <Tag color={v === '集团下拨' ? 'blue' : 'orange'}>{v}</Tag>,
-  },
+  { title: '类型', dataIndex: 'type', width: 100 },
   { title: '货币单位', dataIndex: 'currency', width: 80 },
-  { title: '金额', dataIndex: 'amount', width: 130, align: 'right', render: (v) => <span style={{ fontWeight: 600, color: '#141414' }}>{v}</span> },
+  { title: '金额', dataIndex: 'amount', width: 130, align: 'right', render: (v) => <span style={{ color: '#141414' }}>{v}</span> },
   { title: '操作人', dataIndex: 'operator', width: 120 },
-  { title: '时间', dataIndex: 'createdAt', width: 170 },
+  { title: '时间', dataIndex: 'createdAt', width: 180, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
 ];
 
 const CompanyWalletPage: React.FC = () => {
   return (
     <div>
-      {/* 余额卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <WalletOutlined style={{ fontSize: 22, color: '#722ed1' }} />
-              </div>
-              <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>USDT 余额</Text>
+      {/* ── 余额 + 公司信息（紧凑单行） ─────────────────────────────── */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}
+        styles={{ body: { padding: '16px 24px' } }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          {/* 左侧：余额 */}
+          <Space size={48}>
+            <div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>USDT 余额</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#141414', marginTop: 4 }}>89,230.00</div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>89,230.00</div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <WalletOutlined style={{ fontSize: 22, color: '#722ed1' }} />
-              </div>
-              <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>PEA 余额</Text>
+            <div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>PEA 余额</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#141414', marginTop: 4 }}>560,000.00</div>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>560,000.00</div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 公司基础信息 */}
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }} title="公司基础信息">
-        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="middle">
-          <Descriptions.Item label="公司名称">炸雷第一波</Descriptions.Item>
-          <Descriptions.Item label="公司ID">
-            <Space>
-              <Text>43215321432</Text>
-              <CopyOutlined
-                style={{ cursor: 'pointer', color: '#722ed1' }}
-                onClick={() => { navigator.clipboard.writeText('43215321432'); message.success('已复制'); }}
-              />
-            </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label="归属集团">UU Talk 集团</Descriptions.Item>
-          <Descriptions.Item label="通知账号">@Miya_miya</Descriptions.Item>
-        </Descriptions>
+          </Space>
+          {/* 右侧：公司信息 */}
+          <Space size={24}>
+            <div style={{ textAlign: 'right' }}>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>公司名称</Text>
+              <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>炸雷第一波</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>归属集团</Text>
+              <div style={{ fontSize: 14, marginTop: 4 }}>UU Talk 集团</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>公司 ID</Text>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, marginTop: 4 }}>
+                <Text style={{ fontSize: 14, fontFamily: 'monospace', color: '#141414' }}>43215321432</Text>
+                <CopyOutlined
+                  style={{ cursor: 'pointer', color: 'rgba(0,0,0,0.35)', fontSize: 12 }}
+                  onClick={() => { navigator.clipboard.writeText('43215321432'); message.success('已复制'); }}
+                />
+              </div>
+            </div>
+          </Space>
+        </div>
       </Card>
 
-      {/* 历史流水 */}
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }} title="历史流水">
+      {/* ── 历史流水 ────────────────────────────────────────────────── */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+        styles={{ body: { padding: '16px 24px' } }}>
+        <Text strong style={{ fontSize: 15, display: 'block', marginBottom: 12 }}>历史流水</Text>
         <Table
           columns={columns}
           dataSource={flowData}
           rowKey="id"
           size="middle"
+          scroll={{ x: 720 }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />

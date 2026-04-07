@@ -9,8 +9,8 @@ export function rootContainer(container: React.ReactNode) {
       locale={zhCN}
       theme={{
         token: {
-          colorPrimary: '#722ed1',
-          colorLink: '#722ed1',
+          colorPrimary: '#1677ff',
+          colorLink: '#1677ff',
           borderRadius: 8,
           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         },

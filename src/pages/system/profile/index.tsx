@@ -9,7 +9,6 @@ import {
   Modal,
   Space,
   Switch,
-  Tag,
   Typography,
 } from 'antd';
 import React, { useState } from 'react';
@@ -51,7 +50,7 @@ const ProfilePage: React.FC = () => {
         <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130, whiteSpace: 'nowrap' }} bordered>
           <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
           <Descriptions.Item label="角色">
-            <Tag color="blue">{personalInfo.role}</Tag>
+            {personalInfo.role}
           </Descriptions.Item>
           {(role === 'group_admin' || role === 'company_admin') && (
             <Descriptions.Item label="归属集团">UU Talk 集团</Descriptions.Item>
@@ -63,7 +62,7 @@ const ProfilePage: React.FC = () => {
             <Text type="success">{personalInfo.validPeriod}</Text>
           </Descriptions.Item>
           <Descriptions.Item label="IP 限制">
-            <Tag color={personalInfo.ipRestrict ? 'success' : 'default'}>{personalInfo.ipRestrict ? '已开启' : '未开启'}</Tag>
+            {personalInfo.ipRestrict ? '已开启' : '未开启'}
           </Descriptions.Item>
           <Descriptions.Item label="最近登录 IP">
             <Space>

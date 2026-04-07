@@ -29,7 +29,7 @@ const BindAccountPage: React.FC = () => {
         <Button
           type="link"
           icon={<ArrowLeftOutlined />}
-          style={{ padding: 0, color: '#722ed1' }}
+          style={{ padding: 0, color: '#1677ff' }}
           onClick={() => navigate(-1)}
         >
           返回集团钱包
@@ -64,7 +64,7 @@ const BindAccountPage: React.FC = () => {
           </Form.Item>
           <Space>
             <Button onClick={() => navigate(-1)}>取消</Button>
-            <Button type="primary" style={{ background: '#722ed1', borderColor: '#722ed1' }} onClick={handleSubmit}>
+            <Button type="primary" style={{ background: '#1677ff', borderColor: '#1677ff' }} onClick={handleSubmit}>
               保存
             </Button>
           </Space>

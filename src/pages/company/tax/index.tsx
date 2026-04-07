@@ -75,7 +75,7 @@ export default function CompanyTax() {
     {
       title: '税收金额', dataIndex: 'taxAmount', width: 160, align: 'right',
       render: (v, r) => (
-        <Text strong style={{ color: '#722ed1' }}>
+        <Text strong style={{ color: '#141414' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -90,12 +90,12 @@ export default function CompanyTax() {
   return (
     <Card bordered={false}>
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <FileTextOutlined style={{ color: '#722ed1', fontSize: 18 }} />
+        <FileTextOutlined style={{ color: '#1677ff', fontSize: 18 }} />
         <Text style={{ fontSize: 16, fontWeight: 600 }}>公司税单</Text>
       </div>
       <Row gutter={[16, 12]} style={{ marginBottom: 16 }} align="middle">
         <Col>
-          <Input prefix={<SearchOutlined />} placeholder="搜索订单编号 / 公司名称"
+          <Input prefix={<SearchOutlined />} placeholder="订单编号 / 公司名称"
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
         <Col>
@@ -103,7 +103,7 @@ export default function CompanyTax() {
             style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group
               buttonStyle="outline"
               value={statusFilter ?? 'all'}
@@ -115,7 +115,7 @@ export default function CompanyTax() {
                 { v: 'pending', label: '待结算' },
                 { v: 'cancelled', label: '已取消' },
               ]).map(({ v, label }) => (
-                <Radio.Button key={v} value={v} style={(statusFilter ?? 'all') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                <Radio.Button key={v} value={v} style={(statusFilter ?? 'all') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
                   {label}
                 </Radio.Button>
               ))}
@@ -125,6 +125,7 @@ export default function CompanyTax() {
         <Col><RangePicker style={{ width: 280 }} /></Col>
       </Row>
       <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1200 }}
+        rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
     </Card>
   );

@@ -1,18 +1,11 @@
 import {
-  AccountBookOutlined,
-  ExportOutlined,
-  FundOutlined,
-  ImportOutlined,
   InfoCircleOutlined,
   ReloadOutlined,
   SearchOutlined,
-  StockOutlined,
-  TrophyOutlined,
 } from '@ant-design/icons';
 
-import { Area } from '@ant-design/plots';
+import { Line } from '@ant-design/plots';
 import {
-  Badge,
   Button,
   Card,
   Col,
@@ -32,9 +25,9 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'umi';
+import { useNavigate, useParams, useSearchParams } from 'umi';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
@@ -42,11 +35,11 @@ const CARD_RADIUS = 12;
 const radioTheme = {
   components: {
     Radio: {
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
       buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#722ed1',
+      colorPrimary: '#1677ff',
     },
   },
 };
@@ -60,67 +53,83 @@ const COMPANIES = [
   { value: '283986', label: 'Star Tech' },
 ];
 
-// ── 折线图数据 ────────────────────────────────────────────────────
-const months = ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
-const mk = (vals: number[]) => vals.map((v, i) => ({ date: months[i], value: v }));
+// ── 折线图数据（最近30天）────────────────────────────────────────
+const BASE_DATE = new Date('2026-04-08');
+const days30 = Array.from({ length: 30 }, (_, i) => {
+  const d = new Date(BASE_DATE);
+  d.setDate(d.getDate() - 29 + i);
+  return d.toISOString().slice(0, 10);
+});
+const mkDay = (base: number, amp: number, trend: number, phase: number) =>
+  days30.map((date, i) => ({
+    date,
+    value: Math.round(base + amp * Math.sin((i / 30) * Math.PI * 4 + phase) + trend * (i / 30)),
+  }));
 
-const assetData  = mk([28, 32, 35, 52, 38, 22, 18]);
-const profitData = mk([20, 28, 35, 52, 40, 25, 18]);
+const assetData  = mkDay(5000, 800, 500, 0);
+const profitData = mkDay(1500, 400, 200, 1.5);
 
 const chartCfg = (data: { date: string; value: number }[], name: string) => ({
   data,
   xField: 'date',
   yField: 'value',
-  shape: 'smooth',
+  shapeField: 'smooth',
   height: 220,
   autoFit: true,
-  style: { fill: 'l(270) 0:rgba(114,46,209,0) 1:rgba(114,46,209,0.2)' },
+  style: { stroke: '#1677ff', lineWidth: 2 },
+  point: { shape: 'circle', size: 4, style: { fill: '#fff', stroke: '#1677ff', lineWidth: 2 } },
+  axis: {
+    x: {
+      labelFontSize: 10,
+      labelAutoRotate: false,
+      labelFormatter: (v: string) => v.slice(5),          // MM-DD
+      tickFilter: (_: string, index: number) => index % 2 === 0,
+      grid: null,
+      line: null,
+    },
+    y: {
+      grid: true,
+      gridLineDash: [4, 4],
+      gridStroke: 'rgba(0,0,0,0.1)',
+      line: null,
+      tick: null,
+    },
+  },
+  interaction: { tooltip: { marker: { shape: 'circle' } } },
   tooltip: { items: [{ channel: 'y' as const, name }] },
 });
 
-// ── KPI 卡片 ─────────────────────────────────────────────────────
+// ── KPI 卡片（与仪表盘统一） ─────────────────────────────────────
 interface Sub { label: string; value: string | number }
 interface KpiCardProps {
   title: string;
   value: string | number;
-  color: string;
-  icon: React.ReactNode;
   sub?: Sub[];
   tooltip?: string;
 }
 
-const KpiCard: React.FC<KpiCardProps> = ({ title, value, color, icon, sub, tooltip }) => (
+const KpiCard: React.FC<KpiCardProps> = ({ title, value, sub, tooltip }) => (
   <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
     styles={{ body: { padding: '20px 24px' } }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>{title}</Text>
-        {tooltip && (
-          <Tooltip title={tooltip}>
-            <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
-          </Tooltip>
-        )}
-      </div>
-      <div style={{
-        width: 44, height: 44, borderRadius: 10,
-        background: `${color}18`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-      }}>
-        <span style={{ fontSize: 20, color }}>{icon}</span>
-      </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{title}</Text>
+      {tooltip && (
+        <Tooltip title={tooltip}>
+          <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.3)', cursor: 'help' }} />
+        </Tooltip>
+      )}
     </div>
-    <div style={{ marginTop: 8, marginBottom: sub ? 12 : 0 }}>
-      <span style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>{value}</span>
+    <div style={{ marginTop: 12 }}>
+      <span style={{ fontSize: 30, fontWeight: 700, color: '#141414', letterSpacing: -0.5 }}>{value}</span>
     </div>
     {sub && (
       <>
-        <Divider style={{ margin: '10px 0' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', rowGap: 4 }}>
+        <Divider style={{ margin: '16px 0 12px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {sub.map((s) => (
-            <div key={s.label}>
-              <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 2 }}>{s.label}</div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: '#262626' }}>{s.value}</div>
-            </div>
+            <Text key={s.label} style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
+              {s.label} <span style={{ color: 'rgba(0,0,0,0.65)' }}>{s.value}</span>
+            </Text>
           ))}
         </div>
       </>
@@ -128,32 +137,6 @@ const KpiCard: React.FC<KpiCardProps> = ({ title, value, color, icon, sub, toolt
   </Card>
 );
 
-// ── 双值卡片（集团资金下拨 + 调回）────────────────────────────────
-const DualCard: React.FC = () => (
-  <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
-    styles={{ body: { padding: '20px 24px' } }}>
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-      <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金下拨</Text>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#faad1418', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <ExportOutlined style={{ color: '#faad14', fontSize: 16 }} />
-      </div>
-    </div>
-    <div style={{ fontSize: 24, fontWeight: 700, color: '#52c41a', marginBottom: 16 }}>202,320.00</div>
-    <Divider style={{ margin: '0 0 12px' }} />
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>集团资金调回</Text>
-        <Tooltip title="集团从公司账户转出金额之和">
-          <InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} />
-        </Tooltip>
-      </div>
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: '#ff4d4f18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <ImportOutlined style={{ color: '#ff4d4f', fontSize: 16 }} />
-      </div>
-    </div>
-    <div style={{ fontSize: 24, fontWeight: 700, color: '#ff4d4f' }}>202,320.00</div>
-  </Card>
-);
 
 // ── TOP5 数据 ─────────────────────────────────────────────────────
 interface TopRow {
@@ -200,12 +183,12 @@ const groupTransferData: GroupTransfer[] = Array.from({ length: 10 }, (_, i) => 
 }));
 
 const groupTransferColumns: ColumnsType<GroupTransfer> = [
-  { title: '订单时间', dataIndex: 'orderTime', width: 170 },
-  { title: '订单编号', dataIndex: 'orderNo', width: 160 },
-  { title: '订单类型', dataIndex: 'orderType', width: 140, render: (v) => <Tag color={v === '集团资金下拨' ? 'success' : 'warning'}>{v}</Tag> },
-  { title: '货币单位', dataIndex: 'currency', width: 90 },
+  { title: '订单时间', dataIndex: 'orderTime' },
+  { title: '订单编号', dataIndex: 'orderNo' },
+  { title: '订单类型', dataIndex: 'orderType' },
+  { title: '货币单位', dataIndex: 'currency' },
   {
-    title: '交易金额', dataIndex: 'amount', width: 130, align: 'right',
+    title: '交易金额', dataIndex: 'amount', align: 'right',
     sorter: (a, b) => parseFloat(a.amount.replace(/,/g, '')) - parseFloat(b.amount.replace(/,/g, '')),
   },
   { title: '订单备注', dataIndex: 'remark' },
@@ -270,6 +253,8 @@ const holdingColumns: ColumnsType<HoldingValuation> = [
 const CompanyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
   const [currency, setCurrency] = useState('USDT');
   const [transferSearch, setTransferSearch] = useState('');
   const [transferTypeFilter, setTransferTypeFilter] = useState('全部');
@@ -282,18 +267,8 @@ const CompanyDetail: React.FC = () => {
   const topColumns: ColumnsType<TopRow> = [
     {
       title: '总贡献排名', dataIndex: 'rankNum', width: 110,
-      render: (v: number, r: TopRow) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 26, height: 26, borderRadius: 6,
-            background: v <= 3 ? '#faad1420' : '#f5f5f5',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 13, color: v <= 3 ? '#faad14' : 'rgba(0,0,0,0.65)',
-          }}>
-            {v <= 3 ? <TrophyOutlined /> : v}
-          </div>
-          <span style={{ color: 'rgba(0,0,0,0.65)' }}>{r.ranking}</span>
-        </div>
+      render: (_: number, r: TopRow) => (
+        <span style={{ fontWeight: 500, color: 'rgba(0,0,0,0.65)' }}>{r.ranking}</span>
       ),
     },
     { title: '企业ID', dataIndex: 'enterpriseId', width: 90 },
@@ -313,12 +288,12 @@ const CompanyDetail: React.FC = () => {
   const overviewContent = (
     <div>
       {/* 顶部工具栏 */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <ConfigProvider theme={{ components: { Segmented: {
-          trackBg: '#f9f0ff',
-          itemSelectedBg: '#722ed1',
+          trackBg: '#e6f4ff',
+          itemSelectedBg: '#1677ff',
           itemSelectedColor: '#ffffff',
-          itemColor: '#722ed1',
+          itemColor: '#1677ff',
         } } }}>
           <Segmented
             options={['USDT', 'PEA']}
@@ -329,64 +304,66 @@ const CompanyDetail: React.FC = () => {
         </ConfigProvider>
         <Space size={6}>
           <Text type="secondary" style={{ fontSize: 12 }}>数据更新时间：2025-11-02 12:33:02</Text>
-          <ReloadOutlined style={{ color: '#722ed1', cursor: 'pointer', fontSize: 13 }} />
+          <ReloadOutlined style={{ color: '#1677ff', cursor: 'pointer', fontSize: 13 }} />
+        </Space>
+        <div style={{ flex: 1 }} />
+        <Space size={4}>
+          <Text type="secondary" style={{ fontSize: 12 }}>公司ID：</Text>
+          <Text style={{ fontSize: 12, fontFamily: 'monospace', color: '#141414' }}>{currentCompany.value}</Text>
+          <Text type="secondary" style={{ fontSize: 12, marginLeft: 12 }}>公司名称：</Text>
+          <Text style={{ fontSize: 12, fontWeight: 600 }}>{currentCompany.label}</Text>
+          <Text type="secondary" style={{ fontSize: 12, marginLeft: 12 }}>归属集团：</Text>
+          <Text style={{ fontSize: 12, fontWeight: 600 }}>XX集团</Text>
         </Space>
       </div>
 
       {/* KPI 卡片 */}
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} xl={6}>
+      <div className="kpi-grid">
           <KpiCard
             title={`公司总资产（${currency}）`}
             value="223,300.00"
-            color="#722ed1"
-            icon={<AccountBookOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322.00' },
               { label: '今日新增', value: '233,322.00' },
             ]}
             tooltip="企业余额及应用余额之和"
           />
-        </Col>
-        <Col xs={24} sm={12} xl={6}>
           <KpiCard
             title={`持股估值（${currency}）`}
             value="2,020.00"
-            color="#13c2c2"
-            icon={<StockOutlined />}
             sub={[{ label: '持股企业', value: '2,000 家' }]}
             tooltip="公司当前持有企业资产之和"
           />
-        </Col>
-        <Col xs={24} sm={12} xl={6}>
           <KpiCard
             title={`总收益（${currency}）`}
             value="2,020.00"
-            color="#52c41a"
-            icon={<FundOutlined />}
             sub={[
               { label: '昨日新增', value: '233,322.00' },
               { label: '今日新增', value: '233,322.00' },
             ]}
           />
-        </Col>
-        <Col xs={24} sm={12} xl={6}>
-          <DualCard />
-        </Col>
-      </Row>
+          <KpiCard
+            title={`资金调回（${currency}）`}
+            value="$202,320.00"
+            sub={[
+              { label: '资金下拨', value: '$202,320.00' },
+            ]}
+            tooltip="集团从公司账户转回金额之和"
+          />
+      </div>
 
-      {/* 折线图 */}
+      {/* 折线图（全宽，与卡片等宽） */}
       <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
         <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
             title={<Text style={{ fontWeight: 600 }}>公司总资产走势</Text>}>
-            <Area {...chartCfg(assetData, '公司总资产')} />
+            <Line {...chartCfg(assetData, '公司总资产')} />
           </Card>
         </Col>
         <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
             title={<Text style={{ fontWeight: 600 }}>公司盈亏走势</Text>}>
-            <Area {...chartCfg(profitData, '公司盈亏')} />
+            <Line {...chartCfg(profitData, '公司盈亏')} />
           </Card>
         </Col>
       </Row>
@@ -398,16 +375,7 @@ const CompanyDetail: React.FC = () => {
             bordered={false}
             style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}
             styles={{ body: { padding: '0 0 8px' } }}
-            title={
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <TrophyOutlined style={{ color: '#faad14', fontSize: 18 }} />
-                <span style={{ fontWeight: 700, fontSize: 16 }}>收益贡献排行榜 TOP5</span>
-                <Badge
-                  count={currency}
-                  style={{ backgroundColor: '#722ed1', fontWeight: 600, fontSize: 11 }}
-                />
-              </div>
-            }
+            title={<Text strong style={{ fontSize: 16 }}>收益贡献 TOP5</Text>}
           >
             <Table
               columns={topColumns}
@@ -515,24 +483,28 @@ const CompanyDetail: React.FC = () => {
   ];
 
   return (
-    <div>
-      {/* 页面标题行 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <Title level={4} style={{ margin: 0 }}>公司概览</Title>
-        <Select
-          value={currentCompany.value}
-          onChange={(val) => navigate(`/company/detail/${val}`)}
-          style={{ width: 180 }}
-          options={COMPANIES}
-          placeholder="切换公司"
-        />
-      </div>
-
-      {/* Tabs */}
+    <div style={{ marginTop: -16 }}>
       <Tabs
         items={tabItems}
-        defaultActiveKey="overview"
-        style={{ background: 'transparent' }}
+        activeKey={activeTab}
+        onChange={(key) => setSearchParams({ tab: key })}
+        tabBarStyle={{
+          background: '#fff',
+          margin: '0 -24px',
+          padding: '0 24px',
+        }}
+        tabBarExtraContent={
+          <Space size={12}>
+            <Select
+              value={currentCompany.value}
+              onChange={(val) => navigate(`/company/detail/${val}?tab=${activeTab}`)}
+              style={{ width: 180 }}
+              options={COMPANIES}
+              placeholder="切换公司"
+            />
+            <Button type="primary" onClick={() => navigate('/company/list')}>返回</Button>
+          </Space>
+        }
       />
     </div>
   );

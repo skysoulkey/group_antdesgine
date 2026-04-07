@@ -32,11 +32,11 @@ const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const radioTheme = {
   components: {
     Radio: {
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
       buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#722ed1',
+      colorPrimary: '#1677ff',
     },
   },
 };
@@ -239,7 +239,7 @@ const CommissionOrderTab: React.FC = () => {
               <Text style={{ fontSize: 13, fontWeight: 600 }}>企业佣金支出</Text>
               {enterprise && (
                 <Tag
-                  color="purple"
+                  color="blue"
                   closable
                   closeIcon={<CloseCircleFilled />}
                   onClose={() => setEnterprise(undefined)}
@@ -254,9 +254,10 @@ const CommissionOrderTab: React.FC = () => {
               data={top5CommissionData}
               xField="value"
               yField="enterprise"
+              colorField="enterprise"
               height={220}
-              style={{ fill: (d: any) => d.enterprise === enterprise ? '#531dab' : '#722ed1', marginTop: 8, cursor: 'pointer' }}
-              scale={{ color: { range: ['#722ed1'] }, x: { paddingInner: 0.4 } }}
+              style={{ marginTop: 8, cursor: 'pointer' }}
+              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 } }}
               axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
               tooltip={{
                 items: [(d: any) => ({ name: `${d.enterprise}佣金`, value: d.value })],
@@ -278,7 +279,7 @@ const CommissionOrderTab: React.FC = () => {
               <Text style={{ fontSize: 13, fontWeight: 600 }}>佣金订单数量</Text>
               {enterprise && (
                 <Tag
-                  color="purple"
+                  color="blue"
                   closable
                   closeIcon={<CloseCircleFilled />}
                   onClose={() => setEnterprise(undefined)}
@@ -293,9 +294,10 @@ const CommissionOrderTab: React.FC = () => {
               data={orderCountData}
               xField="enterprise"
               yField="value"
+              colorField="enterprise"
               height={220}
-              style={{ fill: (d: any) => d.enterprise === enterprise ? '#531dab' : '#722ed1', marginTop: 8, cursor: 'pointer' }}
-              scale={{ color: { range: ['#722ed1'] }, x: { paddingInner: 0.4 } }}
+              style={{ marginTop: 8, cursor: 'pointer' }}
+              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 } }}
               axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
               tooltip={{ items: [{ channel: 'y', name: '订单数', valueFormatter: (v: number) => `${v}单` }] }}
               onReady={(chart: any) => {
@@ -316,7 +318,7 @@ const CommissionOrderTab: React.FC = () => {
             <Text style={{ fontSize: 14, fontWeight: 600 }}>佣金订单</Text>
             {enterprise && (
               <Tag
-                color="purple"
+                color="blue"
                 closable
                 closeIcon={<CloseCircleFilled />}
                 onClose={() => setEnterprise(undefined)}

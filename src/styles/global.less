@@ -50,7 +50,7 @@ body {
 .amount-text {
   font-size: 20px;
   font-weight: 600;
-  color: #722ed1;
+  color: #1677ff;
 }
 
 .amount-text-warning {
@@ -62,6 +62,25 @@ body {
 /* 表格斑马纹 */
 .table-row-light td {
   background: #fafafa !important;
+}
+
+/* 带 Tab 的页面：tab 栏与顶部导航连成白色块，内容区加上间距 */
+.ant-tabs > .ant-tabs-content-holder {
+  padding-top: 16px;
+}
+
+/* 仪表盘 KPI 等高网格 */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 16px;
+}
+@media (max-width: 1199px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 575px) {
+  .kpi-grid { grid-template-columns: 1fr; }
 }
 
 /* 仪表盘卡片悬浮效果 */

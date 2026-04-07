@@ -21,7 +21,6 @@ import {
   Space,
   Steps,
   Table,
-  Tag,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -91,8 +90,8 @@ const BalancePanel: React.FC<{
 }> = ({ label, name, selector, balances, placeholder, highlight }) => (
   <div style={{
     flex: 1,
-    background: highlight ? '#f9f0ff' : '#fafafa',
-    border: `1px solid ${highlight ? '#d3adf7' : '#e8e8e8'}`,
+    background: highlight ? '#e6f4ff' : '#fafafa',
+    border: `1px solid ${highlight ? '#91caff' : '#e8e8e8'}`,
     borderRadius: 8,
     padding: '12px 14px',
     minWidth: 0,
@@ -208,8 +207,8 @@ const WizardModal: React.FC<WizardModalProps> = ({ mode, open, onClose }) => {
             <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
               {isAllocate ? (
                 <>
-                  <ArrowRightOutlined style={{ fontSize: 18, color: '#722ed1' }} />
-                  <ArrowRightOutlined style={{ fontSize: 18, color: '#722ed1', opacity: 0.4 }} />
+                  <ArrowRightOutlined style={{ fontSize: 18, color: '#1677ff' }} />
+                  <ArrowRightOutlined style={{ fontSize: 18, color: '#1677ff', opacity: 0.4 }} />
                 </>
               ) : (
                 <>
@@ -296,7 +295,7 @@ const WizardModal: React.FC<WizardModalProps> = ({ mode, open, onClose }) => {
               {isAllocate ? formValues.company : '集团余额账户'}
             </Descriptions.Item>
             <Descriptions.Item label="划转金额">
-              <Text style={{ color: '#722ed1', fontWeight: 600 }}>
+              <Text style={{ color: '#141414', fontWeight: 600 }}>
                 {fmt(formValues.amount ?? 0)} {formValues.currency ?? 'USDT'}
               </Text>
             </Descriptions.Item>
@@ -331,7 +330,7 @@ const WizardModal: React.FC<WizardModalProps> = ({ mode, open, onClose }) => {
           <Descriptions column={1} bordered size="small"
             labelStyle={{ whiteSpace: 'nowrap' }}>
             <Descriptions.Item label="当前已到账">
-              <Text style={{ color: '#52c41a', fontWeight: 600 }}>
+              <Text style={{ color: '#141414', fontWeight: 600 }}>
                 {fmt(amt)} {cur}
               </Text>
             </Descriptions.Item>
@@ -360,11 +359,11 @@ const WizardModal: React.FC<WizardModalProps> = ({ mode, open, onClose }) => {
 const radioTheme = {
   components: {
     Radio: {
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
       buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#722ed1',
+      colorPrimary: '#1677ff',
     },
   },
 };
@@ -395,12 +394,7 @@ const TransferPage: React.FC = () => {
     { title: '订单编号', dataIndex: 'orderId', width: 100 },
     { title: '公司ID', dataIndex: 'companyId', width: 90 },
     { title: '公司名称', dataIndex: 'companyName', width: 120 },
-    {
-      title: '订单类型', dataIndex: 'type', width: 100,
-      render: (v) => (
-        <Tag color={v === '集团下拨' ? 'blue' : 'orange'} style={{ marginInlineEnd: 0 }}>{v}</Tag>
-      ),
-    },
+    { title: '订单类型', dataIndex: 'type', width: 100 },
     { title: '货币单位', dataIndex: 'currency', width: 90 },
     {
       title: '交易金额', dataIndex: 'amount', align: 'right', width: 130,
@@ -441,7 +435,7 @@ const TransferPage: React.FC = () => {
             />
           <Input
             suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="搜索订单编号 / 订单备注"
+            placeholder="订单编号 / 订单备注"
             value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 220 }}
           />
           <Button type="primary" onClick={() => setWizardMode('recall')}>集团调回</Button>

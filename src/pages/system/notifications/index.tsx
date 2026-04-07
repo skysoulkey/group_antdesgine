@@ -77,7 +77,7 @@ const buildInitPrefs = (users: NotifUser[]): PrefRow[] =>
 const methodColor = (v: string) => {
   if (v === 'APP') return 'blue';
   if (v === '站内') return 'green';
-  return 'purple';
+  return 'geekblue';
 };
 
 const receiptColor = (v: string) => {
@@ -120,19 +120,13 @@ const NotificationsPage: React.FC = () => {
 
   const recordColumns: ColumnsType<NotifRecord> = [
     { title: '通知时间', dataIndex: 'notifTime', width: 170 },
-    {
-      title: '通知方式', dataIndex: 'method', width: 90,
-      render: (v) => <Tag color={methodColor(v)}>{v}</Tag>,
-    },
+    { title: '通知方式', dataIndex: 'method', width: 90 },
     { title: '通知对象', dataIndex: 'target', width: 120 },
     {
       title: '消息回执', dataIndex: 'receipt', width: 90,
       render: (v) => <Tag color={receiptColor(v)}>{v}</Tag>,
     },
-    {
-      title: '通知类型', dataIndex: 'type', width: 160,
-      render: (v) => <Tag color="geekblue">{v}</Tag>,
-    },
+    { title: '通知类型', dataIndex: 'type', width: 160 },
     {
       title: '操作', width: 80, fixed: 'right' as const,
       render: (_, r) => (
@@ -264,12 +258,12 @@ const NotificationsPage: React.FC = () => {
       label: '通知记录',
       children: (
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
             <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
               <Space size={24} wrap align="center">
                 <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
                   {['全部', 'APP', '邮件', '站内'].map((v) => (
-                    <Radio.Button key={v} value={v} style={(methodFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                    <Radio.Button key={v} value={v} style={(methodFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v}</Radio.Button>
                   ))}
                 </Radio.Group>
                 <Input
@@ -282,7 +276,7 @@ const NotificationsPage: React.FC = () => {
               </Space>
               <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
                 {['全部', ...NOTIF_TYPES].map((v) => (
-                  <Radio.Button key={v} value={v} style={(typeFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                  <Radio.Button key={v} value={v} style={(typeFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v}</Radio.Button>
                 ))}
               </Radio.Group>
             </Space>
@@ -334,8 +328,15 @@ const NotificationsPage: React.FC = () => {
   ];
 
   return (
-    <div>
-      <Tabs items={tabItems} type="card" />
+    <div style={{ marginTop: -16 }}>
+      <Tabs
+        items={tabItems}
+        tabBarStyle={{
+          background: '#fff',
+          margin: '0 -24px',
+          padding: '0 24px',
+        }}
+      />
 
       {/* 详情弹窗 */}
       <Modal
@@ -349,13 +350,9 @@ const NotificationsPage: React.FC = () => {
           <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}
             labelStyle={{ whiteSpace: 'nowrap', width: 90 }}>
             <Descriptions.Item label="发送时间">{currentRecord.notifTime}</Descriptions.Item>
-            <Descriptions.Item label="通知方式">
-              <Tag color={methodColor(currentRecord.method)}>{currentRecord.method}</Tag>
-            </Descriptions.Item>
+            <Descriptions.Item label="通知方式">{currentRecord.method}</Descriptions.Item>
             <Descriptions.Item label="通知对象">{currentRecord.target}</Descriptions.Item>
-            <Descriptions.Item label="通知类型">
-              <Tag color="geekblue">{currentRecord.type}</Tag>
-            </Descriptions.Item>
+            <Descriptions.Item label="通知类型">{currentRecord.type}</Descriptions.Item>
             {currentRecord.method === '站内' ? (
               <Descriptions.Item label="阅读状态">
                 <Tag color={currentRecord.receipt === '已读' ? 'success' : 'warning'}>{currentRecord.receipt}</Tag>

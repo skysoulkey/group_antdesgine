@@ -164,7 +164,7 @@ const CompanyListPage: React.FC = () => {
       defaultSortOrder: 'descend',
       sorter: (a, b) => a.totalAssets - b.totalAssets,
       render: (v: number) => (
-        <Text style={{ color: '#722ed1' }}>{fmt(v, cur)}</Text>
+        <Text style={{ color: '#141414' }}>{fmt(v, cur)}</Text>
       ),
     },
     {
@@ -246,14 +246,14 @@ const CompanyListPage: React.FC = () => {
   ];
 
   return (
-    <Card bordered={false} style={{ borderRadius: 8 }}>
+    <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)' }}>
       <Row gutter={16} style={{ marginBottom: 16 }} align="middle">
         <Col>
           <ConfigProvider theme={{ components: { Segmented: {
-            trackBg: '#f9f0ff',
-            itemSelectedBg: '#722ed1',
+            trackBg: '#e6f4ff',
+            itemSelectedBg: '#1677ff',
             itemSelectedColor: '#ffffff',
-            itemColor: '#722ed1',
+            itemColor: '#1677ff',
           } } }}>
             <Segmented
               options={['USDT', 'PEA']}
@@ -277,7 +277,7 @@ const CompanyListPage: React.FC = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
-            style={{ background: '#722ed1', borderColor: '#722ed1' }}
+            style={{ background: '#1677ff', borderColor: '#1677ff' }}
             onClick={openCreateModal}
           >
             创建公司

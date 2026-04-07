@@ -1,5 +1,5 @@
 import { LockOutlined, ReloadOutlined, SafetyOutlined, UserOutlined } from '@ant-design/icons';
-import logoImg from '../../assets/logo.png';
+import logoImg from '../../assets/logo.svg';
 import { Button, ConfigProvider, Form, Input, message, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
@@ -214,7 +214,7 @@ const LoginPage: React.FC = () => {
       {/* ── 光晕装饰 ── */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
         {[
-          { top: '-10%', left: '-5%',  size: 500, color: 'rgba(114,46,209,0.18)' },
+          { top: '-10%', left: '-5%',  size: 500, color: 'rgba(22,119,255,0.18)' },
           { top: '60%',  left: '70%',  size: 400, color: 'rgba(59,130,246,0.14)' },
           { top: '20%',  left: '55%',  size: 350, color: 'rgba(168,85,247,0.12)' },
         ].map((o, i) => (
@@ -263,7 +263,7 @@ const LoginPage: React.FC = () => {
             <img
               src={logoImg}
               alt="logo"
-              style={{ width: 72, height: 72, marginBottom: 16, filter: 'drop-shadow(0 8px 24px rgba(114,46,209,0.5))' }}
+              style={{ width: 72, height: 72, marginBottom: 16, filter: 'drop-shadow(0 8px 24px rgba(22,119,255,0.5))' }}
             />
             <Title level={4} style={{ margin: 0, color: '#fff', letterSpacing: 1 }}>
               商户管理平台
@@ -286,7 +286,7 @@ const LoginPage: React.FC = () => {
                   colorTextPlaceholder: 'rgba(255,255,255,0.3)',
                   colorIcon: 'rgba(255,255,255,0.3)',
                   hoverBorderColor: 'rgba(167,139,250,0.6)',
-                  activeBorderColor: '#722ed1',
+                  activeBorderColor: '#1677ff',
                   colorBgContainerDisabled: 'rgba(255,255,255,0.04)',
                   addonBg: 'rgba(255,255,255,0.05)',
                 },
@@ -342,7 +342,7 @@ const LoginPage: React.FC = () => {
                         bottom: 3,
                         right: 4,
                         fontSize: 10,
-                        color: 'rgba(114,46,209,0.6)',
+                        color: 'rgba(22,119,255,0.6)',
                         lineHeight: 1,
                         display: 'flex',
                         alignItems: 'center',
@@ -368,10 +368,10 @@ const LoginPage: React.FC = () => {
                     fontSize: 16,
                     fontWeight: 600,
                     borderRadius: 10,
-                    background: 'linear-gradient(135deg, #722ed1 0%, #2f54eb 100%)',
+                    background: 'linear-gradient(135deg, #1677ff 0%, #2f54eb 100%)',
                     border: 'none',
                     letterSpacing: 4,
-                    boxShadow: '0 6px 20px rgba(114,46,209,0.45)',
+                    boxShadow: '0 6px 20px rgba(22,119,255,0.45)',
                   }}
                 >
                   登 录
@@ -413,9 +413,9 @@ const LoginPage: React.FC = () => {
                     fontSize: 15,
                     fontWeight: 600,
                     borderRadius: 10,
-                    background: 'linear-gradient(135deg, #722ed1 0%, #2f54eb 100%)',
+                    background: 'linear-gradient(135deg, #1677ff 0%, #2f54eb 100%)',
                     border: 'none',
-                    boxShadow: '0 6px 20px rgba(114,46,209,0.45)',
+                    boxShadow: '0 6px 20px rgba(22,119,255,0.45)',
                   }}
                 >
                   验证并登录

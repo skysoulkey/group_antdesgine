@@ -36,11 +36,11 @@ const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const radioTheme = {
   components: {
     Radio: {
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
       buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#722ed1',
+      colorPrimary: '#1677ff',
     },
   },
 };
@@ -167,7 +167,6 @@ const LotteryPage: React.FC = () => {
     { title: '转单企业名称', dataIndex: 'enterpriseName', width: 120 },
     {
       title: '转单来源', dataIndex: 'source', width: 90,
-      render: (v) => <Tag color={v === '自动' ? 'blue' : 'purple'}>{v}</Tag>,
     },
     { title: '订单金额', dataIndex: 'orderAmt', width: 110, align: 'right' },
     { title: '赔付金额', dataIndex: 'payoutAmt', width: 110, align: 'right' },
@@ -289,7 +288,7 @@ const LotteryPage: React.FC = () => {
                 <Text style={{ fontSize: 13, fontWeight: 600 }}>公司流水TOP5</Text>
                 {enterprise && (
                   <Tag
-                    color="purple"
+                    color="blue"
                     closable
                     closeIcon={<CloseCircleFilled />}
                     onClose={() => setEnterprise(undefined)}
@@ -304,10 +303,11 @@ const LotteryPage: React.FC = () => {
                 data={top5FlowData}
                 xField="value"
                 yField="company"
+                colorField="company"
                 height={220}
-                style={{ fill: (d: any) => d.company === enterprise ? '#531dab' : '#722ed1', marginTop: 8, cursor: 'pointer' }}
+                style={{ marginTop: 8, cursor: 'pointer' }}
                 axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
-                scale={{ color: { range: ['#722ed1'] } }}
+                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] } }}
                 tooltip={{
                   items: [(d: any) => ({ name: `${d.company}流水`, value: d.value })],
                 }}
@@ -346,7 +346,7 @@ const LotteryPage: React.FC = () => {
                 innerRadius={0.55}
                 height={220}
                 style={{ marginTop: 8, cursor: 'pointer' }}
-                scale={{ color: { range: ['#d9d9d9', '#722ed1'] } }}
+                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] } }}
                 legend={{ position: 'bottom' }}
                 label={false}
                 tooltip={{ items: [{ channel: 'y', name: '订单数', valueFormatter: (v: number) => `${v}单` }] }}
@@ -367,7 +367,7 @@ const LotteryPage: React.FC = () => {
                 <Text style={{ fontSize: 13, fontWeight: 600 }}>公司盈亏排序</Text>
                 {enterprise && (
                   <Tag
-                    color="purple"
+                    color="blue"
                     closable
                     closeIcon={<CloseCircleFilled />}
                     onClose={() => setEnterprise(undefined)}
@@ -382,9 +382,10 @@ const LotteryPage: React.FC = () => {
                 data={pnlRankData}
                 xField="enterprise"
                 yField="value"
+                colorField="enterprise"
                 height={220}
-                style={{ fill: (d: any) => d.enterprise === enterprise ? '#531dab' : '#722ed1', marginTop: 8, cursor: 'pointer' }}
-                scale={{ color: { range: ['#722ed1'] }, x: { paddingInner: 0.4 } }}
+                style={{ marginTop: 8, cursor: 'pointer' }}
+                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 } }}
                 axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
                 tooltip={{ items: [{ channel: 'y', name: '盈亏', valueFormatter: (v: number) => `${v.toLocaleString()}.00  USDT` }] }}
                 onReady={(chart: any) => {
@@ -406,7 +407,7 @@ const LotteryPage: React.FC = () => {
             <Text style={{ fontSize: 14, fontWeight: 600 }}>订单列表</Text>
             {enterprise && (
               <Tag
-                color="purple"
+                color="blue"
                 closable
                 closeIcon={<CloseCircleFilled />}
                 onClose={() => setEnterprise(undefined)}

@@ -74,7 +74,7 @@ export default function FinanceAllocate() {
     {
       title: '下拨金额', dataIndex: 'amount', width: 170, align: 'right',
       render: (v, r) => (
-        <Text style={{ color: '#722ed1' }}>
+        <Text style={{ color: '#141414' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -93,7 +93,7 @@ export default function FinanceAllocate() {
         <Col xs={24} sm={12}>
           <Card bordered={false} style={{ textAlign: 'center' }}>
             <div style={{ fontSize: 12, color: '#8c8c8c', marginBottom: 8 }}>本月下拨总额（USDT）</div>
-            <div style={{ fontSize: 22, fontWeight: 700, color: '#722ed1' }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: '#141414' }}>
               {monthTotal.toLocaleString('en', { minimumFractionDigits: 2 })}
             </div>
           </Card>
@@ -109,7 +109,7 @@ export default function FinanceAllocate() {
       <Card bordered={false}>
         <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ArrowDownOutlined style={{ color: '#722ed1', fontSize: 18 }} />
+            <ArrowDownOutlined style={{ color: '#1677ff', fontSize: 18 }} />
             <Text style={{ fontSize: 16, fontWeight: 600 }}>集团下拨</Text>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
@@ -118,7 +118,7 @@ export default function FinanceAllocate() {
         </div>
         <Row gutter={16} style={{ marginBottom: 16 }}>
           <Col>
-            <Input prefix={<SearchOutlined />} placeholder="搜索订单编号 / 公司名称"
+            <Input prefix={<SearchOutlined />} placeholder="订单编号 / 公司名称"
               value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
           </Col>
           <Col>
@@ -132,6 +132,7 @@ export default function FinanceAllocate() {
           <Col><RangePicker style={{ width: 280 }} /></Col>
         </Row>
         <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1200 }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
       </Card>
 

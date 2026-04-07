@@ -91,7 +91,7 @@ export default function CompanyTransferGroup() {
     {
       title: '方向', dataIndex: 'direction', width: 80,
       render: v => v === 'out'
-        ? <Text style={{ color: '#722ed1' }}><ArrowDownOutlined /> 下拨</Text>
+        ? <Text style={{ color: '#1677ff' }}><ArrowDownOutlined /> 下拨</Text>
         : <Text style={{ color: '#fa8c16' }}><ArrowUpOutlined /> 调回</Text>,
     },
     { title: '转出方', dataIndex: 'fromCompany' },
@@ -99,7 +99,7 @@ export default function CompanyTransferGroup() {
     {
       title: '金额', dataIndex: 'amount', width: 160, align: 'right',
       render: (v, r) => (
-        <Text strong style={{ color: r.direction === 'out' ? '#722ed1' : '#fa8c16' }}>
+        <Text strong style={{ color: '#141414' }}>
           {Number(v).toLocaleString('en', { minimumFractionDigits: 2 })} {r.currency}
         </Text>
       ),
@@ -122,7 +122,7 @@ export default function CompanyTransferGroup() {
     <Card bordered={false}>
       <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <SwapOutlined style={{ color: '#722ed1', fontSize: 18 }} />
+          <SwapOutlined style={{ color: '#1677ff', fontSize: 18 }} />
           <Text style={{ fontSize: 16, fontWeight: 600 }}>内部划转（集团）</Text>
         </div>
         <Space>
@@ -136,16 +136,16 @@ export default function CompanyTransferGroup() {
       </div>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col>
-          <Input prefix={<SearchOutlined />} placeholder="搜索划转单号 / 公司名称"
+          <Input prefix={<SearchOutlined />} placeholder="划转单号 / 公司名称"
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group buttonStyle="outline" value={directionFilter ?? 'all'}
               onChange={e => setDirectionFilter(e.target.value === 'all' ? undefined : e.target.value)}>
               {[{ v: 'all', label: '全部' }, { v: 'out', label: '集团下拨' }, { v: 'in', label: '集团调回' }].map(({ v, label }) => (
                 <Radio.Button key={v} value={v}
-                  style={(directionFilter ?? 'all') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                  style={(directionFilter ?? 'all') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
                   {label}
                 </Radio.Button>
               ))}
@@ -153,12 +153,12 @@ export default function CompanyTransferGroup() {
           </ConfigProvider>
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group buttonStyle="outline" value={statusFilter ?? 'all'}
               onChange={e => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}>
               {[{ v: 'all', label: '全部' }, { v: 'success', label: '成功' }, { v: 'pending', label: '处理中' }, { v: 'failed', label: '失败' }].map(({ v, label }) => (
                 <Radio.Button key={v} value={v}
-                  style={(statusFilter ?? 'all') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                  style={(statusFilter ?? 'all') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
                   {label}
                 </Radio.Button>
               ))}
@@ -168,6 +168,7 @@ export default function CompanyTransferGroup() {
         <Col><RangePicker style={{ width: 280 }} /></Col>
       </Row>
       <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1500 }}
+        rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
 
       <Modal title="集团下拨" open={allocateOpen} onOk={handleAllocate}

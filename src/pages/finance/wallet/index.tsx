@@ -1,7 +1,6 @@
-import { WalletOutlined } from '@ant-design/icons';
 import {
-  Button, Card, Col, DatePicker, Descriptions,
-  Form, Input, InputNumber, message, Modal, Row,
+  Button, Card, DatePicker, Descriptions,
+  Form, Input, InputNumber, message, Modal,
   Select, Space, Table, Tag, Typography, type InputRef,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -111,7 +110,6 @@ const WalletPage: React.FC = () => {
     { title: '订单号',   dataIndex: 'orderId',   width: 130 },
     {
       title: '类型', dataIndex: 'type', width: 80,
-      render: (v: OrderType) => <Tag color={v === '充值' ? 'blue' : 'orange'}>{v}</Tag>,
     },
     { title: '币种', dataIndex: 'currency', width: 80 },
     {
@@ -126,76 +124,44 @@ const WalletPage: React.FC = () => {
       title: '状态', dataIndex: 'status', width: 90,
       render: (v: OrderStatus) => <Tag color={statusColorMap[v]}>{v}</Tag>,
     },
-    { title: '备注', dataIndex: 'remark', ellipsis: true, render: (v) => v || '—' },
+    { title: '备注', dataIndex: 'remark', width: 160, ellipsis: true, render: (v) => v || '—' },
   ];
 
   return (
     <div>
-      {/* ── 余额卡片 ──────────────────────────────────────────────── */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <WalletOutlined style={{ fontSize: 22, color: '#722ed1' }} />
+      {/* ── 余额 + 绑定账号（紧凑单行） ─────────────────────────────── */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}
+        styles={{ body: { padding: '16px 24px' } }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          {/* 余额 */}
+          <Space size={48}>
+            <div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>USDT 余额</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#141414', marginTop: 4 }}>
+                {BALANCE_USDT.toLocaleString('en', { minimumFractionDigits: 2 })}
               </div>
-              <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>USDT 余额</Text>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>
-              {BALANCE_USDT.toLocaleString('en', { minimumFractionDigits: 2 })}
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <WalletOutlined style={{ fontSize: 22, color: '#722ed1' }} />
+            <div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>PEA 余额</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#141414', marginTop: 4 }}>
+                {BALANCE_PEA.toLocaleString('en', { minimumFractionDigits: 2 })}
               </div>
-              <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>PEA 余额</Text>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>
-              {BALANCE_PEA.toLocaleString('en', { minimumFractionDigits: 2 })}
+            <div style={{ borderLeft: '1px solid #f0f0f0', paddingLeft: 32 }}>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>绑定账号</Text>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <Text style={{ fontSize: 14, fontWeight: 600 }}>{boundAccount.accountName}</Text>
+                <Button type="link" size="small" style={{ padding: 0, fontSize: 12 }}
+                  onClick={() => navigate('/finance/wallet/bind-account')}>修改</Button>
+              </div>
             </div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* ── 绑定账号卡片 ──────────────────────────────────────────── */}
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <div>
-            <Text type="secondary" style={{ fontSize: 12 }}>绑定账号</Text>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-              <Text style={{ fontSize: 16, fontWeight: 600 }}>{boundAccount.accountName}</Text>
-              <Text type="secondary" style={{ fontSize: 12, fontFamily: 'monospace' }}>{boundAccount.accountId}</Text>
-              <Text type="secondary" style={{ fontSize: 12 }}>{boundAccount.platform}</Text>
-            </div>
-            <div style={{ marginTop: 6 }}>
-              <Button
-                type="link"
-                size="small"
-                style={{ padding: 0, fontSize: 12 }}
-                onClick={() => navigate('/finance/wallet/bind-account')}
-              >
-                修改绑定账号 →
-              </Button>
-            </div>
-          </div>
+          </Space>
+          {/* 操作按钮 */}
           <Space size={8}>
-            <Button
-              type="primary"
-              style={{ background: '#722ed1', borderColor: '#722ed1' }}
-              onClick={() => { setDepositStep(1); depositForm.resetFields(); setDepositOpen(true); }}
-            >
-              充值
-            </Button>
-            <Button
-              style={{ borderColor: '#722ed1', color: '#722ed1' }}
-              onClick={() => { setWithdrawStep(1); withdrawForm.resetFields(); setWithdrawOpen(true); }}
-            >
-              转出
-            </Button>
+            <Button type="primary"
+              onClick={() => { setDepositStep(1); depositForm.resetFields(); setDepositOpen(true); }}>充值</Button>
+            <Button style={{ borderColor: '#1677ff', color: '#1677ff' }}
+              onClick={() => { setWithdrawStep(1); withdrawForm.resetFields(); setWithdrawOpen(true); }}>转出</Button>
           </Space>
         </div>
       </Card>
@@ -241,7 +207,7 @@ const WalletPage: React.FC = () => {
           dataSource={filteredOrders}
           rowKey="id"
           size="middle"
-          scroll={{ x: 1100 }}
+          scroll={{ x: 1030 }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />
@@ -286,7 +252,7 @@ const WalletPage: React.FC = () => {
                 <Button onClick={() => setDepositOpen(false)}>取消</Button>
                 <Button
                   type="primary"
-                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  style={{ background: '#1677ff', borderColor: '#1677ff' }}
                   onClick={() => depositForm.validateFields().then(() => setDepositStep(2)).catch(() => {})}
                 >
                   下一步
@@ -298,7 +264,7 @@ const WalletPage: React.FC = () => {
           <div style={{ marginTop: 16 }}>
             <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
               <Descriptions.Item label="绑定账号">{boundAccount.accountName}（{boundAccount.accountId}）</Descriptions.Item>
-              <Descriptions.Item label="类型"><Tag color="blue">充值</Tag></Descriptions.Item>
+              <Descriptions.Item label="类型">充值</Descriptions.Item>
               <Descriptions.Item label="币种">{depositForm.getFieldValue('currency')}</Descriptions.Item>
               <Descriptions.Item label="金额">
                 {Number(depositForm.getFieldValue('amount') ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })}
@@ -323,7 +289,7 @@ const WalletPage: React.FC = () => {
                 }}>返回修改</Button>
                 <Button
                   type="primary"
-                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  style={{ background: '#1677ff', borderColor: '#1677ff' }}
                   onClick={() => {
                     const mfa = depositMfaRef.current?.input?.value ?? '';
                     if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }
@@ -393,7 +359,7 @@ const WalletPage: React.FC = () => {
                 <Button onClick={() => setWithdrawOpen(false)}>取消</Button>
                 <Button
                   type="primary"
-                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  style={{ background: '#1677ff', borderColor: '#1677ff' }}
                   onClick={() => withdrawForm.validateFields().then(() => setWithdrawStep(2)).catch(() => {})}
                 >
                   下一步
@@ -405,7 +371,7 @@ const WalletPage: React.FC = () => {
           <div style={{ marginTop: 16 }}>
             <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
               <Descriptions.Item label="绑定账号">{boundAccount.accountName}（{boundAccount.accountId}）</Descriptions.Item>
-              <Descriptions.Item label="类型"><Tag color="orange">转出</Tag></Descriptions.Item>
+              <Descriptions.Item label="类型">转出</Descriptions.Item>
               <Descriptions.Item label="币种">{withdrawForm.getFieldValue('currency')}</Descriptions.Item>
               <Descriptions.Item label="金额">
                 {Number(withdrawForm.getFieldValue('amount') ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })}
@@ -430,7 +396,7 @@ const WalletPage: React.FC = () => {
                 }}>返回修改</Button>
                 <Button
                   type="primary"
-                  style={{ background: '#722ed1', borderColor: '#722ed1' }}
+                  style={{ background: '#1677ff', borderColor: '#1677ff' }}
                   onClick={() => {
                     const mfa = withdrawMfaRef.current?.input?.value ?? '';
                     if (!mfa || mfa.length < 6) { message.error('请输入6位MFA验证码'); return; }

@@ -1,5 +1,5 @@
 import { DownloadOutlined, FundOutlined } from '@ant-design/icons';
-import { Button, Card, Col, DatePicker, Descriptions, Row, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Button, Card, Col, DatePicker, Descriptions, Row, Select, Space, Table, Tabs, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
@@ -126,7 +126,7 @@ const CompanyRevenuePage: React.FC = () => {
     {
       title: '金额', dataIndex: 'amount', width: 130, align: 'right',
       render: (v: string) => (
-        <Text style={{ color: v.startsWith('-') ? '#ff4d4f' : '#52c41a' }}>{v}</Text>
+        <Text style={{ color: '#141414' }}>{v}</Text>
       ),
     },
     { title: '备注', dataIndex: 'remark', width: 120 },
@@ -134,10 +134,7 @@ const CompanyRevenuePage: React.FC = () => {
 
   const transferColumns: ColumnsType<TransferRow> = [
     { title: '划转时间', dataIndex: 'transferTime', width: 170 },
-    {
-      title: '方向', dataIndex: 'direction', width: 80,
-      render: (v) => <Tag color={v === '划入' ? 'success' : 'warning'}>{v}</Tag>,
-    },
+    { title: '方向', dataIndex: 'direction', width: 80 },
     { title: '货币单位', dataIndex: 'currency', width: 80 },
     { title: '划转金额', dataIndex: 'amount', width: 130, align: 'right', render: (v) => <Text>{v}</Text> },
     { title: '划转前余额', dataIndex: 'beforeBalance', width: 130, align: 'right' },
@@ -182,16 +179,16 @@ const CompanyRevenuePage: React.FC = () => {
           >
             <Row gutter={[12, 12]}>
               <Col xs={12} sm={6}>
-                <StatCard label="本月综合收益（USDT）" value={current.totalRevenueUsdt} color="#722ed1" />
+                <StatCard label="本月综合收益（USDT）" value={current.totalRevenueUsdt} color="#141414" />
               </Col>
               <Col xs={12} sm={6}>
-                <StatCard label="公司可提取收益（USDT）" value={current.extractableUsdt} color="#52c41a" />
+                <StatCard label="公司可提取收益（USDT）" value={current.extractableUsdt} color="#141414" />
               </Col>
               <Col xs={12} sm={6}>
-                <StatCard label="本月综合收益（PEA）" value={current.totalRevenuePea} color="#722ed1" />
+                <StatCard label="本月综合收益（PEA）" value={current.totalRevenuePea} color="#141414" />
               </Col>
               <Col xs={12} sm={6}>
-                <StatCard label="公司可提取收益（PEA）" value={current.extractablePea} color="#13c2c2" />
+                <StatCard label="公司可提取收益（PEA）" value={current.extractablePea} color="#141414" />
               </Col>
             </Row>
 
@@ -207,9 +204,7 @@ const CompanyRevenuePage: React.FC = () => {
                     <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{item.label}</div>
                     <div style={{
                       fontSize: 15, fontWeight: 600,
-                      color: item.colored
-                        ? (item.value.startsWith('-') ? '#ff4d4f' : '#52c41a')
-                        : '#141414',
+                      color: '#141414',
                     }}>{item.value}</div>
                   </Col>
                 ))}
@@ -225,10 +220,10 @@ const CompanyRevenuePage: React.FC = () => {
           >
             <Row gutter={[12, 12]}>
               <Col xs={12} sm={6}>
-                <StatCard label="纳税支出（USDT）" value={current.taxUsdt} color="#fa8c16" />
+                <StatCard label="纳税支出（USDT）" value={current.taxUsdt} color="#141414" />
               </Col>
               <Col xs={12} sm={6}>
-                <StatCard label="纳税支出（PEA）" value={current.taxPea} color="#fa8c16" />
+                <StatCard label="纳税支出（PEA）" value={current.taxPea} color="#141414" />
               </Col>
             </Row>
             <div style={{ marginTop: 16, padding: '12px 0', borderTop: '1px solid #f0f0f0' }}>
@@ -241,7 +236,7 @@ const CompanyRevenuePage: React.FC = () => {
                 ].map((item) => (
                   <Col xs={12} sm={6} key={item.label}>
                     <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>{item.label}</div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#fa8c16' }}>{item.value}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#141414' }}>{item.value}</div>
                   </Col>
                 ))}
               </Row>
@@ -295,7 +290,7 @@ const CompanyRevenuePage: React.FC = () => {
           <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
             <Card bordered={false} size="small" style={{ borderRadius: 8, background: '#f0f7ff', minWidth: 180 }}>
               <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 4 }}>累计划入（USDT）</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#722ed1' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#141414' }}>
                 {mockTransfer.filter((r) => r.direction === '划入' && r.currency === 'USDT')
                   .reduce((s, r) => s + parseFloat(r.amount.replace(/,/g, '')), 0)
                   .toLocaleString(undefined, { maximumFractionDigits: 2 })}
@@ -303,7 +298,7 @@ const CompanyRevenuePage: React.FC = () => {
             </Card>
             <Card bordered={false} size="small" style={{ borderRadius: 8, background: '#fff7e6', minWidth: 180 }}>
               <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)', marginBottom: 4 }}>累计划出（USDT）</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: '#fa8c16' }}>
+              <div style={{ fontSize: 20, fontWeight: 700, color: '#141414' }}>
                 {mockTransfer.filter((r) => r.direction === '划出' && r.currency === 'USDT')
                   .reduce((s, r) => s + parseFloat(r.amount.replace(/,/g, '')), 0)
                   .toLocaleString(undefined, { maximumFractionDigits: 2 })}
@@ -325,14 +320,15 @@ const CompanyRevenuePage: React.FC = () => {
   ];
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 8, background: '#52c41a18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <FundOutlined style={{ fontSize: 18, color: '#52c41a' }} />
-        </div>
-        <Text style={{ fontSize: 16, fontWeight: 600 }}>公司收益</Text>
-      </div>
-      <Tabs items={tabItems} type="card" />
+    <div style={{ marginTop: -16 }}>
+      <Tabs
+        items={tabItems}
+        tabBarStyle={{
+          background: '#fff',
+          margin: '0 -24px',
+          padding: '0 24px',
+        }}
+      />
     </div>
   );
 };

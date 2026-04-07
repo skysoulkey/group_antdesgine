@@ -2,11 +2,9 @@ import {
   ApartmentOutlined,
   BankOutlined,
   CopyOutlined,
-  LockOutlined,
   PlusOutlined,
   QrcodeOutlined,
   SearchOutlined,
-  UnlockOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
@@ -20,7 +18,6 @@ import {
   Form,
   Input,
   Modal,
-  Popconfirm,
   Radio,
   Row,
   Select,
@@ -49,11 +46,11 @@ const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const radioTheme = {
   components: {
     Radio: {
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
       buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#722ed1',
+      colorPrimary: '#1677ff',
     },
   },
 };
@@ -90,30 +87,29 @@ interface UserRecord {
   ipWhitelist: string;
   validPeriod: string;
   notifyAccounts: string;
-  isLocked: boolean;
 }
 
 const initialData: UserRecord[] = [
   // U001 — 启用，永久有效，正常
-  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', group: 'UU Talk', company: '滴滴答答', role: '集团管理员', status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya', isLocked: false },
+  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', group: 'UU Talk', company: '滴滴答答', role: '集团管理员', status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya' },
   // U002 — 启用，有效期内，正常
-  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin', isLocked: false },
+  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin' },
   // U003 — 停用（管理员手动停用）
-  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '', isLocked: false },
+  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
   // U004 — 启用，已过期
-  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '公司管理员', status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-01-01', notifyAccounts: '@alice_finance', isLocked: false },
-  // U005 — 启用，已锁定（安全锁定）
-  { id: 'U005', username: 'SysAdmin', phone: '+65 6888 8888', email: 'sysadmin@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-07-01 08:00:00', ipRestrict: true, ipWhitelist: '203.0.113.0/24', validPeriod: '永久有效', notifyAccounts: '', isLocked: true },
-  // U006 — 启用，已过期 + 已锁定
-  { id: 'U006', username: 'Leo', phone: '+65 9123 4567', email: 'leo@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-06-10 10:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-03-01', notifyAccounts: '@leo_ops', isLocked: true },
+  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '公司管理员', status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-01-01', notifyAccounts: '@alice_finance' },
+  // U005 — 启用，永久有效
+  { id: 'U005', username: 'SysAdmin', phone: '+65 6888 8888', email: 'sysadmin@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-07-01 08:00:00', ipRestrict: true, ipWhitelist: '203.0.113.0/24', validPeriod: '永久有效', notifyAccounts: '' },
+  // U006 — 启用，已过期
+  { id: 'U006', username: 'Leo', phone: '+65 9123 4567', email: 'leo@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-06-10 10:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-03-01', notifyAccounts: '@leo_ops' },
   // U007 — 停用，已过期（停用且到期）
-  { id: 'U007', username: 'Nina', phone: '+86 139 8888 7777', email: 'nina@stargame.io', group: 'Star Game', company: 'Nova Corp', role: '公司管理员', status: '停用', createdAt: '2025-05-20 09:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-06-30', notifyAccounts: '', isLocked: false },
+  { id: 'U007', username: 'Nina', phone: '+86 139 8888 7777', email: 'nina@stargame.io', group: 'Star Game', company: 'Nova Corp', role: '公司管理员', status: '停用', createdAt: '2025-05-20 09:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-06-30', notifyAccounts: '' },
   // U008 — 集团管理员，启用，有效期内，正常
-  { id: 'U008', username: 'Ryan', phone: '+65 8234 5678', email: 'ryan@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '集团管理员', status: '启用', createdAt: '2025-04-15 08:00:00', ipRestrict: true, ipWhitelist: '192.168.1.0/24', validPeriod: '2027-06-30', notifyAccounts: '@ryan_admin', isLocked: false },
+  { id: 'U008', username: 'Ryan', phone: '+65 8234 5678', email: 'ryan@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '集团管理员', status: '启用', createdAt: '2025-04-15 08:00:00', ipRestrict: true, ipWhitelist: '192.168.1.0/24', validPeriod: '2027-06-30', notifyAccounts: '@ryan_admin' },
   // U009 — 平台管理员，启用，永久有效，正常
-  { id: 'U009', username: 'Eve', phone: '+65 6777 9999', email: 'eve@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-03-01 12:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '', isLocked: false },
+  { id: 'U009', username: 'Eve', phone: '+65 6777 9999', email: 'eve@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-03-01 12:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
   // U010 — 启用，即将到期（2026-04-30），正常（用于对比）
-  { id: 'U010', username: 'Mark', phone: '+86 188 0000 1234', email: 'mark@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '启用', createdAt: '2025-02-18 15:45:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2026-04-30', notifyAccounts: '@mark_ops', isLocked: false },
+  { id: 'U010', username: 'Mark', phone: '+86 188 0000 1234', email: 'mark@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '启用', createdAt: '2025-02-18 15:45:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2026-04-30', notifyAccounts: '@mark_ops' },
 ];
 
 // ── 集团-公司-管理员 树数据 ────────────────────────────────────────
@@ -122,7 +118,7 @@ const buildTreeData = (data: UserRecord[]) => {
   return groups.map((group) => ({
     title: <Text style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{group}</Text>,
     key: `g::${group}`,
-    icon: <BankOutlined style={{ color: '#722ed1' }} />,
+    icon: <BankOutlined style={{ color: '#1677ff' }} />,
     children: [...new Set(data.filter((r) => r.group === group).map((r) => r.company))].map(
       (company) => ({
         title: <Text style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{company}</Text>,
@@ -178,15 +174,6 @@ const UserManagePage: React.FC = () => {
     navigator.clipboard.writeText(text).then(() => message.success('已复制到剪贴板'));
   };
 
-  // 临时锁定/解锁（不改变 status，仅翻转 isLocked）
-  const toggleLock = (id: string) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === id ? { ...u, isLocked: !u.isLocked } : u,
-      ),
-    );
-  };
-
   // 树筛选
   const treeFilteredBase = useMemo(() => {
     if (treeSelected.length === 0) return users;
@@ -201,7 +188,6 @@ const UserManagePage: React.FC = () => {
     const kw = search.toLowerCase();
     const statusMatch =
       statusFilter === '全部'   ? true :
-      statusFilter === '锁定'   ? r.isLocked :
       statusFilter === '已过期' ? isExpired(r.validPeriod) :
       r.status === statusFilter;
     return (
@@ -223,14 +209,13 @@ const UserManagePage: React.FC = () => {
     { title: '用户名', dataIndex: 'username', width: 110, render: (v) => <Text strong>{v}</Text> },
     { title: '归属集团', dataIndex: 'group', width: 100 },
     { title: '归属公司', dataIndex: 'company', width: 110 },
-    { title: '角色', dataIndex: 'role', width: 110, render: (v: UserRole) => <Tag color={roleColors[v]}>{v}</Tag> },
+    { title: '角色', dataIndex: 'role', width: 110 },
     {
-      title: '状态', dataIndex: 'status', width: 160,
+      title: '状态', dataIndex: 'status', width: 130,
       render: (v: UserStatus, r: UserRecord) => (
         <Space size={4} wrap>
           <Tag color={v === '启用' ? 'success' : 'default'}>{v}</Tag>
           {isExpired(r.validPeriod) && <Tag color="warning">已过期</Tag>}
-          {r.isLocked && <Tag color="error">已锁定</Tag>}
         </Space>
       ),
     },
@@ -245,24 +230,6 @@ const UserManagePage: React.FC = () => {
             <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => { setCurrentUser(r); setViewOpen(true); }}>查看</Button>
             {canManage && (
               <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => openEdit(r)}>编辑</Button>
-            )}
-            {canManage && r.status === '启用' && (
-              <Popconfirm
-                title={r.isLocked ? '确认解除临时锁定？' : '确认临时锁定该账号？'}
-                onConfirm={() => toggleLock(r.id)}
-                okText="确认"
-                cancelText="取消"
-              >
-                <Button
-                  type="link"
-                  size="small"
-                  danger={!r.isLocked}
-                  style={{ padding: '0 4px' }}
-                  icon={r.isLocked ? <UnlockOutlined /> : <LockOutlined />}
-                >
-                  {r.isLocked ? '解锁' : '锁定'}
-                </Button>
-              </Popconfirm>
             )}
           </Space>
         );
@@ -313,7 +280,6 @@ const UserManagePage: React.FC = () => {
                   <Radio.Button value="全部">全部</Radio.Button>
                   <Radio.Button value="启用">启用</Radio.Button>
                   <Radio.Button value="停用">停用</Radio.Button>
-                  <Radio.Button value="锁定">锁定</Radio.Button>
                   <Radio.Button value="已过期">已过期</Radio.Button>
                 </Radio.Group>
               </ConfigProvider>
@@ -384,12 +350,11 @@ const UserManagePage: React.FC = () => {
               <Descriptions.Item label="邮箱">{u.email}</Descriptions.Item>
               <Descriptions.Item label="归属集团">{u.group}</Descriptions.Item>
               <Descriptions.Item label="归属公司">{u.company}</Descriptions.Item>
-              <Descriptions.Item label="角色"><Tag color={roleColors[u.role]}>{u.role}</Tag></Descriptions.Item>
+              <Descriptions.Item label="角色">{u.role}</Descriptions.Item>
               <Descriptions.Item label="状态">
                 <Space size={4} wrap>
                   <Tag color={u.status === '启用' ? 'success' : 'default'}>{u.status}</Tag>
                   {isExpired(u.validPeriod) && <Tag color="warning">已过期</Tag>}
-                  {u.isLocked && <Tag color="error">已锁定</Tag>}
                 </Space>
               </Descriptions.Item>
               <Descriptions.Item label="账户有效期">{u.validPeriod}</Descriptions.Item>

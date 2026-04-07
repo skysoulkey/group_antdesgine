@@ -1,21 +1,21 @@
-import { KeyOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Card, Col, ConfigProvider, DatePicker, Form, Input, Modal, Radio, Row, Space, Table, Tag, Typography } from 'antd';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Card, ConfigProvider, DatePicker, Divider, Form, Input, Modal, Radio, Space, Table, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { message } from 'antd';
 import React, { useState } from 'react';
 
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+const CARD_RADIUS = 12;
 
 const radioTheme = {
   components: {
     Radio: {
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
       buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#722ed1',
+      colorPrimary: '#1677ff',
     },
   },
 };
@@ -40,11 +40,41 @@ const mockData: InviteRecord[] = Array.from({ length: 18 }, (_, i) => ({
   invitedCount: i % 3 === 0 ? 0 : 1 + (i % 3),
 }));
 
+// 生成随机邀请码
+function generateCode(): string {
+  return Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+// KPI 卡片（与仪表盘统一）
+interface KpiCardProps { title: string; value: string | number; sub?: { label: string; value: string | number }[] }
+const KpiCard: React.FC<KpiCardProps> = ({ title, value, sub }) => (
+  <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW, height: '100%' }}
+    styles={{ body: { padding: '20px 24px' } }}>
+    <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.45)' }}>{title}</Text>
+    <div style={{ marginTop: 12 }}>
+      <span style={{ fontSize: 30, fontWeight: 700, color: '#141414', letterSpacing: -0.5 }}>{value}</span>
+    </div>
+    {sub && (
+      <>
+        <Divider style={{ margin: '16px 0 12px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {sub.map((s) => (
+            <Text key={s.label} style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
+              {s.label} <span style={{ color: 'rgba(0,0,0,0.65)' }}>{s.value}</span>
+            </Text>
+          ))}
+        </div>
+      </>
+    )}
+  </Card>
+);
+
 const EnterpriseInvitePage: React.FC = () => {
   const [data, setData] = useState(mockData);
   const [inviteStatus, setInviteStatus] = useState<string | undefined>();
   const [searchCode, setSearchCode] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
   const [form] = Form.useForm();
 
   const filtered = data.filter((r) => {
@@ -57,6 +87,14 @@ const EnterpriseInvitePage: React.FC = () => {
 
   const acceptedCount = data.filter((r) => r.inviteStatus === '已接受').length;
   const pendingCount = data.filter((r) => r.inviteStatus === '未接受').length;
+
+  const openModal = () => {
+    const code = generateCode();
+    setGeneratedCode(code);
+    form.resetFields();
+    form.setFieldsValue({ authCode: code });
+    setModalOpen(true);
+  };
 
   const handleGenerate = () => {
     form.validateFields().then((values) => {
@@ -80,11 +118,23 @@ const EnterpriseInvitePage: React.FC = () => {
     });
   };
 
+  const handleCopy = () => {
+    const code = form.getFieldValue('authCode') || generatedCode;
+    const expiry = form.getFieldValue('codeExpiry');
+    const expiryStr = expiry
+      ? expiry.format('YYYY-MM-DD HH:mm:ss')
+      : '未设置';
+    const text = `企业邀请码：${code}\n有效期至：${expiryStr}`;
+    navigator.clipboard.writeText(text).then(() => {
+      message.success('已复制到剪贴板');
+    });
+  };
+
   const columns: ColumnsType<InviteRecord> = [
     { title: '邀请时间', dataIndex: 'inviteTime', width: 170 },
     {
       title: '企业认证码', dataIndex: 'authCode', width: 130,
-      render: (v) => <Text style={{ fontFamily: 'monospace', color: '#722ed1' }}>{v}</Text>,
+      render: (v) => <Text style={{ fontFamily: 'monospace', color: '#141414' }}>{v}</Text>,
     },
     { title: '认证码有效期', dataIndex: 'codeExpiry', width: 170 },
     {
@@ -101,44 +151,19 @@ const EnterpriseInvitePage: React.FC = () => {
   return (
     <div>
       {/* 统计卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <KeyOutlined style={{ fontSize: 20, color: '#722ed1' }} />
-              </div>
-              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>邀请记录</Text>
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414' }}>{data.length}</div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#52c41a18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <KeyOutlined style={{ fontSize: 20, color: '#52c41a' }} />
-              </div>
-              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>已接受邀请</Text>
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#52c41a' }}>{acceptedCount}</div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#fa8c1618', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <KeyOutlined style={{ fontSize: 20, color: '#fa8c16' }} />
-              </div>
-              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>未接受邀请</Text>
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#fa8c16' }}>{pendingCount}</div>
-          </Card>
-        </Col>
-      </Row>
+      <div className="kpi-grid" style={{ marginBottom: 16 }}>
+        <KpiCard
+          title="邀请记录"
+          value={data.length}
+        />
+        <KpiCard
+          title="已接受邀请"
+          value={acceptedCount}
+        />
+      </div>
 
       {/* 筛选 + 表格 */}
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+      <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
           <ConfigProvider theme={radioTheme}>
             <Radio.Group
@@ -159,7 +184,7 @@ const EnterpriseInvitePage: React.FC = () => {
             allowClear
             style={{ width: 220 }}
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={openModal}>
             生成邀请码
           </Button>
         </Space>
@@ -169,7 +194,7 @@ const EnterpriseInvitePage: React.FC = () => {
           dataSource={filtered}
           rowKey="id"
           size="middle"
-          pagination={{ pageSize: 10, showTotal: (t) => `总共 ${t} 个项目` }}
+          pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />
       </Card>
@@ -178,11 +203,12 @@ const EnterpriseInvitePage: React.FC = () => {
       <Modal
         title="生成邀请码"
         open={modalOpen}
-        onOk={handleGenerate}
         onCancel={() => { setModalOpen(false); form.resetFields(); }}
         width={440}
-        okText="确 定"
-        cancelText="取 消"
+        footer={[
+          <Button key="cancel" onClick={() => { setModalOpen(false); form.resetFields(); }}>取消</Button>,
+          <Button key="ok" type="primary" onClick={() => { handleCopy(); handleGenerate(); }}>生成并复制</Button>,
+        ]}
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item
@@ -190,13 +216,21 @@ const EnterpriseInvitePage: React.FC = () => {
             name="authCode"
             rules={[{ required: true, message: '请输入企业认证码' }]}
           >
-            <Input placeholder="请输入企业认证码" maxLength={20} />
+            <Input
+              placeholder="自动生成的邀请码"
+              readOnly
+              addonAfter={
+                <Button type="link" size="small" style={{ padding: 0, height: 'auto' }}
+                  onClick={() => { const c = generateCode(); setGeneratedCode(c); form.setFieldsValue({ authCode: c }); }}>
+                  重新生成
+                </Button>
+              }
+            />
           </Form.Item>
           <Form.Item
             label="认证码有效期至"
             name="codeExpiry"
             rules={[{ required: true, message: '请选择有效期' }]}
-            extra="默认7天有效期"
           >
             <DatePicker
               showTime

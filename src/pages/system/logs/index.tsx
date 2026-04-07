@@ -3,7 +3,7 @@ import { Card, ConfigProvider, Input, Radio, Space, Table, Tabs, Tag, Typography
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
-const radioTheme = { components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } };
+const radioTheme = { components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } };
 
 const { Text } = Typography;
 
@@ -57,6 +57,8 @@ const SystemLogsPage: React.FC = () => {
   const [loginSearch, setLoginSearch] = useState('');
   const [loginRole, setLoginRole] = useState<string | undefined>();
   const [opSearch, setOpSearch] = useState('');
+  const [opModule, setOpModule] = useState<string | undefined>();
+  const [opResult, setOpResult] = useState<string | undefined>();
 
   const filteredLogin = loginLogs.filter((r) => {
     const kw = loginSearch.toLowerCase();
@@ -66,9 +68,15 @@ const SystemLogsPage: React.FC = () => {
     );
   });
 
+  const MODULES = ['用户管理', '企业管理', '角色管理', '集团金融', '系统设置'];
+
   const filteredOp = operationLogs.filter((r) => {
     const kw = opSearch.toLowerCase();
-    return !kw || r.username.toLowerCase().includes(kw) || r.operation.includes(kw) || r.operateIp.includes(kw);
+    return (
+      (!opModule || r.module === opModule) &&
+      (!opResult || r.result === opResult) &&
+      (!kw || r.username.toLowerCase().includes(kw) || r.operation.includes(kw) || r.operateIp.includes(kw))
+    );
   });
 
   const loginColumns: ColumnsType<LoginLog> = [
@@ -76,7 +84,6 @@ const SystemLogsPage: React.FC = () => {
     { title: '账号', dataIndex: 'username', width: 100 },
     {
       title: '角色', dataIndex: 'role', width: 120,
-      render: (v) => <Tag color="geekblue">{v}</Tag>,
     },
     {
       title: '登录IP', dataIndex: 'loginIp', width: 200,
@@ -119,7 +126,7 @@ const SystemLogsPage: React.FC = () => {
               <ConfigProvider theme={radioTheme}>
                 <Radio.Group value={loginRole ?? '全部'} onChange={(e) => setLoginRole(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
                   {['全部', ...ROLES].map((v) => (
-                    <Radio.Button key={v} value={v} style={(loginRole ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>{v}</Radio.Button>
+                    <Radio.Button key={v} value={v} style={(loginRole ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v}</Radio.Button>
                   ))}
                 </Radio.Group>
               </ConfigProvider>
@@ -150,7 +157,21 @@ const SystemLogsPage: React.FC = () => {
       label: '操作日志',
       children: (
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <Space style={{ marginBottom: 16 }}>
+          <Space size={24} wrap align="center" style={{ marginBottom: 16 }}>
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={opModule ?? '全部'} onChange={(e) => setOpModule(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
+                {['全部', ...MODULES].map((v) => (
+                  <Radio.Button key={v} value={v}>{v}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
+                <Radio.Button value="全部">全部结果</Radio.Button>
+                <Radio.Button value="成功">成功</Radio.Button>
+                <Radio.Button value="失败">失败</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
             <Input
               prefix={<SearchOutlined />}
               placeholder="账号名 / 操作 / IP"
@@ -174,7 +195,18 @@ const SystemLogsPage: React.FC = () => {
     },
   ];
 
-  return <Tabs items={tabItems} type="card" />;
+  return (
+    <div style={{ marginTop: -16 }}>
+      <Tabs
+        items={tabItems}
+        tabBarStyle={{
+          background: '#fff',
+          margin: '0 -24px',
+          padding: '0 24px',
+        }}
+      />
+    </div>
+  );
 };
 
 export default SystemLogsPage;

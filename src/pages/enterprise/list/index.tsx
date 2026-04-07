@@ -1,5 +1,6 @@
 import { SearchOutlined } from '@ant-design/icons';
 import {
+  Button,
   Card,
   ConfigProvider,
   Input,
@@ -20,11 +21,11 @@ const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const radioTheme = {
   components: {
     Radio: {
-      buttonSolidCheckedBg: '#722ed1',
-      buttonSolidCheckedHoverBg: '#9254de',
-      buttonSolidCheckedActiveBg: '#531dab',
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
       buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#722ed1',
+      colorPrimary: '#1677ff',
     },
   },
 };
@@ -85,14 +86,7 @@ const EnterpriseListPage: React.FC = () => {
 
   const columns: ColumnsType<Enterprise> = [
     { title: '企业ID', dataIndex: 'enterpriseId', width: 100, fixed: 'left' },
-    {
-      title: '企业名称',
-      dataIndex: 'name',
-      width: 120,
-      render: (v, r) => (
-        <a onClick={() => navigate(`/enterprise/detail/${r.enterpriseId}`)}>{v}</a>
-      ),
-    },
+    { title: '企业名称', dataIndex: 'name', width: 120 },
     {
       title: '企业认证',
       dataIndex: 'certStatus',
@@ -118,7 +112,7 @@ const EnterpriseListPage: React.FC = () => {
       align: 'right',
       sorter: (a, b) => a.totalAssets - b.totalAssets,
       render: (v) => (
-        <Txt style={{ color: '#722ed1' }}>
+        <Txt style={{ color: '#141414' }}>
           {v.toLocaleString('en', { minimumFractionDigits: 2 })}
         </Txt>
       ),
@@ -130,25 +124,13 @@ const EnterpriseListPage: React.FC = () => {
       align: 'right',
       sorter: (a, b) => a.profit - b.profit,
       render: (v: number) => (
-        <Txt style={{ color: v >= 0 ? '#52c41a' : '#ff4d4f' }}>
-          {v >= 0 ? '+' : ''}{v.toLocaleString('en', { minimumFractionDigits: 2 })}
+        <Txt style={{ color: '#141414' }}>
+          {v.toLocaleString('en', { minimumFractionDigits: 2 })}
         </Txt>
       ),
     },
-    {
-      title: '货币单位',
-      dataIndex: 'currency',
-      width: 90,
-      render: (v) => <Tag>{v}</Tag>,
-    },
-    {
-      title: '企业状态',
-      dataIndex: 'enterpriseStatus',
-      width: 90,
-      render: (v: Enterprise['enterpriseStatus']) => (
-        <Tag color={v === '正常' ? 'success' : 'default'}>{v}</Tag>
-      ),
-    },
+    { title: '货币单位', dataIndex: 'currency', width: 90 },
+    { title: '企业状态', dataIndex: 'enterpriseStatus', width: 90 },
     { title: '归属公司', dataIndex: 'company', width: 110 },
     { title: '创建时间', dataIndex: 'createdAt', width: 110 },
     {
@@ -158,7 +140,7 @@ const EnterpriseListPage: React.FC = () => {
       align: 'right',
       sorter: (a, b) => a.companyProfit - b.companyProfit,
       render: (v: number) => (
-        <Txt style={{ color: '#fa8c16' }}>
+        <Txt style={{ color: '#141414' }}>
           {v.toLocaleString('en', { minimumFractionDigits: 2 })}
         </Txt>
       ),
@@ -168,13 +150,15 @@ const EnterpriseListPage: React.FC = () => {
       width: 80,
       fixed: 'right',
       render: (_, r) => (
-        <a onClick={() => navigate(`/enterprise/detail/${r.enterpriseId}`)}>详情</a>
+        <Button type="link" size="small" style={{ padding: 0 }}
+          onClick={() => navigate(`/enterprise/detail/${r.enterpriseId}`)}>详情</Button>
       ),
     },
   ];
 
   return (
-    <Card bordered={false} style={{ borderRadius: 8, boxShadow: CARD_SHADOW }}>
+    <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+      styles={{ body: { padding: '16px 24px' } }}>
       {/* 筛选行 */}
       <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
         <ConfigProvider theme={radioTheme}>
@@ -213,7 +197,7 @@ const EnterpriseListPage: React.FC = () => {
           value={searchVal}
           onChange={(e) => setSearchVal(e.target.value)}
           allowClear
-          style={{ width: 230 }}
+          style={{ width: 260 }}
         />
       </Space>
 
@@ -229,6 +213,7 @@ const EnterpriseListPage: React.FC = () => {
           showSizeChanger: true,
         }}
         size="middle"
+        rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
       />
     </Card>
   );

@@ -1,16 +1,13 @@
-import { CopyOutlined, WalletOutlined } from '@ant-design/icons';
+import { CopyOutlined, SearchOutlined } from '@ant-design/icons';
 import {
   Card,
-  Col,
   ConfigProvider,
-  Descriptions,
+  Input,
   message,
-  Row,
-  Segmented,
+  Radio,
   Select,
   Space,
   Table,
-  Tag,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
@@ -19,6 +16,18 @@ import React, { useState } from 'react';
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+
+const radioTheme = {
+  components: {
+    Radio: {
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
+      buttonSolidCheckedColor: '#fff',
+      colorPrimary: '#1677ff',
+    },
+  },
+};
 
 interface FlowRecord {
   id: string;
@@ -39,130 +48,85 @@ const flowData: FlowRecord[] = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 const MyWalletPage: React.FC = () => {
-  const [currency, setCurrency] = useState<'USDT' | 'PEA'>('USDT');
   const [typeFilter, setTypeFilter] = useState<string>('全部');
+  const [search, setSearch] = useState('');
 
   const filteredData = flowData.filter((r) => {
     const matchType = typeFilter === '全部' || r.type === typeFilter;
-    const matchCurrency = r.currency === currency;
-    return matchType && matchCurrency;
+    const kw = search.trim();
+    const matchSearch = !kw || r.id.includes(kw) || r.operator.includes(kw);
+    return matchType && matchSearch;
   });
 
   const columns: ColumnsType<FlowRecord> = [
-    { title: '流水号', dataIndex: 'id', width: 110 },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      width: 100,
-      render: (v) => <Tag color={v === '集团下拨' ? 'blue' : 'orange'}>{v}</Tag>,
-    },
-    { title: '货币单位', dataIndex: 'currency', width: 80 },
-    {
-      title: '金额',
-      dataIndex: 'amount',
-      width: 130,
-      align: 'right',
-      render: (v) => <span style={{ fontWeight: 400, color: '#141414' }}>{v}</span>,
-    },
-    { title: '操作人', dataIndex: 'operator', width: 120 },
-    { title: '时间', dataIndex: 'createdAt', width: 170 },
+    { title: '流水号', dataIndex: 'id' },
+    { title: '类型', dataIndex: 'type' },
+    { title: '货币单位', dataIndex: 'currency' },
+    { title: '金额', dataIndex: 'amount', align: 'right' },
+    { title: '操作人', dataIndex: 'operator' },
+    { title: '时间', dataIndex: 'createdAt' },
   ];
 
   return (
     <div>
-      {/* 余额卡片 */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
-        <Col xs={24} sm={12}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <WalletOutlined style={{ fontSize: 22, color: '#722ed1' }} />
+      {/* 余额 + 公司信息（一行紧凑） */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}
+        styles={{ body: { padding: '16px 24px' } }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <Space size={48}>
+            <div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>USDT 余额</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#141414', marginTop: 4, whiteSpace: 'nowrap' }}>
+                89,230.00
               </div>
-              <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>USDT 余额</Text>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>
-              89,230.00
-            </div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <WalletOutlined style={{ fontSize: 22, color: '#722ed1' }} />
+            <div>
+              <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>PEA 余额</Text>
+              <div style={{ fontSize: 24, fontWeight: 700, color: '#141414', marginTop: 4, whiteSpace: 'nowrap' }}>
+                560,000.00
               </div>
-              <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.55)', fontWeight: 500 }}>PEA 余额</Text>
             </div>
-            <div style={{ fontSize: 28, fontWeight: 700, color: '#141414', letterSpacing: -1 }}>
-              560,000.00
+            <div style={{ borderLeft: '1px solid #f0f0f0', paddingLeft: 32 }}>
+              <Space size={20}>
+                <span><Text type="secondary" style={{ fontSize: 13 }}>公司名称：</Text><Text style={{ fontSize: 13, fontWeight: 600 }}>炸雷第一波</Text></span>
+                <span><Text type="secondary" style={{ fontSize: 13 }}>归属集团：</Text><Text style={{ fontSize: 13, fontWeight: 600 }}>UU Talk 集团</Text></span>
+                <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <Text type="secondary" style={{ fontSize: 13 }}>公司 ID：</Text>
+                  <Text style={{ fontSize: 13, fontFamily: 'monospace' }}>43215321432</Text>
+                  <CopyOutlined
+                    style={{ cursor: 'pointer', color: '#1677ff', fontSize: 13, marginLeft: 6 }}
+                    onClick={() => { navigator.clipboard.writeText('43215321432'); message.success('已复制'); }}
+                  />
+                </span>
+              </Space>
             </div>
-          </Card>
-        </Col>
-      </Row>
-
-      {/* 公司基础信息 */}
-      <Card
-        bordered={false}
-        style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}
-        title="公司基础信息"
-      >
-        <Descriptions bordered column={{ xs: 1, sm: 2 }} size="middle">
-          <Descriptions.Item label="公司名称">炸雷第一波</Descriptions.Item>
-          <Descriptions.Item label="公司 ID">
-            <Space>
-              <Text>43215321432</Text>
-              <CopyOutlined
-                style={{ cursor: 'pointer', color: '#722ed1' }}
-                onClick={() => {
-                  navigator.clipboard.writeText('43215321432');
-                  message.success('已复制');
-                }}
-              />
-            </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label="归属集团">UU Talk 集团</Descriptions.Item>
-        </Descriptions>
+          </Space>
+        </div>
       </Card>
 
       {/* 历史流水 */}
-      <Card
-        bordered={false}
-        style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-        title="历史流水"
-        extra={
-          <Space>
-            <ConfigProvider
-              theme={{
-                components: {
-                  Segmented: {
-                    trackBg: '#f9f0ff',
-                    itemSelectedBg: '#722ed1',
-                    itemSelectedColor: '#ffffff',
-                    itemColor: '#722ed1',
-                  },
-                },
-              }}
-            >
-              <Segmented
-                options={['USDT', 'PEA']}
-                value={currency}
-                onChange={(v) => setCurrency(v as 'USDT' | 'PEA')}
-                style={{ fontWeight: 600 }}
-              />
-            </ConfigProvider>
-            <Select
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group
               value={typeFilter}
-              onChange={setTypeFilter}
-              style={{ width: 120 }}
-              options={[
-                { value: '全部', label: '全部类型' },
-                { value: '集团下拨', label: '集团下拨' },
-                { value: '集团调回', label: '集团调回' },
-              ]}
-            />
-          </Space>
-        }
-      >
+              onChange={(e) => setTypeFilter(e.target.value)}
+              buttonStyle="solid"
+            >
+              <Radio.Button value="全部">全部</Radio.Button>
+              <Radio.Button value="集团下拨">集团下拨</Radio.Button>
+              <Radio.Button value="集团调回">集团调回</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="流水号 / 操作人"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            allowClear
+            style={{ width: 200 }}
+          />
+        </div>
         <Table
           columns={columns}
           dataSource={filteredData}

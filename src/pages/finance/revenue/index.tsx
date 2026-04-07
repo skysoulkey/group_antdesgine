@@ -49,8 +49,8 @@ const FinanceRevenuePage: React.FC = () => {
     },
     { title: '本月综合收益', dataIndex: 'totalRevenue', width: 140, align: 'right', render: (v) => <span>{v}</span> },
     { title: '免征税额', dataIndex: 'taxExempt', width: 110, align: 'right' },
-    { title: '应纳税额', dataIndex: 'taxableAmount', width: 110, align: 'right', render: (v) => <Text style={{ color: '#fa8c16' }}>{v}</Text> },
-    { title: '可划转收益', dataIndex: 'transferable', width: 130, align: 'right', render: (v) => <Text style={{ color: '#722ed1' }}>{v}</Text> },
+    { title: '应纳税额', dataIndex: 'taxableAmount', width: 110, align: 'right', render: (v) => <Text style={{ color: '#141414' }}>{v}</Text> },
+    { title: '可划转收益', dataIndex: 'transferable', width: 130, align: 'right', render: (v) => <Text style={{ color: '#141414' }}>{v}</Text> },
     {
       title: '操作', width: 110, fixed: 'right' as const,
       render: (_, r) => r.status === '已出账单' ? (
@@ -74,8 +74,8 @@ const FinanceRevenuePage: React.FC = () => {
         <Col xs={24} sm={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#722ed118', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AccountBookOutlined style={{ fontSize: 20, color: '#722ed1' }} />
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1677ff18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AccountBookOutlined style={{ fontSize: 20, color: '#1677ff' }} />
               </div>
               <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>累计综合收益（USDT）</Text>
             </div>
@@ -87,12 +87,12 @@ const FinanceRevenuePage: React.FC = () => {
         <Col xs={24} sm={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#52c41a18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AccountBookOutlined style={{ fontSize: 20, color: '#52c41a' }} />
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: '#1677ff18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AccountBookOutlined style={{ fontSize: 20, color: '#1677ff' }} />
               </div>
               <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.55)' }}>累计可划转收益（USDT）</Text>
             </div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: '#52c41a' }}>
+            <div style={{ fontSize: 26, fontWeight: 700, color: '#141414' }}>
               {totalTransferable.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </div>
           </Card>
@@ -102,14 +102,14 @@ const FinanceRevenuePage: React.FC = () => {
       {/* 账单列表 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Space style={{ marginBottom: 16 }} wrap align="center">
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#722ed1', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#722ed1', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
             <Radio.Group
               buttonStyle="outline"
               value={statusFilter ?? '全部'}
               onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
             >
               {(['全部', '未出账单', '已出账单'] as const).map((v) => (
-                <Radio.Button key={v} value={v} style={(statusFilter ?? '全部') === v ? { color: '#722ed1', borderColor: '#722ed1' } : {}}>
+                <Radio.Button key={v} value={v} style={(statusFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
                   {v}
                 </Radio.Button>
               ))}
@@ -118,6 +118,7 @@ const FinanceRevenuePage: React.FC = () => {
           <DatePicker picker="month" placeholder="汇算月份" onChange={(_, v) => setMonth(v as string)} style={{ width: 150 }} />
         </Space>
         <Table columns={columns} dataSource={filtered} rowKey="id" size="middle"
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }} />
       </Card>
     </div>

@@ -85,7 +85,7 @@ const FinanceRevenueDetail: React.FC = () => {
       align: 'right',
       width: 140,
       render: (v, r) => (
-        <Text strong style={{ color: r.key === 'total' ? '#722ed1' : '#141414' }}>{v}</Text>
+        <Text strong style={{ color: r.key === 'total' ? '#1677ff' : '#141414' }}>{v}</Text>
       ),
     },
   ];
@@ -152,7 +152,7 @@ const FinanceRevenueDetail: React.FC = () => {
           {[
             { label: '汇算周期', value: `${selectedMonth}-01 至 ${selectedMonth}-31`, color: '#141414' },
             { label: '状态', value: '已出账', isTag: true },
-            { label: '本月综合收益', value: '873,233.23 USDT', color: '#722ed1' },
+            { label: '本月综合收益', value: '873,233.23 USDT', color: '#1677ff' },
             { label: '应纳税额', value: '43,661.66 USDT', color: '#fa8c16' },
             { label: '免征税额', value: '10,000.00 USDT', color: '#141414' },
             { label: '待提取收益', value: '819,571.57 USDT', color: '#52c41a' },

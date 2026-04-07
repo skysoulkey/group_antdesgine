@@ -4,14 +4,16 @@ import {
   BellOutlined,
   BarChartOutlined,
   FileTextOutlined,
+  LogoutOutlined,
   SettingOutlined,
   StockOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
-import logoImg from '../assets/logo.png';
+import logoImg from '../assets/logo.svg';
 import { Badge, Breadcrumb, Button, Divider, Layout, List, Menu, Popover, Select, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { Outlet, useLocation, useNavigate } from 'umi';
+import { Outlet, useLocation, useNavigate, useSearchParams } from 'umi';
 import { defaultRoute, hasPermission, MOCK_ROLE, type Role } from '../utils/auth';
 
 const { Header, Sider, Content } = Layout;
@@ -122,7 +124,36 @@ const breadcrumbMap: Record<string, string[]> = {
   '/403':                    ['错误', '无权限'],
 };
 
-function getBreadcrumb(pathname: string): string[] {
+// ── Tab 级面包屑映射 ─────────────────────────────────────────────
+const tabBreadcrumbMap: Record<string, Record<string, string[]>> = {
+  '/company/detail': {
+    overview:      ['公司管理', '公司清单', '公司概览'],
+    groupTransfer: ['公司管理', '公司清单', '集团转账'],
+    holding:       ['公司管理', '公司清单', '持股估值'],
+  },
+  '/enterprise/detail': {
+    overview:      ['企业管理', '企业清单', '企业概览'],
+    members:       ['企业管理', '企业清单', '成员清单'],
+    shareholders:  ['企业管理', '企业清单', '股东清单'],
+    dividend:      ['企业管理', '企业清单', '投资分红'],
+    sharesTrade:   ['企业管理', '企业清单', '股份交易'],
+    apps:          ['企业管理', '企业清单', '开通应用'],
+    redpacket:     ['企业管理', '企业清单', '应用红包'],
+    lottery:       ['企业管理', '企业清单', '东方彩票'],
+    commission:    ['企业管理', '企业清单', '佣金订单'],
+  },
+};
+
+function getBreadcrumb(pathname: string, tab?: string): string[] {
+  // Tab 级匹配（详情页 + tab 参数）
+  if (tab) {
+    for (const prefix of Object.keys(tabBreadcrumbMap)) {
+      if (pathname === prefix || pathname.startsWith(prefix + '/')) {
+        const tabMap = tabBreadcrumbMap[prefix];
+        if (tabMap[tab]) return tabMap[tab];
+      }
+    }
+  }
   // 精确匹配
   if (breadcrumbMap[pathname]) return breadcrumbMap[pathname];
   // 前缀匹配（如详情页 /company/detail/123）
@@ -214,7 +245,7 @@ const MainLayout: React.FC = () => {
             >
               <div style={{ display: 'flex', gap: 10, width: '100%' }}>
                 {!item.isRead && (
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#722ed1', marginTop: 6, flexShrink: 0 }} />
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#1677ff', marginTop: 6, flexShrink: 0 }} />
                 )}
                 {item.isRead && <div style={{ width: 8, flexShrink: 0 }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -238,8 +269,11 @@ const MainLayout: React.FC = () => {
     </div>
   );
 
+  const [searchParams] = useSearchParams();
+  const tab = searchParams.get('tab') || '';
+
   const menuItems = filterMenuByRole(allMenuItems, role);
-  const breadcrumbs = getBreadcrumb(location.pathname);
+  const breadcrumbs = getBreadcrumb(location.pathname, tab);
 
   // 权限守卫
   useEffect(() => {
@@ -288,8 +322,40 @@ const MainLayout: React.FC = () => {
           defaultOpenKeys={getDefaultOpenKeys(location.pathname)}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
-          style={{ borderRight: 0, paddingBottom: 48 }}
+          style={{ borderRight: 0, paddingBottom: 64 }}
         />
+
+        {/* 底部用户信息 */}
+        <div style={{
+          position: 'absolute',
+          bottom: 48,
+          left: 0,
+          right: 0,
+          padding: collapsed ? '12px 0' : '12px 20px',
+          borderTop: '1px solid rgba(255,255,255,0.1)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'space-between',
+          gap: 8,
+        }}>
+          {collapsed ? (
+            <LogoutOutlined
+              style={{ color: 'rgba(255,255,255,0.65)', fontSize: 16, cursor: 'pointer' }}
+              onClick={() => navigate('/login')}
+            />
+          ) : (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                <UserOutlined style={{ color: 'rgba(255,255,255,0.65)', fontSize: 14, flexShrink: 0 }} />
+                <Text style={{ color: '#fff', fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Miya</Text>
+              </div>
+              <LogoutOutlined
+                style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, cursor: 'pointer', flexShrink: 0 }}
+                onClick={() => navigate('/login')}
+              />
+            </>
+          )}
+        </div>
       </Sider>
 
       <Layout style={{ marginLeft: collapsed ? 80 : 220, transition: 'margin-left 0.2s' }}>
@@ -299,10 +365,12 @@ const MainLayout: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          boxShadow: '0 1px 4px rgba(0,21,41,.08)',
           position: 'sticky',
           top: 0,
           zIndex: 99,
+          height: 48,
+          lineHeight: '48px',
+          borderBottom: '1px solid #f0f0f0',
         }}>
           <Breadcrumb items={breadcrumbs.map((b) => ({ title: b }))} />
 
@@ -321,7 +389,7 @@ const MainLayout: React.FC = () => {
             {role !== 'system_admin' && (
               <Space size={4}>
                 <Text type="secondary" style={{ fontSize: 12 }}>余额:</Text>
-                <Text strong style={{ color: '#722ed1' }}>178,283.09 USDT</Text>
+                <Text strong style={{ color: '#1677ff' }}>178,283.09 USDT</Text>
               </Space>
             )}
             <Popover
@@ -340,7 +408,7 @@ const MainLayout: React.FC = () => {
           </Space>
         </Header>
 
-        <Content style={{ margin: '24px', minHeight: 280 }}>
+        <Content style={{ padding: '16px 24px 24px', minHeight: 280 }}>
           <Outlet />
         </Content>
       </Layout>
