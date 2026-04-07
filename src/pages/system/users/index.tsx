@@ -1,6 +1,7 @@
 import {
   ApartmentOutlined,
   BankOutlined,
+  CopyOutlined,
   LockOutlined,
   PlusOutlined,
   QrcodeOutlined,
@@ -39,7 +40,6 @@ const isExpired = (validPeriod: string): boolean => {
   if (validPeriod === '永久有效') return false;
   return new Date(validPeriod) < new Date(new Date().toDateString());
 };
-const mockRole = (localStorage.getItem('mock_role') ?? 'group_admin') as Role;
 // 当前登录用户所属集团（mock）
 const CURRENT_GROUP = 'UU Talk';
 
@@ -141,6 +141,7 @@ const buildTreeData = (data: UserRecord[]) => {
 };
 
 const UserManagePage: React.FC = () => {
+  const mockRole = (localStorage.getItem('mock_role') ?? 'group_admin') as Role;
   const visibleData = mockRole === 'system_admin'
     ? initialData
     : initialData.filter((r) => r.group === CURRENT_GROUP);
@@ -164,6 +165,18 @@ const UserManagePage: React.FC = () => {
   const [createGroup, setCreateGroup] = useState<string | undefined>();
 
   const [editIpRestrict, setEditIpRestrict] = useState(false);
+
+  // 创建成功弹窗
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [createdInfo, setCreatedInfo] = useState<{ username: string; password: string } | null>(null);
+
+  const APP_USERNAME_REGEX = /^@[a-zA-Z0-9_]{2,30}$/;
+
+  const copyCreatedInfo = () => {
+    if (!createdInfo) return;
+    const text = `登录地址：${window.location.origin}\n用户名：${createdInfo.username}\n密码：${createdInfo.password}`;
+    navigator.clipboard.writeText(text).then(() => message.success('已复制到剪贴板'));
+  };
 
   // 临时锁定/解锁（不改变 status，仅翻转 isLocked）
   const toggleLock = (id: string) => {
@@ -225,30 +238,36 @@ const UserManagePage: React.FC = () => {
     { title: '创建时间', dataIndex: 'createdAt', width: 160 },
     {
       title: '操作', width: 170, fixed: 'right' as const,
-      render: (_, r) => (
-        <Space size={0}>
-          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => { setCurrentUser(r); setViewOpen(true); }}>查看</Button>
-          <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => openEdit(r)}>编辑</Button>
-          {r.status === '启用' && (
-            <Popconfirm
-              title={r.isLocked ? '确认解除临时锁定？' : '确认临时锁定该账号？'}
-              onConfirm={() => toggleLock(r.id)}
-              okText="确认"
-              cancelText="取消"
-            >
-              <Button
-                type="link"
-                size="small"
-                danger={!r.isLocked}
-                style={{ padding: '0 4px' }}
-                icon={r.isLocked ? <UnlockOutlined /> : <LockOutlined />}
+      render: (_, r) => {
+        // 集团管理员只能操作公司管理员
+        const canManage = mockRole === 'system_admin' || (mockRole === 'group_admin' && r.role === '公司管理员');
+        return (
+          <Space size={0}>
+            <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => { setCurrentUser(r); setViewOpen(true); }}>查看</Button>
+            {canManage && (
+              <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => openEdit(r)}>编辑</Button>
+            )}
+            {canManage && r.status === '启用' && (
+              <Popconfirm
+                title={r.isLocked ? '确认解除临时锁定？' : '确认临时锁定该账号？'}
+                onConfirm={() => toggleLock(r.id)}
+                okText="确认"
+                cancelText="取消"
               >
-                {r.isLocked ? '解锁' : '锁定'}
-              </Button>
-            </Popconfirm>
-          )}
-        </Space>
-      ),
+                <Button
+                  type="link"
+                  size="small"
+                  danger={!r.isLocked}
+                  style={{ padding: '0 4px' }}
+                  icon={r.isLocked ? <UnlockOutlined /> : <LockOutlined />}
+                >
+                  {r.isLocked ? '解锁' : '锁定'}
+                </Button>
+              </Popconfirm>
+            )}
+          </Space>
+        );
+      },
     },
   ];
 
@@ -320,8 +339,14 @@ const UserManagePage: React.FC = () => {
                 icon={<PlusOutlined />}
                 onClick={() => {
                   createForm.resetFields();
-                  setCreateRole('');
-                  setCreateGroup(undefined);
+                  if (mockRole === 'group_admin') {
+                    setCreateRole('公司管理员');
+                    setCreateGroup(CURRENT_GROUP);
+                    createForm.setFieldsValue({ role: '公司管理员', group: CURRENT_GROUP });
+                  } else {
+                    setCreateRole('');
+                    setCreateGroup(undefined);
+                  }
                   setCreateOpen(true);
                 }}
               >
@@ -402,15 +427,27 @@ const UserManagePage: React.FC = () => {
         destroyOnClose
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item label="角色" name="role" rules={[{ required: true }]}>
-            <Select options={ROLES.map((r) => ({ value: r, label: r }))} />
-          </Form.Item>
-          <Form.Item label="状态" name="status" rules={[{ required: true }]}>
-            <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
-          </Form.Item>
-          <Form.Item label="账户有效期" name="validPeriod">
-            <Select options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]} />
-          </Form.Item>
+          {mockRole === 'system_admin' ? (
+            <Form.Item label="角色" name="role" rules={[{ required: true }]}>
+              <Select options={ROLES.map((r) => ({ value: r, label: r }))} />
+            </Form.Item>
+          ) : (
+            <Form.Item label="角色" name="role">
+              <Select disabled options={[{ value: currentUser?.role, label: currentUser?.role }]} />
+            </Form.Item>
+          )}
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item label="状态" name="status" rules={[{ required: true }]}>
+                <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="账户有效期" name="validPeriod">
+                <Select options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]} />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item label="IP限制" name="ipRestrict" valuePropName="checked">
             <Switch onChange={setEditIpRestrict} />
           </Form.Item>
@@ -444,13 +481,14 @@ const UserManagePage: React.FC = () => {
               validPeriod: values.validPeriod === '自定义' && values.expireDate
                 ? values.expireDate.format('YYYY-MM-DD')
                 : '永久有效',
-              notifyAccounts: values.notifyAccounts ?? '',
+              notifyAccounts: values.appUsername ?? '',
               isLocked: false,
             };
             setUsers((prev) => [...prev, newUser]);
             setCreateOpen(false);
+            setCreatedInfo({ username: values.username, password: values.password });
+            setSuccessOpen(true);
             createForm.resetFields();
-            message.success('用户创建成功');
           })
         }
         onCancel={() => setCreateOpen(false)}
@@ -487,35 +525,55 @@ const UserManagePage: React.FC = () => {
           <Divider style={{ margin: '12px 0' }} />
 
           {/* 角色（先选角色，再联级选归属） */}
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item label="角色" name="role" rules={[{ required: true, message: '请选择角色' }]}>
-                <Select
-                  placeholder="请选择角色"
-                  options={ROLES.map((r) => ({ value: r, label: r }))}
-                  onChange={(v) => {
-                    setCreateRole(v);
-                    setCreateGroup(undefined);
-                    createForm.resetFields(['group', 'company']);
-                  }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="状态" name="status" initialValue="启用" rules={[{ required: true }]}>
-                <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
-              </Form.Item>
-            </Col>
-          </Row>
+          <Form.Item label="角色" name="role" rules={[{ required: true, message: '请选择角色' }]}>
+            {mockRole === 'group_admin' ? (
+              <Select disabled options={[{ value: '公司管理员', label: '公司管理员' }]} />
+            ) : (
+              <Select
+                placeholder="请选择角色"
+                options={ROLES.map((r) => ({ value: r, label: r }))}
+                onChange={(v) => {
+                  setCreateRole(v);
+                  setCreateGroup(undefined);
+                  createForm.resetFields(['group', 'company']);
+                }}
+              />
+            )}
+          </Form.Item>
 
           {/* 联级归属：集团管理员 → 仅选集团 */}
           {createRole === '集团管理员' && (
-            <Form.Item label="归属集团" name="group" rules={[{ required: true, message: '请选择归属集团' }]}>
-              <Select
-                placeholder="请选择归属集团"
-                options={GROUPS.map((g) => ({ value: g, label: g }))}
-              />
-            </Form.Item>
+            <>
+              <Form.Item label="归属集团" name="group" rules={[{ required: true, message: '请选择归属集团' }]}>
+                <Select
+                  placeholder="请选择归属集团"
+                  options={GROUPS.map((g) => ({ value: g, label: g }))}
+                />
+              </Form.Item>
+              {mockRole === 'system_admin' && (
+                <Form.Item
+                  label="APP 用户名"
+                  name="appUsername"
+                  rules={[
+                    { required: true, message: '请输入 APP 用户名' },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve();
+                        if (!APP_USERNAME_REGEX.test(value)) {
+                          return Promise.reject(new Error('格式：@字母/数字/下划线，2-30位，如 @miya_admin'));
+                        }
+                        if (users.some((u) => u.notifyAccounts === value)) {
+                          return Promise.reject(new Error('该 APP 用户名已被使用'));
+                        }
+                        return Promise.resolve();
+                      },
+                    },
+                  ]}
+                >
+                  <Input placeholder="请输入 APP 用户名，如 @miya_admin" />
+                </Form.Item>
+              )}
+            </>
           )}
 
           {/* 联级归属：公司管理员 → 先选集团，再选公司 */}
@@ -523,14 +581,18 @@ const UserManagePage: React.FC = () => {
             <Row gutter={12}>
               <Col span={12}>
                 <Form.Item label="归属集团" name="group" rules={[{ required: true, message: '请选择归属集团' }]}>
-                  <Select
-                    placeholder="请选择归属集团"
-                    options={GROUPS.map((g) => ({ value: g, label: g }))}
-                    onChange={(v) => {
-                      setCreateGroup(v);
-                      createForm.resetFields(['company']);
-                    }}
-                  />
+                  {mockRole === 'group_admin' ? (
+                    <Select disabled options={[{ value: CURRENT_GROUP, label: CURRENT_GROUP }]} />
+                  ) : (
+                    <Select
+                      placeholder="请选择归属集团"
+                      options={GROUPS.map((g) => ({ value: g, label: g }))}
+                      onChange={(v) => {
+                        setCreateGroup(v);
+                        createForm.resetFields(['company']);
+                      }}
+                    />
+                  )}
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -547,38 +609,27 @@ const UserManagePage: React.FC = () => {
 
           {/* 平台管理员：无需归属 */}
 
-          {createRole === '公司管理员' && (
-            <Form.Item label="消息通知账号" name="notifyAccounts" rules={[{ required: true, message: '公司管理员必须配置消息通知账号' }]}>
-              <Input placeholder="请输入APP用户名，如 @miya_miya" />
-            </Form.Item>
-          )}
-
           <Divider style={{ margin: '12px 0' }} />
 
-          {/* 有效期 & IP */}
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item label="账户有效期" name="validPeriod" initialValue="永久有效">
-                <Select
-                  options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]}
-                  onChange={(v) => { if (v !== '自定义') createForm.setFieldValue('expireDate', undefined); }}
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item noStyle shouldUpdate={(p, c) => p.validPeriod !== c.validPeriod}>
-                {({ getFieldValue }) =>
-                  getFieldValue('validPeriod') === '自定义' ? (
-                    <Form.Item label="到期时间" name="expireDate" rules={[{ required: true }]}>
-                      <DatePicker style={{ width: '100%' }} />
-                    </Form.Item>
-                  ) : (
-                    <Form.Item label=" "><span /></Form.Item>
-                  )
-                }
-              </Form.Item>
-            </Col>
-          </Row>
+          {/* 状态 & 有效期 & IP */}
+          <Form.Item label="状态" name="status" initialValue="启用" rules={[{ required: true }]}>
+            <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
+          </Form.Item>
+          <Form.Item label="账户有效期" name="validPeriod" initialValue="永久有效">
+            <Select
+              options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]}
+              onChange={(v) => { if (v !== '自定义') createForm.setFieldValue('expireDate', undefined); }}
+            />
+          </Form.Item>
+          <Form.Item noStyle shouldUpdate={(p, c) => p.validPeriod !== c.validPeriod}>
+            {({ getFieldValue }) =>
+              getFieldValue('validPeriod') === '自定义' ? (
+                <Form.Item label="到期时间" name="expireDate" rules={[{ required: true }]}>
+                  <DatePicker style={{ width: '100%' }} />
+                </Form.Item>
+              ) : null
+            }
+          </Form.Item>
           <Form.Item label="IP限制" name="ipRestrict" valuePropName="checked">
             <Switch />
           </Form.Item>
@@ -593,6 +644,31 @@ const UserManagePage: React.FC = () => {
           </Form.Item>
 
         </Form>
+      </Modal>
+
+      {/* ── 创建成功弹窗 ─────────────────────────────────────────── */}
+      <Modal
+        title="创建成功"
+        open={successOpen}
+        onCancel={() => setSuccessOpen(false)}
+        footer={
+          <Space>
+            <Button icon={<CopyOutlined />} type="primary" onClick={copyCreatedInfo}>复制信息</Button>
+            <Button onClick={() => setSuccessOpen(false)}>关 闭</Button>
+          </Space>
+        }
+        width={480}
+      >
+        {createdInfo && (
+          <div style={{
+            marginTop: 16, padding: 16, background: '#f6f8ff',
+            border: '1px solid #d6e4ff', borderRadius: 8, fontFamily: 'monospace', lineHeight: 2,
+          }}>
+            <div>登录地址：{window.location.origin}</div>
+            <div>用户名：{createdInfo.username}</div>
+            <div>密码：{createdInfo.password}</div>
+          </div>
+        )}
       </Modal>
     </div>
   );

@@ -33,8 +33,6 @@ interface NotifRecord {
   target: string;
   receipt: '已收到' | '异常' | '已读' | '未读';
   type: string;
-  phone?: string;
-  email?: string;
 }
 
 const METHODS: Array<NotifRecord['method']> = ['APP', '邮件', '站内'];
@@ -47,39 +45,33 @@ const mockRecords: NotifRecord[] = Array.from({ length: 30 }, (_, i) => {
     notifTime: `2025-10-${String((i % 28) + 1).padStart(2, '0')} ${String(8 + (i % 12))}:${String(10 + (i % 50)).padStart(2, '0')}:23`,
     method,
     content: `${NOTIF_TYPES[i % NOTIF_TYPES.length]}通知，请相关人员及时处理。编号：${i + 1}`,
-    target: initUsers[i % 3].appAccount,
+    target: method === '邮件' ? initUsers[i % 3].email : initUsers[i % 3].appAccount,
     receipt: isInApp
       ? (i % 5 === 0 ? '未读' : '已读')
       : (i % 7 === 0 ? '异常' : '已收到'),
     type: NOTIF_TYPES[i % NOTIF_TYPES.length],
-    phone: method === 'APP' ? `+63899${1029384 + i}` : undefined,
-    email: method === '邮件' ? `user${i}@cyberbot.sg` : undefined,
   };
 });
 
-// ── 偏好数据 ──────────────────────────────────────────────────────
+// ── 偏好数据（每用户一行）─────────────────────────────────────────
 interface PrefRow {
-  key: string;       // `${userId}_${type}`
+  key: string;
   userId: string;
   userName: string;
-  type: string;
   inApp: boolean;
   app: boolean;
   email: boolean;
 }
 
 const buildInitPrefs = (users: NotifUser[]): PrefRow[] =>
-  users.flatMap((u, ui) =>
-    NOTIF_TYPES.map((t, ti) => ({
-      key: `${u.id}_${t}`,
-      userId: u.id,
-      userName: u.name,
-      type: t,
-      inApp: ui === 2 ? ti % 2 === 0 : true,
-      app: ui === 1 ? ti % 2 === 0 : true,
-      email: ui === 1 ? ti % 3 !== 0 : true,
-    })),
-  );
+  users.map((u, i) => ({
+    key: u.id,
+    userId: u.id,
+    userName: u.name,
+    inApp: true,
+    app: i !== 1,
+    email: true,
+  }));
 
 // ── 方式 Tag 颜色 ────────────────────────────────────────────────
 const methodColor = (v: string) => {
@@ -177,28 +169,25 @@ const NotificationsPage: React.FC = () => {
     setPrefSnapshot(null);
   };
 
-  // rowSpan 计算
-  const typeCount = NOTIF_TYPES.length;
-
   const prefColumns: ColumnsType<PrefRow> = [
     {
       title: '通知对象', dataIndex: 'userName', width: 120,
-      onCell: (_, index) => {
-        if (index === undefined) return {};
-        if (index % typeCount === 0) return { rowSpan: typeCount };
-        return { rowSpan: 0 };
-      },
-      render: (v, r) => {
+      render: (v) => <Text style={{ fontWeight: 600 }}>{v}</Text>,
+    },
+    {
+      title: 'APP 用户名', width: 140,
+      render: (_, r) => {
         const u = users.find((x) => x.id === r.userId);
-        return (
-          <div>
-            <div style={{ fontWeight: 600 }}>{v}</div>
-            <div style={{ fontSize: 11, color: 'rgba(0,0,0,0.45)' }}>{u?.appAccount}</div>
-          </div>
-        );
+        return <Text style={{ fontSize: 13 }}>{u?.appAccount ?? '—'}</Text>;
       },
     },
-    { title: '通知类型', dataIndex: 'type', width: 180, render: (v) => <Tag color="geekblue">{v}</Tag> },
+    {
+      title: '邮箱', width: 180,
+      render: (_, r) => {
+        const u = users.find((x) => x.id === r.userId);
+        return <Text style={{ fontSize: 13 }}>{u?.email ?? '—'}</Text>;
+      },
+    },
     {
       title: '站内', dataIndex: 'inApp', width: 80, align: 'center',
       render: (v, r) => <Checkbox checked={v} disabled={!prefEditing} onChange={(e) => handlePrefToggle(r.key, 'inApp', e.target.checked)} />,
@@ -223,24 +212,22 @@ const NotificationsPage: React.FC = () => {
   };
 
   const handleUserModalSave = () => {
+    // 校验重复
+    const appSet = new Set<string>();
+    const emailSet = new Set<string>();
+    for (const u of editUsers) {
+      if (appSet.has(u.appAccount)) { message.warning(`APP 用户名 "${u.appAccount}" 重复`); return; }
+      if (emailSet.has(u.email)) { message.warning(`邮箱 "${u.email}" 重复`); return; }
+      appSet.add(u.appAccount);
+      emailSet.add(u.email);
+    }
     setUsers(editUsers);
-    // 同步偏好数据：新用户补默认偏好，删除的用户移除偏好
-    const existingIds = new Set(prefRows.map((r) => r.userId));
-    const newRows = editUsers.flatMap((u) => {
-      if (existingIds.has(u.id)) {
-        // 保留已有偏好，更新 userName
-        return prefRows.filter((r) => r.userId === u.id).map((r) => ({ ...r, userName: u.name }));
-      }
-      // 新用户：默认全开
-      return NOTIF_TYPES.map((t) => ({
-        key: `${u.id}_${t}`,
-        userId: u.id,
-        userName: u.name,
-        type: t,
-        inApp: true,
-        app: true,
-        email: true,
-      }));
+    // 同步偏好：保留已有偏好，新用户默认全开，已删用户移除
+    const prefMap = new Map(prefRows.map((r) => [r.userId, r]));
+    const newRows = editUsers.map((u) => {
+      const existing = prefMap.get(u.id);
+      if (existing) return { ...existing, userName: u.name };
+      return { key: u.id, userId: u.id, userName: u.name, inApp: true, app: true, email: true };
     });
     setPrefRows(newRows);
     setUserModalOpen(false);
@@ -250,6 +237,14 @@ const NotificationsPage: React.FC = () => {
   const handleAddUser = () => {
     if (!newUserName.trim() || !newUserApp.trim() || !newUserEmail.trim()) {
       message.warning('请填写完整信息');
+      return;
+    }
+    if (editUsers.some((u) => u.appAccount === newUserApp.trim())) {
+      message.warning('APP 用户名已存在');
+      return;
+    }
+    if (editUsers.some((u) => u.email === newUserEmail.trim())) {
+      message.warning('邮箱已存在');
       return;
     }
     setEditUsers([...editUsers, { id: `U${Date.now()}`, name: newUserName.trim(), appAccount: newUserApp.trim(), email: newUserEmail.trim() }]);
@@ -354,12 +349,13 @@ const NotificationsPage: React.FC = () => {
           <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}
             labelStyle={{ whiteSpace: 'nowrap', width: 90 }}>
             <Descriptions.Item label="发送时间">{currentRecord.notifTime}</Descriptions.Item>
-            {currentRecord.method === 'APP' && (
-              <Descriptions.Item label="电话号码">{currentRecord.phone ?? '—'}</Descriptions.Item>
-            )}
-            {currentRecord.method === '邮件' && (
-              <Descriptions.Item label="邮件地址">{currentRecord.email ?? '—'}</Descriptions.Item>
-            )}
+            <Descriptions.Item label="通知方式">
+              <Tag color={methodColor(currentRecord.method)}>{currentRecord.method}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="通知对象">{currentRecord.target}</Descriptions.Item>
+            <Descriptions.Item label="通知类型">
+              <Tag color="geekblue">{currentRecord.type}</Tag>
+            </Descriptions.Item>
             {currentRecord.method === '站内' ? (
               <Descriptions.Item label="阅读状态">
                 <Tag color={currentRecord.receipt === '已读' ? 'success' : 'warning'}>{currentRecord.receipt}</Tag>
@@ -369,9 +365,6 @@ const NotificationsPage: React.FC = () => {
                 <Tag color={receiptColor(currentRecord.receipt)}>{currentRecord.receipt}</Tag>
               </Descriptions.Item>
             )}
-            <Descriptions.Item label="通知类型">
-              <Tag color="geekblue">{currentRecord.type}</Tag>
-            </Descriptions.Item>
             <Descriptions.Item label="通知内容">{currentRecord.content}</Descriptions.Item>
           </Descriptions>
         )}
@@ -395,13 +388,13 @@ const NotificationsPage: React.FC = () => {
             bordered
             columns={[
               {
-                title: '姓名', dataIndex: 'name', width: 120,
+                title: '通知对象', dataIndex: 'name', width: 120,
                 render: (v, r) => (
                   <Input size="small" value={v} onChange={(e) => handleEditUserField(r.id, 'name', e.target.value)} />
                 ),
               },
               {
-                title: 'APP 账号', dataIndex: 'appAccount', width: 160,
+                title: 'APP 用户名', dataIndex: 'appAccount', width: 160,
                 render: (v, r) => (
                   <Input size="small" value={v} onChange={(e) => handleEditUserField(r.id, 'appAccount', e.target.value)} />
                 ),
@@ -423,8 +416,8 @@ const NotificationsPage: React.FC = () => {
           />
           <Divider style={{ margin: '12px 0' }} />
           <Space>
-            <Input placeholder="姓名" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} style={{ width: 100 }} />
-            <Input placeholder="APP 账号" value={newUserApp} onChange={(e) => setNewUserApp(e.target.value)} style={{ width: 140 }} />
+            <Input placeholder="通知对象" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} style={{ width: 100 }} />
+            <Input placeholder="APP 用户名" value={newUserApp} onChange={(e) => setNewUserApp(e.target.value)} style={{ width: 140 }} />
             <Input placeholder="邮箱" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} style={{ width: 180 }} />
             <Button icon={<PlusOutlined />} onClick={handleAddUser}>添加</Button>
           </Space>

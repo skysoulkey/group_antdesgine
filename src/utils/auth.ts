@@ -33,6 +33,7 @@ export const ROUTE_PERMISSIONS: Record<string, Role[]> = {
   '/finance/my-wallet':      ['company_admin'],
   '/finance/wallet':                ['group_admin'],
   '/finance/wallet/bind-account':   ['group_admin'],
+  '/system/users':           ['group_admin', 'system_admin'],
   '/system/notifications':   ['group_admin', 'company_admin'],
 };
 

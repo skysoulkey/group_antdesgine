@@ -80,7 +80,7 @@ const allMenuItems: MenuItem[] = [
       { key: '/finance/my-wallet',      label: '公司钱包',  roles: ['company_admin'] },
       { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_admin'] },
       { key: '/system/profile',         label: '基础信息' },
-      { key: '/system/users',           label: '用户管理' },
+      { key: '/system/users',           label: '用户管理',  roles: ['group_admin', 'system_admin'] },
       { key: '/system/logs',            label: '系统日志' },
       { key: '/system/notifications',   label: '通知管理',  roles: ['group_admin', 'company_admin'] },
     ],
