@@ -23,9 +23,9 @@ interface BoundAccount {
 }
 
 const mockBoundAccount: BoundAccount = {
-  accountId: 'UHBOWunhfi8974nnf',
+  accountId: '',
   accountName: 'Miya（@miya_sg）',
-  platform: 'UU Talk Platform',
+  platform: '',
   syncedAt: '2026-03-30 10:00:00',
 };
 

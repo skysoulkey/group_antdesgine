@@ -1,7 +1,7 @@
 import { defineConfig } from 'umi';
 
 export default defineConfig({
-  title: '集团公司管理系统',
+  title: '商户管理平台',
   favicons: ['/favicon.png'],
   npmClient: 'npm',
   routes: [

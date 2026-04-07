@@ -266,7 +266,7 @@ const LoginPage: React.FC = () => {
               style={{ width: 72, height: 72, marginBottom: 16, filter: 'drop-shadow(0 8px 24px rgba(114,46,209,0.5))' }}
             />
             <Title level={4} style={{ margin: 0, color: '#fff', letterSpacing: 1 }}>
-              集团公司管理系统
+              商户管理平台
             </Title>
             <div style={{ marginTop: 4 }}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, letterSpacing: 3 }}>

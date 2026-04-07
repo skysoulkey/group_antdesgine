@@ -2,7 +2,7 @@ import {
   ApartmentOutlined,
   BankOutlined,
   BellOutlined,
-  DashboardOutlined,
+  BarChartOutlined,
   FileTextOutlined,
   SettingOutlined,
   StockOutlined,
@@ -23,7 +23,7 @@ type MenuItem = NonNullable<MenuProps['items']>[number] & { roles?: string[]; ch
 const allMenuItems: MenuItem[] = [
   {
     key: 'dashboard',
-    icon: <DashboardOutlined />,
+    icon: <BarChartOutlined />,
     label: '仪表盘',
     roles: ['group_admin', 'company_admin'],
     children: [
@@ -197,7 +197,7 @@ const MainLayout: React.FC = () => {
           <img src={logoImg} alt="logo" style={{ width: 28, height: 28, flexShrink: 0 }} />
           {!collapsed && (
             <Text strong style={{ color: '#fff', fontSize: 14, marginLeft: 10, whiteSpace: 'nowrap' }}>
-              集团管理系统
+              商户管理平台
             </Text>
           )}
         </div>

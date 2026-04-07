@@ -118,7 +118,7 @@ export default function SystemSettings() {
             style={{ marginBottom: 24 }}
           />
           <Form form={generalForm} layout="vertical"
-            initialValues={{ platformName: '集团管理系统', timezone: 'Asia/Singapore', dateFormat: 'YYYY-MM-DD HH:mm:ss', currency: 'USDT', language: 'zh-CN' }}>
+            initialValues={{ platformName: '商户管理平台', timezone: 'Asia/Singapore', dateFormat: 'YYYY-MM-DD HH:mm:ss', currency: 'USDT', language: 'zh-CN' }}>
             <Row gutter={24}>
               <Col xs={24} md={12}>
                 <Form.Item label="平台名称" name="platformName" rules={[{ required: true, message: '请输入平台名称' }]}>

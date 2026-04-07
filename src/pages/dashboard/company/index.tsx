@@ -1,5 +1,5 @@
 import {
-  AccountBookOutlined,
+  DollarOutlined,
   ApartmentOutlined,
   BankOutlined,
   ExportOutlined,
@@ -350,7 +350,7 @@ const CompanyDashboard: React.FC = () => {
             title={`税费收益（${currency}）`}
             value="202,320.00"
             color="#52c41a"
-            icon={<AccountBookOutlined />}
+            icon={<DollarOutlined />}
             sub={[
               { label: '昨日收益', value: '233,322.00' },
               { label: '今日收益', value: '233,322.00' },

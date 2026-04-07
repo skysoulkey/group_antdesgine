@@ -7,7 +7,7 @@ import { CARD_SHADOW } from './constants';
 const { Text } = Typography;
 
 // mock 当前绑定账号（实际应从全局 state 或 context 读取，此处独立 mock）
-const CURRENT_BOUND = { accountId: 'UHBOWunhfi8974nnf', accountName: 'Miya（@miya_sg）', platform: 'UU Talk Platform' };
+const CURRENT_BOUND = { accountId: '', accountName: 'Miya（@miya_sg）', platform: '' };
 
 const BindAccountPage: React.FC = () => {
   const navigate = useNavigate();
