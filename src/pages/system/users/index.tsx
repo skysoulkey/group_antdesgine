@@ -144,7 +144,7 @@ const UserManagePage: React.FC = () => {
   const mockRole = (localStorage.getItem('mock_role') ?? 'group_admin') as Role;
   const visibleData = mockRole === 'system_admin'
     ? initialData
-    : initialData.filter((r) => r.group === CURRENT_GROUP);
+    : initialData.filter((r) => r.group === CURRENT_GROUP && r.role !== '集团管理员');
   const [users, setUsers] = useState<UserRecord[]>(visibleData);
 
   const [search, setSearch] = useState('');
@@ -219,9 +219,8 @@ const UserManagePage: React.FC = () => {
   };
 
   const columns: ColumnsType<UserRecord> = [
+    { title: '创建时间', dataIndex: 'createdAt', width: 170, sorter: (a, b) => a.createdAt.localeCompare(b.createdAt) },
     { title: '用户名', dataIndex: 'username', width: 110, render: (v) => <Text strong>{v}</Text> },
-    { title: '手机号', dataIndex: 'phone', width: 150 },
-    { title: '邮箱', dataIndex: 'email', width: 170, ellipsis: true },
     { title: '归属集团', dataIndex: 'group', width: 100 },
     { title: '归属公司', dataIndex: 'company', width: 110 },
     { title: '角色', dataIndex: 'role', width: 110, render: (v: UserRole) => <Tag color={roleColors[v]}>{v}</Tag> },
@@ -235,7 +234,7 @@ const UserManagePage: React.FC = () => {
         </Space>
       ),
     },
-    { title: '创建时间', dataIndex: 'createdAt', width: 160 },
+    { title: '有效期', dataIndex: 'validPeriod', width: 120 },
     {
       title: '操作', width: 170, fixed: 'right' as const,
       render: (_, r) => {

@@ -34,8 +34,9 @@ const ProfilePage: React.FC = () => {
   const personalInfo = {
     username: 'Miya',
     role: roleLabel[role],
-    email: 'Miya@gmail.com',
     validPeriod: '永久有效',
+    ipRestrict: false,
+    ipWhitelist: '',
     lastLoginIp: '104.28.222.12',
     lastLoginCountry: '🇸🇬 新加坡',
     lastLoginTime: '2025-11-23 13:56:21',
@@ -43,10 +44,11 @@ const ProfilePage: React.FC = () => {
     mfaEnabled: false,
   };
 
+
   return (
     <div>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
-        <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130 }} bordered>
+        <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130, whiteSpace: 'nowrap' }} bordered>
           <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
           <Descriptions.Item label="角色">
             <Tag color="blue">{personalInfo.role}</Tag>
@@ -57,11 +59,13 @@ const ProfilePage: React.FC = () => {
           {role === 'company_admin' && (
             <Descriptions.Item label="归属公司">炸雷第一波</Descriptions.Item>
           )}
-          <Descriptions.Item label="邮箱">{personalInfo.email}</Descriptions.Item>
           <Descriptions.Item label="账户有效期">
             <Text type="success">{personalInfo.validPeriod}</Text>
           </Descriptions.Item>
-          <Descriptions.Item label="最近登录IP">
+          <Descriptions.Item label="IP 限制">
+            <Tag color={personalInfo.ipRestrict ? 'success' : 'default'}>{personalInfo.ipRestrict ? '已开启' : '未开启'}</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label="最近登录 IP">
             <Space>
               <Text style={{ fontFamily: 'monospace' }}>{personalInfo.lastLoginIp}</Text>
               <Text>{personalInfo.lastLoginCountry}</Text>
