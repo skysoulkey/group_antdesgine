@@ -8,7 +8,7 @@ import {
   StockOutlined,
 } from '@ant-design/icons';
 import logoImg from '../assets/logo.png';
-import { Badge, Breadcrumb, Layout, Menu, Select, Space, Typography } from 'antd';
+import { Badge, Breadcrumb, Button, Divider, Layout, List, Menu, Popover, Select, Space, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'umi';
@@ -143,6 +143,27 @@ function getDefaultOpenKeys(pathname: string): string[] {
   return [];
 }
 
+// ── 站内通知 mock 数据 ────────────────────────────────────────────
+interface InboxItem {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+const NOTIF_TYPES_INBOX = ['集团下拨', '集团调回', '持股企业追加投资', '下辖企业解散', '新增订阅企业', '下辖企业认证过期'];
+
+const initInbox: InboxItem[] = Array.from({ length: 8 }, (_, i) => ({
+  id: `INB${String(i + 1).padStart(5, '0')}`,
+  title: `${NOTIF_TYPES_INBOX[i % NOTIF_TYPES_INBOX.length]}通知`,
+  content: `${NOTIF_TYPES_INBOX[i % NOTIF_TYPES_INBOX.length]}操作已完成，请及时确认处理。编号：${1000 + i}`,
+  type: NOTIF_TYPES_INBOX[i % NOTIF_TYPES_INBOX.length],
+  isRead: i >= 5,
+  createdAt: `${i < 3 ? '10分钟' : i < 5 ? '2小时' : '1天'}前`,
+}));
+
 // ── 主布局 ────────────────────────────────────────────────────────
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -158,6 +179,64 @@ const MainLayout: React.FC = () => {
     setRole(newRole);
     navigate(defaultRoute(newRole));
   };
+
+  // 站内通知状态
+  const [inbox, setInbox] = useState<InboxItem[]>(initInbox);
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const unreadCount = inbox.filter((n) => !n.isRead).length;
+
+  const handleMarkAllRead = () => {
+    setInbox((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  };
+
+  const handleMarkRead = (id: string) => {
+    setInbox((prev) => prev.map((n) => n.id === id ? { ...n, isRead: true } : n));
+  };
+
+  const notificationContent = (
+    <div style={{ width: 360 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0' }}>
+        <Text strong style={{ fontSize: 15 }}>站内通知</Text>
+        {unreadCount > 0 && (
+          <Button type="link" size="small" style={{ padding: 0, fontSize: 12 }} onClick={handleMarkAllRead}>
+            全部已读
+          </Button>
+        )}
+      </div>
+      <Divider style={{ margin: '8px 0' }} />
+      <div style={{ maxHeight: 400, overflowY: 'auto' }}>
+        <List
+          dataSource={inbox}
+          renderItem={(item) => (
+            <List.Item
+              style={{ padding: '10px 0', cursor: 'pointer', opacity: item.isRead ? 0.6 : 1 }}
+              onClick={() => handleMarkRead(item.id)}
+            >
+              <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                {!item.isRead && (
+                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#722ed1', marginTop: 6, flexShrink: 0 }} />
+                )}
+                {item.isRead && <div style={{ width: 8, flexShrink: 0 }} />}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Text strong={!item.isRead} style={{ fontSize: 13 }}>{item.title}</Text>
+                    <Text type="secondary" style={{ fontSize: 11, flexShrink: 0, marginLeft: 8 }}>{item.createdAt}</Text>
+                  </div>
+                  <Text type="secondary" style={{ fontSize: 12 }} ellipsis>{item.content}</Text>
+                </div>
+              </div>
+            </List.Item>
+          )}
+        />
+      </div>
+      <Divider style={{ margin: '8px 0' }} />
+      <div style={{ textAlign: 'center' }}>
+        <Button type="link" size="small" onClick={() => { setPopoverOpen(false); navigate('/system/notifications'); }}>
+          查看全部通知
+        </Button>
+      </div>
+    </div>
+  );
 
   const menuItems = filterMenuByRole(allMenuItems, role);
   const breadcrumbs = getBreadcrumb(location.pathname);
@@ -245,12 +324,19 @@ const MainLayout: React.FC = () => {
                 <Text strong style={{ color: '#722ed1' }}>178,283.09 USDT</Text>
               </Space>
             )}
-            <Badge count={3} size="small">
-              <BellOutlined
-                style={{ fontSize: 18, cursor: 'pointer', color: '#595959' }}
-                onClick={() => navigate('/system/notifications')}
-              />
-            </Badge>
+            <Popover
+              content={notificationContent}
+              trigger="click"
+              placement="bottomRight"
+              open={popoverOpen}
+              onOpenChange={setPopoverOpen}
+              arrow={false}
+              overlayInnerStyle={{ padding: '12px 16px' }}
+            >
+              <Badge count={unreadCount} size="small">
+                <BellOutlined style={{ fontSize: 18, cursor: 'pointer', color: '#595959' }} />
+              </Badge>
+            </Popover>
           </Space>
         </Header>
 

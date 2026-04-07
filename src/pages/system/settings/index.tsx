@@ -18,6 +18,7 @@ export default function SystemSettings() {
   const [generalForm] = Form.useForm();
   const [notifForm] = Form.useForm();
   const [ipWhitelistEnabled, setIpWhitelistEnabled] = useState(false);
+  const [inAppEnabled, setInAppEnabled] = useState(true);
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [telegramEnabled, setTelegramEnabled] = useState(false);
 
@@ -167,7 +168,20 @@ export default function SystemSettings() {
             style={{ marginBottom: 24 }}
           />
           <Form form={notifForm} layout="vertical"
-            initialValues={{ emailEnabled: false, telegramEnabled: false, emailPort: 465, notifyEvents: ['login_fail', 'large_transfer'] }}>
+            initialValues={{ inAppEnabled: true, inAppRetentionDays: 90, emailEnabled: false, telegramEnabled: false, emailPort: 465, notifyEvents: ['login_fail', 'large_transfer'] }}>
+            <Divider orientation="left">站内通知</Divider>
+            <Form.Item label="启用站内通知" name="inAppEnabled" valuePropName="checked">
+              <Switch checkedChildren="开启" unCheckedChildren="关闭" onChange={v => setInAppEnabled(v)} />
+            </Form.Item>
+            {inAppEnabled && (
+              <Row gutter={24}>
+                <Col xs={24} md={12}>
+                  <Form.Item label="通知保留天数" name="inAppRetentionDays" rules={[{ required: true, message: '请输入保留天数' }]}>
+                    <InputNumber min={1} max={365} style={{ width: '100%' }} addonAfter="天" />
+                  </Form.Item>
+                </Col>
+              </Row>
+            )}
             <Divider orientation="left">邮件通知</Divider>
             <Form.Item label="启用邮件通知" name="emailEnabled" valuePropName="checked">
               <Switch checkedChildren="开启" unCheckedChildren="关闭" onChange={v => setEmailEnabled(v)} />

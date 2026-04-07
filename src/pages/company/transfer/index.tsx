@@ -287,7 +287,8 @@ const WizardModal: React.FC<WizardModalProps> = ({ mode, open, onClose }) => {
       {/* 第二步：确认信息 + MFA（requirement 5）*/}
       {step === 1 && (
         <>
-          <Descriptions column={1} bordered size="small" style={{ marginBottom: 16 }}>
+          <Descriptions column={1} bordered size="small" style={{ marginBottom: 16 }}
+            labelStyle={{ whiteSpace: 'nowrap' }}>
             <Descriptions.Item label={isAllocate ? '付款集团账户' : '调回公司账户'}>
               {isAllocate ? '集团余额账户' : formValues.company}
             </Descriptions.Item>
@@ -327,7 +328,8 @@ const WizardModal: React.FC<WizardModalProps> = ({ mode, open, onClose }) => {
         <div style={{ textAlign: 'center', padding: '8px 0 16px' }}>
           <CheckCircleFilled style={{ fontSize: 52, color: '#52c41a', marginBottom: 12 }} />
           <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 20 }}>操作成功</div>
-          <Descriptions column={1} bordered size="small">
+          <Descriptions column={1} bordered size="small"
+            labelStyle={{ whiteSpace: 'nowrap' }}>
             <Descriptions.Item label="当前已到账">
               <Text style={{ color: '#52c41a', fontWeight: 600 }}>
                 {fmt(amt)} {cur}

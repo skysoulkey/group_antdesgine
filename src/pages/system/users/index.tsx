@@ -353,7 +353,8 @@ const UserManagePage: React.FC = () => {
           {(() => {
           const u = users.find((x) => x.id === currentUser?.id) ?? currentUser;
           return u ? (
-            <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}>
+            <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}
+              labelStyle={{ whiteSpace: 'nowrap' }}>
               <Descriptions.Item label="用户名">{u.username}</Descriptions.Item>
               <Descriptions.Item label="手机号">{u.phone}</Descriptions.Item>
               <Descriptions.Item label="邮箱">{u.email}</Descriptions.Item>
