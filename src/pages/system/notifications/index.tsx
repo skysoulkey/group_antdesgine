@@ -1,5 +1,5 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Card, Checkbox, ConfigProvider, Descriptions, Divider, Input, Modal, Radio, Space, Table, Tabs, Tag, Typography, message } from 'antd';
+import { Button, Card, ConfigProvider, Descriptions, Divider, Input, Modal, Radio, Space, Switch, Table, Tabs, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 
@@ -8,7 +8,7 @@ const { Text } = Typography;
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
 // 通知类型
-const NOTIF_TYPES = ['集团下拨', '集团调回', '持股企业追加投资', '下辖企业解散', '新增订阅企业', '下辖企业认证过期'];
+const NOTIF_TYPES = ['集团下拨', '集团调回', '持股企业追加投资', '企业解散', '新增订阅企业', '企业认证过期'];
 
 // ── 通知用户 mock ─────────────────────────────────────────────────
 interface NotifUser {
@@ -95,11 +95,9 @@ const NotificationsPage: React.FC = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<NotifRecord | null>(null);
 
-  // 通知配置 — 偏好矩阵
+  // 通知配置
   const [users, setUsers] = useState<NotifUser[]>(initUsers);
   const [prefRows, setPrefRows] = useState<PrefRow[]>(() => buildInitPrefs(initUsers));
-  const [prefEditing, setPrefEditing] = useState(false);
-  const [prefSnapshot, setPrefSnapshot] = useState<PrefRow[] | null>(null);
 
   // 编辑通知对象弹窗
   const [userModalOpen, setUserModalOpen] = useState(false);
@@ -121,7 +119,6 @@ const NotificationsPage: React.FC = () => {
   const recordColumns: ColumnsType<NotifRecord> = [
     { title: '通知时间', dataIndex: 'notifTime', width: 170 },
     { title: '通知方式', dataIndex: 'method', width: 90 },
-    { title: '通知对象', dataIndex: 'target', width: 120 },
     {
       title: '消息回执', dataIndex: 'receipt', width: 90,
       render: (v) => <Tag color={receiptColor(v)}>{v}</Tag>,
@@ -138,61 +135,37 @@ const NotificationsPage: React.FC = () => {
     },
   ];
 
-  // ── 偏好操作 ────────────────────────────────────────────────────
-  const handlePrefToggle = (key: string, channel: 'inApp' | 'app' | 'email', checked: boolean) => {
+  // ── 偏好操作（Switch 即时保存）────────────────────────────────────
+  const handlePrefToggle = (key: string, channel: 'app' | 'email', checked: boolean) => {
     setPrefRows((prev) => prev.map((r) => {
       if (r.key !== key) return r;
-      const updated = { ...r, [channel]: checked };
-      if (!updated.inApp && !updated.app && !updated.email) {
-        message.warning('至少保留一种通知渠道');
-        return r;
-      }
-      return updated;
+      return { ...r, [channel]: checked };
     }));
-  };
-
-  const handlePrefSave = () => {
-    setPrefEditing(false);
-    setPrefSnapshot(null);
-    message.success('通知配置已保存');
-  };
-
-  const handlePrefCancel = () => {
-    if (prefSnapshot) setPrefRows(prefSnapshot);
-    setPrefEditing(false);
-    setPrefSnapshot(null);
+    message.success('已保存');
   };
 
   const prefColumns: ColumnsType<PrefRow> = [
     {
-      title: '通知对象', dataIndex: 'userName', width: 120,
-      render: (v) => <Text style={{ fontWeight: 600 }}>{v}</Text>,
-    },
-    {
-      title: 'APP 用户名', width: 140,
+      title: 'APP 用户名', width: 160,
       render: (_, r) => {
         const u = users.find((x) => x.id === r.userId);
         return <Text style={{ fontSize: 13 }}>{u?.appAccount ?? '—'}</Text>;
       },
     },
     {
-      title: '邮箱', width: 180,
+      title: '邮箱', width: 200,
       render: (_, r) => {
         const u = users.find((x) => x.id === r.userId);
         return <Text style={{ fontSize: 13 }}>{u?.email ?? '—'}</Text>;
       },
     },
     {
-      title: '站内', dataIndex: 'inApp', width: 80, align: 'center',
-      render: (v, r) => <Checkbox checked={v} disabled={!prefEditing} onChange={(e) => handlePrefToggle(r.key, 'inApp', e.target.checked)} />,
+      title: 'APP 通知', dataIndex: 'app', width: 100, align: 'center',
+      render: (v, r) => <Switch size="small" checked={v} onChange={(checked) => handlePrefToggle(r.key, 'app', checked)} />,
     },
     {
-      title: 'APP', dataIndex: 'app', width: 80, align: 'center',
-      render: (v, r) => <Checkbox checked={v} disabled={!prefEditing} onChange={(e) => handlePrefToggle(r.key, 'app', e.target.checked)} />,
-    },
-    {
-      title: '邮件', dataIndex: 'email', width: 80, align: 'center',
-      render: (v, r) => <Checkbox checked={v} disabled={!prefEditing} onChange={(e) => handlePrefToggle(r.key, 'email', e.target.checked)} />,
+      title: '邮件通知', dataIndex: 'email', width: 100, align: 'center',
+      render: (v, r) => <Switch size="small" checked={v} onChange={(checked) => handlePrefToggle(r.key, 'email', checked)} />,
     },
   ];
 
@@ -297,22 +270,12 @@ const NotificationsPage: React.FC = () => {
       key: 'config',
       label: '通知配置',
       children: (
-        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+          styles={{ body: { padding: '16px 24px' } }}>
+          {/* 通知对象配置 */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <Text style={{ fontSize: 15, fontWeight: 600 }}>通知配置</Text>
-            <Space>
-              <Button icon={<EditOutlined />} onClick={openUserModal}>编辑通知对象</Button>
-              {!prefEditing ? (
-                <Button type="primary" onClick={() => { setPrefEditing(true); setPrefSnapshot(JSON.parse(JSON.stringify(prefRows))); }}>
-                  编辑偏好
-                </Button>
-              ) : (
-                <>
-                  <Button type="primary" onClick={handlePrefSave}>保 存</Button>
-                  <Button onClick={handlePrefCancel}>取 消</Button>
-                </>
-              )}
-            </Space>
+            <Text style={{ fontSize: 15, fontWeight: 600 }}>通知对象</Text>
+            <Button icon={<EditOutlined />} onClick={openUserModal}>编辑</Button>
           </div>
           <Table
             columns={prefColumns}
@@ -320,7 +283,6 @@ const NotificationsPage: React.FC = () => {
             rowKey="key"
             size="middle"
             pagination={false}
-            bordered
           />
         </Card>
       ),
@@ -351,7 +313,6 @@ const NotificationsPage: React.FC = () => {
             labelStyle={{ whiteSpace: 'nowrap', width: 90 }}>
             <Descriptions.Item label="发送时间">{currentRecord.notifTime}</Descriptions.Item>
             <Descriptions.Item label="通知方式">{currentRecord.method}</Descriptions.Item>
-            <Descriptions.Item label="通知对象">{currentRecord.target}</Descriptions.Item>
             <Descriptions.Item label="通知类型">{currentRecord.type}</Descriptions.Item>
             {currentRecord.method === '站内' ? (
               <Descriptions.Item label="阅读状态">
@@ -367,9 +328,9 @@ const NotificationsPage: React.FC = () => {
         )}
       </Modal>
 
-      {/* 编辑通知对象弹窗 */}
+      {/* 编辑弹窗 */}
       <Modal
-        title="编辑通知对象"
+        title="编辑通知配置"
         open={userModalOpen}
         onOk={handleUserModalSave}
         onCancel={() => setUserModalOpen(false)}
@@ -384,12 +345,6 @@ const NotificationsPage: React.FC = () => {
             pagination={false}
             bordered
             columns={[
-              {
-                title: '通知对象', dataIndex: 'name', width: 120,
-                render: (v, r) => (
-                  <Input size="small" value={v} onChange={(e) => handleEditUserField(r.id, 'name', e.target.value)} />
-                ),
-              },
               {
                 title: 'APP 用户名', dataIndex: 'appAccount', width: 160,
                 render: (v, r) => (
@@ -413,7 +368,6 @@ const NotificationsPage: React.FC = () => {
           />
           <Divider style={{ margin: '12px 0' }} />
           <Space>
-            <Input placeholder="通知对象" value={newUserName} onChange={(e) => setNewUserName(e.target.value)} style={{ width: 100 }} />
             <Input placeholder="APP 用户名" value={newUserApp} onChange={(e) => setNewUserApp(e.target.value)} style={{ width: 140 }} />
             <Input placeholder="邮箱" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} style={{ width: 180 }} />
             <Button icon={<PlusOutlined />} onClick={handleAddUser}>添加</Button>

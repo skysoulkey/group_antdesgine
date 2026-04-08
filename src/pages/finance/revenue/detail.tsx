@@ -127,8 +127,8 @@ const FinanceRevenueDetail: React.FC = () => {
         <Title level={5} style={{ margin: '0 0 12px' }}>汇算明细</Title>
         <Descriptions column={4} size="small">
           <Descriptions.Item label="集团名称">集团</Descriptions.Item>
-          <Descriptions.Item label="下辖企业">12 家</Descriptions.Item>
-          <Descriptions.Item label="下辖公司">4 家</Descriptions.Item>
+          <Descriptions.Item label="企业">12 家</Descriptions.Item>
+          <Descriptions.Item label="公司">4 家</Descriptions.Item>
           <Descriptions.Item label="集团负责人">Admin</Descriptions.Item>
         </Descriptions>
       </Card>

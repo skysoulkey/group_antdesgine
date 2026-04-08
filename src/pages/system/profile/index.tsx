@@ -10,6 +10,7 @@ import {
   Space,
   Switch,
   Typography,
+  message,
 } from 'antd';
 import React, { useState } from 'react';
 import { MOCK_ROLE, type Role } from '../../../utils/auth';
@@ -40,18 +41,20 @@ const ProfilePage: React.FC = () => {
     lastLoginCountry: '🇸🇬 新加坡',
     lastLoginTime: '2025-11-23 13:56:21',
     createdAt: '2025-11-23 13:56:21',
-    mfaEnabled: false,
   };
 
+  const [inAppEnabled, setInAppEnabled] = useState(true);
+  const handleInAppToggle = (checked: boolean) => {
+    setInAppEnabled(checked);
+    message.success(checked ? '站内通知已开启' : '站内通知已关闭');
+  };
 
   return (
     <div>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
         <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130, whiteSpace: 'nowrap' }} bordered>
           <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
-          <Descriptions.Item label="角色">
-            {personalInfo.role}
-          </Descriptions.Item>
+          <Descriptions.Item label="角色">{personalInfo.role}</Descriptions.Item>
           {(role === 'group_admin' || role === 'company_admin') && (
             <Descriptions.Item label="归属集团">UU Talk 集团</Descriptions.Item>
           )}
@@ -72,8 +75,8 @@ const ProfilePage: React.FC = () => {
           </Descriptions.Item>
           <Descriptions.Item label="最近登录时间">{personalInfo.lastLoginTime}</Descriptions.Item>
           <Descriptions.Item label="账号创建时间">{personalInfo.createdAt}</Descriptions.Item>
-          <Descriptions.Item label="MFA 认证">
-            <Switch defaultChecked={personalInfo.mfaEnabled} />
+          <Descriptions.Item label="站内通知">
+            <Switch checked={inAppEnabled} onChange={handleInAppToggle} />
           </Descriptions.Item>
           <Descriptions.Item label="登录密码">
             <Button

@@ -81,7 +81,7 @@ const allMenuItems: MenuItem[] = [
     children: [
       { key: '/finance/my-wallet',      label: '公司钱包',  roles: ['company_admin'] },
       { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_admin'] },
-      { key: '/system/profile',         label: '基础信息' },
+      { key: '/system/profile',         label: '个人中心' },
       { key: '/system/users',           label: '用户管理',  roles: ['group_admin', 'system_admin'] },
       { key: '/system/logs',            label: '系统日志' },
       { key: '/system/notifications',   label: '通知管理',  roles: ['group_admin', 'company_admin'] },
@@ -117,7 +117,7 @@ const breadcrumbMap: Record<string, string[]> = {
   '/finance/my-wallet':      ['设置中心', '公司钱包'],
   '/finance/wallet':             ['设置中心', '集团钱包'],
   '/finance/wallet/bind-account': ['设置中心', '集团钱包', '修改绑定账号'],
-  '/system/profile':         ['设置中心', '基础信息'],
+  '/system/profile':         ['设置中心', '个人中心'],
   '/system/users':           ['设置中心', '用户管理'],
   '/system/logs':            ['设置中心', '系统日志'],
   '/system/notifications':   ['设置中心', '通知管理'],
@@ -184,7 +184,7 @@ interface InboxItem {
   createdAt: string;
 }
 
-const NOTIF_TYPES_INBOX = ['集团下拨', '集团调回', '持股企业追加投资', '下辖企业解散', '新增订阅企业', '下辖企业认证过期'];
+const NOTIF_TYPES_INBOX = ['集团下拨', '集团调回', '持股企业追加投资', '企业解散', '新增订阅企业', '企业认证过期'];
 
 const initInbox: InboxItem[] = Array.from({ length: 8 }, (_, i) => ({
   id: `INB${String(i + 1).padStart(5, '0')}`,

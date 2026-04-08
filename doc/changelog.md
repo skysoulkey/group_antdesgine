@@ -1,5 +1,31 @@
 # 变更记录
 
+## 2026-04-08 — 个人中心改名 + 站内通知开关移入 + MFA 去掉
+
+- `layouts/index.tsx`：菜单和面包屑"基础信息"改为"个人中心"
+- `system/profile/index.tsx`：MFA 认证开关去掉，新增站内通知 Switch（点击即保存）
+- `system/notifications/index.tsx`：站内通知开关从通知配置页移除（已移至个人中心）
+- 通知配置页 APP/邮件通知保持 Switch 滑块即时保存
+
+---
+
+## 2026-04-08 — 通知配置交互优化
+
+- `system/notifications/index.tsx`：
+  - 站内通知从表格列改为顶部统一 Switch 开关（只控制自己账号）
+  - APP/邮件通知从 Checkbox + 编辑模式改为 Switch 滑块，点击即保存
+  - 去掉"编辑偏好"按钮及编辑/保存/取消流程
+  - 表格去掉 bordered，Card 增加 padding
+
+---
+
+## 2026-04-08 — 通知管理-通知配置去掉"通知对象"字段
+
+- `system/notifications/index.tsx`：通知记录列表、通知配置表格、详情弹窗去掉"通知对象"列/字段；编辑弹窗去掉"通知对象"列和新增输入框；按钮"编辑通知对象"改为"编辑"，弹窗标题改为"编辑通知配置"
+- 全站去掉"下辖"：data-spec.md、layouts、notifications、revenue/detail 共 21 处
+
+---
+
 ## 2026-04-08 — 公司钱包公司信息右对齐
 
 - `finance/company-wallet/index.tsx`：公司名称、归属集团、公司ID 拆到右侧独立区域右对齐，左侧只保留余额；通知账号移除（非核心信息）
