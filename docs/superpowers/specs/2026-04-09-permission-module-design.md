@@ -83,13 +83,28 @@
 | `/finance/my-wallet` | 公司钱包 | `company_owner`, `company_finance` |
 | `/system/notifications` | 通知管理 | `company_owner`, `company_ops` |
 
-### 4.3 共享路由
+### 4.3 设置类路由
 
 | 路由 | 所属模块 | 允许角色 |
 |------|---------|---------|
 | `/system/users` | 用户管理 | `group_owner`, `company_owner` |
-| `/system/logs` | 系统日志 | `group_owner`, `group_audit`, `company_owner`, `company_audit` |
 | `/system/profile` | 个人中心 | 所有角色 |
+
+系统日志按层级拆分，分别归入集团侧和公司侧：
+
+**集团侧：**
+
+| 路由 | 所属模块 | 允许角色 |
+|------|---------|---------|
+| `/system/logs` | 集团系统日志 | `group_owner`, `group_audit` |
+
+**公司侧：**
+
+| 路由 | 所属模块 | 允许角色 |
+|------|---------|---------|
+| `/system/logs` | 公司系统日志 | `company_owner`, `company_audit` |
+
+> 集团用户和公司用户访问同一路由 `/system/logs`，后端根据用户归属返回对应层级的日志数据。
 
 ---
 
