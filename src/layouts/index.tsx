@@ -14,7 +14,10 @@ import { Badge, Breadcrumb, Button, Divider, Layout, List, Menu, Popover, Select
 import type { MenuProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useSearchParams } from 'umi';
-import { defaultRoute, hasPermission, MOCK_ROLE, type Role } from '../utils/auth';
+import {
+  defaultRoute, getMockAuth, hasPermission,
+  type Role, type UserAuth,
+} from '../utils/auth';
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -27,38 +30,38 @@ const allMenuItems: MenuItem[] = [
     key: 'dashboard',
     icon: <BarChartOutlined />,
     label: '仪表盘',
-    roles: ['group_admin', 'company_admin'],
+    roles: ['group_owner', 'group_ops', 'company_owner', 'company_ops'],
     children: [
-      { key: '/dashboard',         label: '集团仪表盘', roles: ['group_admin'] },
-      { key: '/dashboard/company', label: '公司仪表盘', roles: ['company_admin'] },
+      { key: '/dashboard',         label: '集团仪表盘', roles: ['group_owner', 'group_ops'] },
+      { key: '/dashboard/company', label: '公司仪表盘', roles: ['company_owner', 'company_ops'] },
     ],
   },
   {
     key: 'group',
     icon: <BankOutlined />,
     label: '集团管理',
-    roles: ['group_admin'],
+    roles: ['group_owner', 'group_ops', 'group_finance'],
     children: [
-      { key: '/company/list',      label: '公司清单' },
-      { key: '/company/transfer',  label: '内部划转' },
-      { key: '/finance/revenue',   label: '集团收益' },
+      { key: '/company/list',      label: '公司清单',  roles: ['group_owner', 'group_ops'] },
+      { key: '/company/transfer',  label: '内部划转',  roles: ['group_owner', 'group_ops'] },
+      { key: '/finance/revenue',   label: '集团收益',  roles: ['group_owner', 'group_finance'] },
     ],
   },
   {
     key: 'company',
     icon: <StockOutlined />,
     label: '公司管理',
-    roles: ['company_admin'],
+    roles: ['company_owner', 'company_ops', 'company_finance'],
     children: [
-      { key: '/company/shareholding', label: '公司持股' },
-      { key: '/company/revenue',      label: '公司收益' },
+      { key: '/company/shareholding', label: '公司持股', roles: ['company_owner', 'company_ops'] },
+      { key: '/company/revenue',      label: '公司收益', roles: ['company_owner', 'company_finance'] },
     ],
   },
   {
     key: 'enterprise',
     icon: <ApartmentOutlined />,
     label: '企业管理',
-    roles: ['company_admin'],
+    roles: ['company_owner', 'company_promo'],
     children: [
       { key: '/enterprise/list',   label: '企业清单' },
       { key: '/enterprise/invite', label: '邀请企业' },
@@ -68,7 +71,7 @@ const allMenuItems: MenuItem[] = [
     key: 'orders',
     icon: <FileTextOutlined />,
     label: '公司订单',
-    roles: ['company_admin'],
+    roles: ['company_owner', 'company_ops'],
     children: [
       { key: '/orders/lottery', label: '东方彩票' },
       { key: '/commission',     label: '佣金订单' },
@@ -79,24 +82,26 @@ const allMenuItems: MenuItem[] = [
     icon: <SettingOutlined />,
     label: '设置中心',
     children: [
-      { key: '/finance/my-wallet',      label: '公司钱包',  roles: ['company_admin'] },
-      { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_admin'] },
+      { key: '/finance/my-wallet',      label: '公司钱包',  roles: ['company_owner', 'company_finance'] },
+      { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_owner', 'group_finance'] },
       { key: '/system/profile',         label: '个人中心' },
-      { key: '/system/users',           label: '用户管理',  roles: ['group_admin', 'system_admin'] },
-      { key: '/system/logs',            label: '系统日志' },
-      { key: '/system/notifications',   label: '通知管理',  roles: ['group_admin', 'company_admin'] },
+      { key: '/system/users',           label: '用户管理',  roles: ['group_owner', 'company_owner'] },
+      { key: '/system/logs',            label: '系统日志',  roles: ['group_owner', 'group_audit', 'company_owner', 'company_audit'] },
+      { key: '/system/notifications',   label: '通知管理',  roles: ['company_owner', 'company_ops'] },
     ],
   },
 ];
 
-function filterMenuByRole(items: MenuItem[], role: string): MenuProps['items'] {
+function filterMenuByRoles(items: MenuItem[], userRoles: Role[]): MenuItem[] {
   return items
-    .filter((item) => !item.roles || item.roles.includes(role))
+    .filter((item) => !item.roles || item.roles.some((r: string) => userRoles.includes(r as Role)))
     .map((item) => {
-      const { roles, children, ...rest } = item as MenuItem & { roles?: string[] };
-      const filtered = children ? filterMenuByRole(children, role) : undefined;
+      const { roles: _roles, children, ...rest } = item as MenuItem & { roles?: string[] };
+      const filtered = children ? filterMenuByRoles(children, userRoles) : undefined;
+      if (children && (!filtered || filtered.length === 0)) return null;
       return filtered ? { ...rest, children: filtered } : rest;
-    });
+    })
+    .filter(Boolean) as MenuItem[];
 }
 
 // ── 面包屑映射 ────────────────────────────────────────────────────
@@ -201,14 +206,13 @@ const MainLayout: React.FC = () => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
 
-  const [role, setRole] = useState<Role>(
-    () => (localStorage.getItem('mock_role') as Role) ?? MOCK_ROLE
-  );
+  const [auth, setAuth] = useState<UserAuth>(getMockAuth);
+  const roles: Role[] = auth.roles;
 
-  const handleRoleChange = (newRole: Role) => {
-    localStorage.setItem('mock_role', newRole);
-    setRole(newRole);
-    navigate(defaultRoute(newRole));
+  const handleAuthChange = (newAuth: UserAuth) => {
+    localStorage.setItem('mock_auth', JSON.stringify(newAuth));
+    setAuth(newAuth);
+    navigate(defaultRoute(newAuth.roles));
   };
 
   // 站内通知状态
@@ -272,15 +276,15 @@ const MainLayout: React.FC = () => {
   const [searchParams] = useSearchParams();
   const tab = searchParams.get('tab') || '';
 
-  const menuItems = filterMenuByRole(allMenuItems, role);
+  const menuItems = filterMenuByRoles(allMenuItems, roles);
   const breadcrumbs = getBreadcrumb(location.pathname, tab);
 
   // 权限守卫
   useEffect(() => {
-    if (!hasPermission(role, location.pathname)) {
+    if (!hasPermission(roles, location.pathname)) {
       navigate('/403', { replace: true });
     }
-  }, [location.pathname, role]);
+  }, [location.pathname, roles]);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -376,17 +380,25 @@ const MainLayout: React.FC = () => {
 
           <Space size={16}>
             <Select
-              value={role}
-              onChange={handleRoleChange}
+              value={JSON.stringify(auth)}
+              onChange={(v) => handleAuthChange(JSON.parse(v))}
               size="small"
-              style={{ width: 120 }}
+              style={{ width: 140 }}
               options={[
-                { value: 'group_admin',   label: '集团管理员' },
-                { value: 'company_admin', label: '公司管理员' },
-                { value: 'system_admin',  label: '系统管理员' },
+                { value: JSON.stringify({ level: 'group', groupId: 'UU Talk', roles: ['group_owner'] }), label: '集团主' },
+                { value: JSON.stringify({ level: 'group', groupId: 'UU Talk', roles: ['group_finance'] }), label: '集团财务' },
+                { value: JSON.stringify({ level: 'group', groupId: 'UU Talk', roles: ['group_ops'] }), label: '集团经营' },
+                { value: JSON.stringify({ level: 'group', groupId: 'UU Talk', roles: ['group_audit'] }), label: '集团审计' },
+                { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_owner'] }), label: '公司主' },
+                { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_promo'] }), label: '公司推广' },
+                { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_finance'] }), label: '公司财务' },
+                { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_ops'] }), label: '公司经营' },
+                { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_audit'] }), label: '公司审计' },
+                { value: JSON.stringify({ level: 'group', groupId: 'UU Talk', roles: ['group_ops', 'group_finance'] }), label: '集团经营+财务' },
               ]}
             />
-            {role !== 'system_admin' && (
+            {(roles.includes('group_owner') || roles.includes('group_finance') ||
+              roles.includes('company_owner') || roles.includes('company_finance')) && (
               <Space size={4}>
                 <Text type="secondary" style={{ fontSize: 12 }}>余额:</Text>
                 <Text strong style={{ color: '#1677ff' }}>178,283.09 USDT</Text>
