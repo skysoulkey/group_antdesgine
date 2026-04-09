@@ -3,6 +3,7 @@ import logoImg from '../../assets/logo.svg';
 import { Button, ConfigProvider, Form, Input, message, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
+import { defaultRoute, type UserAuth } from '../../utils/auth';
 
 const { Title, Text } = Typography;
 
@@ -143,7 +144,8 @@ const LoginPage: React.FC = () => {
   const [mfaForm] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [captcha, setCaptcha] = useState(generateCode);
-  const [step, setStep] = useState<'login' | 'mfa'>('login');
+  const [step, setStep] = useState<'login' | 'mfa' | 'change-pwd'>('login');
+  const [changePwdForm] = Form.useForm();
 
   const bgCanvasRef = useRef<HTMLCanvasElement>(null);
   const captchaCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -194,11 +196,20 @@ const LoginPage: React.FC = () => {
     setLoading(true);
     setTimeout(() => {
       localStorage.setItem('token', 'mock-token-12345');
-      localStorage.setItem('userInfo', JSON.stringify({ name: 'Miya', role: '集团管理员' }));
-      localStorage.setItem('mock_role', 'group_admin');
-      message.success('登录成功');
-      navigate('/dashboard');
-      setLoading(false);
+      const mockAuth: UserAuth = { level: 'group', groupId: 'UU Talk', roles: ['group_owner'] };
+      localStorage.setItem('mock_auth', JSON.stringify(mockAuth));
+      localStorage.setItem('userInfo', JSON.stringify({ name: 'Miya' }));
+
+      // Mock: 检测首次登录（演示模式直接跳过）
+      const mustChangePwd = false; // 后端返回
+      if (mustChangePwd) {
+        setLoading(false);
+        setStep('change-pwd');
+      } else {
+        message.success('登录成功');
+        navigate(defaultRoute(mockAuth.roles));
+        setLoading(false);
+      }
     }, 700);
   };
 
@@ -270,12 +281,12 @@ const LoginPage: React.FC = () => {
             </Title>
             <div style={{ marginTop: 4 }}>
               <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, letterSpacing: 3 }}>
-                {step === 'login' ? 'USER LOGIN' : 'MFA VERIFICATION'}
+                {step === 'login' ? 'USER LOGIN' : step === 'mfa' ? 'MFA VERIFICATION' : 'CHANGE PASSWORD'}
               </Text>
             </div>
           </div>
 
-          {/* ── 登录表单 ── */}
+          {/* ── 表单区域 ── */}
           {step === 'login' ? (
             <ConfigProvider theme={{
               components: {
@@ -380,7 +391,7 @@ const LoginPage: React.FC = () => {
             </Form>
             </ConfigProvider>
 
-          ) : (
+          ) : step === 'mfa' ? (
             /* ── MFA 表单 ── */
             <Form form={mfaForm} onFinish={onMfaFinish} layout="vertical" requiredMark={false}>
               <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -432,6 +443,61 @@ const LoginPage: React.FC = () => {
                   ← 返回登录
                 </Button>
               </div>
+            </Form>
+          ) : (
+            /* ── 首次改密表单 ── */
+            <Form form={changePwdForm} onFinish={(values) => {
+              if (values.newPwd !== values.confirmPwd) {
+                message.error('两次密码不一致');
+                return;
+              }
+              message.success('密码修改成功，正在进入系统…');
+              const raw = localStorage.getItem('mock_auth');
+              const auth: UserAuth = raw ? JSON.parse(raw) : { level: 'group', groupId: '', roles: [] };
+              navigate(defaultRoute(auth.roles));
+            }} layout="vertical" requiredMark={false}>
+              <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                <Text style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>
+                  首次登录请修改密码
+                </Text>
+              </div>
+              <ConfigProvider theme={{
+                components: {
+                  Input: {
+                    colorBgContainer: 'rgba(255,255,255,0.07)',
+                    colorBorder: 'rgba(255,255,255,0.12)',
+                    colorText: '#fff',
+                    colorTextPlaceholder: 'rgba(255,255,255,0.3)',
+                    colorIcon: 'rgba(255,255,255,0.3)',
+                    hoverBorderColor: 'rgba(167,139,250,0.6)',
+                    activeBorderColor: '#1677ff',
+                  },
+                },
+              }}>
+                <Form.Item name="newPwd" rules={[{ required: true, min: 8, message: '密码至少8位' }]}>
+                  <Input.Password prefix={<LockOutlined />} placeholder="请输入新密码（至少8位）" size="large" style={{ borderRadius: 8 }} />
+                </Form.Item>
+                <Form.Item name="confirmPwd" rules={[
+                  { required: true, message: '请确认新密码' },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue('newPwd') === value) return Promise.resolve();
+                      return Promise.reject(new Error('两次密码不一致'));
+                    },
+                  }),
+                ]}>
+                  <Input.Password prefix={<LockOutlined />} placeholder="请再次输入新密码" size="large" style={{ borderRadius: 8 }} />
+                </Form.Item>
+              </ConfigProvider>
+              <Form.Item style={{ marginTop: 20, marginBottom: 0 }}>
+                <Button type="primary" htmlType="submit" block size="large" style={{
+                  height: 46, fontSize: 15, fontWeight: 600, borderRadius: 10,
+                  background: 'linear-gradient(135deg, #1677ff 0%, #2f54eb 100%)',
+                  border: 'none', boxShadow: '0 6px 20px rgba(22,119,255,0.45)',
+                }}>
+                  确认修改
+                </Button>
+              </Form.Item>
             </Form>
           )}
 
