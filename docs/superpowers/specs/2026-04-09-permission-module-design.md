@@ -21,9 +21,10 @@
       └── 企业（Enterprise）
 ```
 
+- 一个用户**只能归属集团或公司，二选一**
+- 归属集团的用户只能持有集团侧角色，归属公司的用户只能持有公司侧角色，**不可混搭**
 - 集团侧角色只能分配给归属该集团的用户
 - 公司侧角色只能分配给归属该公司的用户
-- 一个用户归属一个集团 + 一个公司，可同时持有集团侧和公司侧角色
 
 ---
 
@@ -212,14 +213,11 @@
 ```typescript
 type GroupRole = 'group_owner' | 'group_finance' | 'group_ops' | 'group_audit';
 type CompanyRole = 'company_owner' | 'company_promo' | 'company_finance' | 'company_ops' | 'company_audit';
-type Role = GroupRole | CompanyRole;
 
-// 用户可持有多个角色
-interface UserAuth {
-  roles: Role[];
-  groupId: string;
-  companyId: string;
-}
+// 用户归属集团或公司，二选一，角色不可混搭
+type UserAuth =
+  | { level: 'group';   groupId: string; roles: GroupRole[] }
+  | { level: 'company'; companyId: string; roles: CompanyRole[] };
 ```
 
 ### 10.2 权限检查函数
