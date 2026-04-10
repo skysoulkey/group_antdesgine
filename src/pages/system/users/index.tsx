@@ -316,9 +316,9 @@ const UserManagePage: React.FC = () => {
           {/* 说明 */}
           <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
             <div>1. 集团主可查看本集团所有用户（含下属公司），公司主可查看本公司所有用户</div>
-            <div>2. 用户列表不显示自己，不可编辑自己的角色</div>
-            <div>3. 同一公司管理员之间数据不做权限隔离，功能模块权限按角色控制</div>
-            <div>4. 一个用户可持有多个角色，权限取并集；集团/公司角色不可混搭</div>
+            <div>2. 集团主在此创建集团侧管理员（集团财务/经营/审计），公司主账号通过「创建公司」时创建</div>
+            <div>3. 公司主在此创建公司侧管理员（公司推广/财务/经营/审计）</div>
+            <div>4. 用户列表不显示自己；一个用户可持有多个同侧角色，权限取并集</div>
           </div>
 
           {/* 筛选 + 操作 */}
@@ -356,7 +356,7 @@ const UserManagePage: React.FC = () => {
                   if (mockAuth.level === 'group') {
                     setCreateGroup((mockAuth as { groupId: string }).groupId);
                     createForm.setFieldsValue({ group: (mockAuth as { groupId: string }).groupId });
-                    setCreateLevel('company');
+                    setCreateLevel('group'); // 集团主只创建集团用户，公司用户通过创建公司时创建
                   } else {
                     setCreateGroup(undefined);
                     setCreateLevel('company');
@@ -488,7 +488,7 @@ const UserManagePage: React.FC = () => {
               username: values.username,
               phone: '',
               email: '',
-              level: createLevel,
+              level: mockAuth.level,
               group: values.group ?? '',
               company: values.company ?? '',
               roles: values.roles ?? [],
@@ -541,20 +541,7 @@ const UserManagePage: React.FC = () => {
 
           <Divider style={{ margin: '12px 0' }} />
 
-          {/* 归属层级 — 集团主可选集团或公司，公司主只能创建公司用户 */}
-          {mockAuth.level === 'group' && (
-            <Form.Item label="用户层级">
-              <Radio.Group value={createLevel} onChange={(e) => {
-                setCreateLevel(e.target.value);
-                createForm.resetFields(['roles', 'company']);
-              }}>
-                <Radio.Button value="group">集团用户</Radio.Button>
-                <Radio.Button value="company">公司用户</Radio.Button>
-              </Radio.Group>
-            </Form.Item>
-          )}
-
-          {/* 归属集团 */}
+          {/* 归属 */}
           <Form.Item label="归属集团" name="group" rules={[{ required: true, message: '请选择归属集团' }]}>
             {mockAuth.level === 'group' ? (
               <Select disabled options={[{ value: (mockAuth as { groupId: string }).groupId, label: (mockAuth as { groupId: string }).groupId }]} />
@@ -570,8 +557,8 @@ const UserManagePage: React.FC = () => {
             )}
           </Form.Item>
 
-          {/* 归属公司 — 仅公司用户需要 */}
-          {createLevel === 'company' && (
+          {/* 归属公司 — 仅公司主创建公司用户时需要 */}
+          {mockAuth.level === 'company' && (
             <Form.Item label="归属公司" name="company" rules={[{ required: true, message: '请选择归属公司' }]}>
               <Select
                 placeholder={createGroup ? '请选择归属公司' : '请先选择集团'}
@@ -581,13 +568,13 @@ const UserManagePage: React.FC = () => {
             </Form.Item>
           )}
 
-          {/* 角色 — 多选，根据层级显示对应角色 */}
+          {/* 角色 — 多选；集团主只创建集团角色，公司主只创建公司角色 */}
           <Form.Item label="角色" name="roles" rules={[{ required: true, message: '请选择角色' }]}>
             <Select
               mode="multiple"
               placeholder="请选择角色"
               options={
-                createLevel === 'group'
+                mockAuth.level === 'group'
                   ? GROUP_ROLES.filter(r => r !== 'group_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
                   : COMPANY_ROLES.filter(r => r !== 'company_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
               }
