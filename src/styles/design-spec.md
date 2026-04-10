@@ -433,4 +433,4 @@ import { Tooltip } from 'antd';
 
 ### 11.3 角色切换器（Header，仅 Mock 阶段）
 
-Header 右侧的角色切换 Select 宽度 `140px`，包含 9 个单角色预设方案 + 若干组合方案（如"集团经营+财务"）。切换后 localStorage 更新 `mock_auth`，菜单和路由守卫即时生效。
+Header 右侧的角色切换 Select 宽度 `140px`，包含 9 个单角色预设方案。切换后 localStorage 更新 `mock_auth`，菜单和路由守卫即时生效。

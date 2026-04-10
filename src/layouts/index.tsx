@@ -394,7 +394,6 @@ const MainLayout: React.FC = () => {
                 { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_finance'] }), label: '公司财务' },
                 { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_ops'] }), label: '公司经营' },
                 { value: JSON.stringify({ level: 'company', companyId: '滴滴答答', roles: ['company_audit'] }), label: '公司审计' },
-                { value: JSON.stringify({ level: 'group', groupId: 'UU Talk', roles: ['group_ops', 'group_finance'] }), label: '集团经营+财务' },
               ]}
             />
             {(roles.includes('group_owner') || roles.includes('group_finance') ||
