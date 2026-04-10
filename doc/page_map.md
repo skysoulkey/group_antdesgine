@@ -61,7 +61,7 @@
 | 路由 | 页面名 | 模块 | 状态 |
 |------|--------|------|------|
 | `/system/users` | 用户管理 | 系统 | Mock |
-| `/system/roles` | 角色管理 | 系统 | Mock |
+| `/system/roles` | 角色管理（只读展示） | 系统 | Mock |
 | `/system/logs` | 操作日志 | 系统 | Mock |
 | `/system/notifications` | 通知管理 | 系统 | Mock |
 | `/system/profile` | 个人中心（含站内通知开关） | 系统 | Mock |
