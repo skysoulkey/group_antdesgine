@@ -3,6 +3,7 @@ import {
   BankOutlined,
   CopyOutlined,
   PlusOutlined,
+  ReloadOutlined,
   SearchOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -94,6 +95,25 @@ const RoleModulesPreview: React.FC<{ selectedRoles: Role[] }> = ({ selectedRoles
     </div>
   );
 };
+
+// 随机生成符合要求的密码
+function generatePassword(length = 16): string {
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lower = 'abcdefghijklmnopqrstuvwxyz';
+  const digits = '0123456789';
+  const special = '!@#$%^&*_-';
+  const all = upper + lower + digits + special;
+  const required = [
+    upper[Math.floor(Math.random() * upper.length)],
+    lower[Math.floor(Math.random() * lower.length)],
+    digits[Math.floor(Math.random() * digits.length)],
+    special[Math.floor(Math.random() * special.length)],
+  ];
+  const rest = Array.from({ length: length - required.length }, () =>
+    all[Math.floor(Math.random() * all.length)]
+  );
+  return [...required, ...rest].sort(() => Math.random() - 0.5).join('');
+}
 
 const STATUSES = ['启用', '停用'] as const;
 type UserStatus = typeof STATUSES[number];
@@ -203,6 +223,13 @@ const UserManagePage: React.FC = () => {
   const [createLevel, setCreateLevel] = useState<'group' | 'company'>('company');
 
   const [editIpRestrict, setEditIpRestrict] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+
+  const handleGeneratePassword = () => {
+    const pwd = generatePassword();
+    createForm.setFieldsValue({ password: pwd, confirmPwd: pwd });
+    setShowPwd(true);
+  };
 
   // 创建成功弹窗
   const [successOpen, setSuccessOpen] = useState(false);
@@ -353,6 +380,7 @@ const UserManagePage: React.FC = () => {
                 icon={<PlusOutlined />}
                 onClick={() => {
                   createForm.resetFields();
+                  setShowPwd(false);
                   if (mockAuth.level === 'group') {
                     setCreateGroup((mockAuth as { groupId: string }).groupId);
                     createForm.setFieldsValue({ group: (mockAuth as { groupId: string }).groupId });
@@ -520,8 +548,29 @@ const UserManagePage: React.FC = () => {
           <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}>
             <Input placeholder="请输入用户名" />
           </Form.Item>
-          <Form.Item label="登录密码" name="password" rules={[{ required: true, min: 8, message: '密码至少8位' }]}>
-            <Input.Password placeholder="请输入登录密码（至少8位）" />
+          <Form.Item
+            label="登录密码"
+            name="password"
+            rules={[{ required: true, min: 8, message: '密码至少8位' }]}
+            extra={<Text type="secondary" style={{ fontSize: 11 }}>8-30 位，需包含大/小写字母、数字、特殊字符中至少 3 种</Text>}
+          >
+            <Space.Compact style={{ width: '100%' }}>
+              {showPwd ? (
+                <Input
+                  value={createForm.getFieldValue('password')}
+                  onChange={(e) => {
+                    createForm.setFieldsValue({ password: e.target.value });
+                    setShowPwd(false);
+                  }}
+                  style={{ flex: 1 }}
+                />
+              ) : (
+                <Input.Password placeholder="请输入登录密码" style={{ flex: 1 }} />
+              )}
+              <Button icon={<ReloadOutlined />} onClick={handleGeneratePassword}>
+                随机生成
+              </Button>
+            </Space.Compact>
           </Form.Item>
           <Form.Item
             label="再次输入密码"
@@ -536,7 +585,11 @@ const UserManagePage: React.FC = () => {
               }),
             ]}
           >
-            <Input.Password placeholder="请再次输入密码" />
+            {showPwd ? (
+              <Input value={createForm.getFieldValue('confirmPwd')} disabled />
+            ) : (
+              <Input.Password placeholder="请再次输入密码" />
+            )}
           </Form.Item>
 
           <Divider style={{ margin: '12px 0' }} />
