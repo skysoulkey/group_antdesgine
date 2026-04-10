@@ -1,4 +1,4 @@
-import { InfoCircleOutlined, PlusOutlined, SearchOutlined, SwapOutlined } from '@ant-design/icons';
+import { CopyOutlined, InfoCircleOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, SwapOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
@@ -16,12 +16,14 @@ import {
   Space,
   Switch,
   Table,
+  Tag,
   Tooltip,
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 import { useNavigate } from 'umi';
+import { ROLE_ROUTES } from '../../../utils/auth';
 
 const { Text } = Typography;
 
@@ -78,6 +80,40 @@ function validatePassword(_: unknown, value: string): Promise<void> {
   return Promise.resolve();
 }
 
+// 随机生成符合要求的密码
+function generatePassword(length = 16): string {
+  const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const lower = 'abcdefghijklmnopqrstuvwxyz';
+  const digits = '0123456789';
+  const special = '!@#$%^&*_-';
+  const all = upper + lower + digits + special;
+  // 保证至少包含 3 种字符类型
+  const required = [
+    upper[Math.floor(Math.random() * upper.length)],
+    lower[Math.floor(Math.random() * lower.length)],
+    digits[Math.floor(Math.random() * digits.length)],
+    special[Math.floor(Math.random() * special.length)],
+  ];
+  const rest = Array.from({ length: length - required.length }, () =>
+    all[Math.floor(Math.random() * all.length)]
+  );
+  // 打乱顺序
+  return [...required, ...rest].sort(() => Math.random() - 0.5).join('');
+}
+
+// 公司主的模块权限展示
+const OWNER_MODULES = ROLE_ROUTES.company_owner.map((route) => {
+  const labels: Record<string, string> = {
+    '/dashboard/company': '公司仪表盘', '/company/shareholding': '公司持股',
+    '/company/revenue': '公司收益', '/enterprise/list': '企业清单',
+    '/enterprise/invite': '邀请企业', '/enterprise/detail': '企业详情',
+    '/orders/lottery': '东方彩票订单', '/commission': '佣金订单',
+    '/finance/my-wallet': '公司钱包', '/system/notifications': '通知管理',
+    '/system/users': '用户管理', '/system/logs': '系统日志',
+  };
+  return labels[route] ?? route;
+});
+
 // 金额格式化
 const fmt = (v: number, currency: string) => {
   const val = currency === 'PEA' ? v * PEA_RATE : v;
@@ -103,11 +139,23 @@ const CompanyListPage: React.FC = () => {
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm] = Form.useForm();
   const [newCompanyId, setNewCompanyId] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [createdInfo, setCreatedInfo] = useState<{
+    companyName: string; companyId: string; username: string; password: string;
+  } | null>(null);
 
   const openCreateModal = () => {
     createForm.resetFields();
     setNewCompanyId(String(Math.floor(100000 + Math.random() * 900000)));
+    setShowPwd(false);
     setCreateOpen(true);
+  };
+
+  const handleGeneratePassword = () => {
+    const pwd = generatePassword();
+    createForm.setFieldsValue({ password: pwd, confirmPwd: pwd });
+    setShowPwd(true);
   };
 
   const handleCreateSubmit = async () => {
@@ -131,12 +179,32 @@ const CompanyListPage: React.FC = () => {
         groupRecalled: 0,
       };
       mockData.push(newCompany);
-      message.success('公司创建成功，管理员账号已生成');
+      // 关闭创建弹窗，弹出二次确认弹窗
+      setCreatedInfo({
+        companyName: values.companyName,
+        companyId: newCompanyId,
+        username: values.username,
+        password: values.password,
+      });
       setCreateOpen(false);
       createForm.resetFields();
+      setSuccessOpen(true);
     } catch {
       // validation errors handled by form
     }
+  };
+
+  const copyCreatedInfo = () => {
+    if (!createdInfo) return;
+    const text = [
+      `登录地址：${window.location.origin}`,
+      `公司名称：${createdInfo.companyName}`,
+      `公司 ID：${createdInfo.companyId}`,
+      `角色：公司主`,
+      `用户名：${createdInfo.username}`,
+      `密码：${createdInfo.password}`,
+    ].join('\n');
+    navigator.clipboard.writeText(text).then(() => message.success('已复制到剪贴板'));
   };
 
   const filtered = mockData.filter(
@@ -340,8 +408,16 @@ const CompanyListPage: React.FC = () => {
 
           <Divider style={{ margin: '12px 0' }} />
 
-          {/* ── 管理员账号 ── */}
-          <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 12 }}>管理员账号</Text>
+          {/* ── 公司主账号 ── */}
+          <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 4 }}>公司主账号</Text>
+          <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
+            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 6 }}>
+              角色：<Text strong style={{ fontSize: 12 }}>公司主</Text> — 拥有以下功能模块权限：
+            </Text>
+            <Space size={[4, 4]} wrap>
+              {OWNER_MODULES.map(m => <Tag key={m} style={{ margin: 0 }}>{m}</Tag>)}
+            </Space>
+          </div>
 
           <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}>
             <Input placeholder="请输入用户名" />
@@ -351,8 +427,25 @@ const CompanyListPage: React.FC = () => {
             label="登录密码"
             name="password"
             rules={[{ required: true, validator: validatePassword }]}
+            extra={<Text type="secondary" style={{ fontSize: 11 }}>8-30 位，需包含大/小写字母、数字、特殊字符中至少 3 种</Text>}
           >
-            <Input.Password placeholder="8-30 位，需包含大/小写字母、数字、特殊字符中至少 3 种" />
+            <Space.Compact style={{ width: '100%' }}>
+              {showPwd ? (
+                <Input
+                  value={createForm.getFieldValue('password')}
+                  onChange={(e) => {
+                    createForm.setFieldsValue({ password: e.target.value });
+                    setShowPwd(false);
+                  }}
+                  style={{ flex: 1 }}
+                />
+              ) : (
+                <Input.Password placeholder="请输入密码" style={{ flex: 1 }} />
+              )}
+              <Button icon={<ReloadOutlined />} onClick={handleGeneratePassword}>
+                随机生成
+              </Button>
+            </Space.Compact>
           </Form.Item>
 
           <Form.Item
@@ -368,7 +461,11 @@ const CompanyListPage: React.FC = () => {
               }),
             ]}
           >
-            <Input.Password placeholder="请再次输入密码" />
+            {showPwd ? (
+              <Input value={createForm.getFieldValue('confirmPwd')} disabled />
+            ) : (
+              <Input.Password placeholder="请再次输入密码" />
+            )}
           </Form.Item>
 
           <Row gutter={12}>
@@ -436,6 +533,44 @@ const CompanyListPage: React.FC = () => {
 
 
         </Form>
+      </Modal>
+
+      {/* ── 创建成功 — 二次确认弹窗 ── */}
+      <Modal
+        title="创建成功"
+        open={successOpen}
+        onCancel={() => setSuccessOpen(false)}
+        footer={
+          <Space>
+            <Button icon={<CopyOutlined />} type="primary" onClick={copyCreatedInfo}>复制信息</Button>
+            <Button onClick={() => setSuccessOpen(false)}>关 闭</Button>
+          </Space>
+        }
+        width={520}
+      >
+        {createdInfo && (
+          <div style={{ marginTop: 16 }}>
+            <div style={{
+              padding: 16, background: '#f6f8ff', border: '1px solid #d6e4ff',
+              borderRadius: 8, fontFamily: 'monospace', lineHeight: 2.2, fontSize: 13,
+            }}>
+              <div>登录地址：{window.location.origin}</div>
+              <div>公司名称：{createdInfo.companyName}</div>
+              <div>公司 ID：{createdInfo.companyId}</div>
+              <Divider style={{ margin: '8px 0' }} />
+              <div>角色：公司主</div>
+              <div>用户名：{createdInfo.username}</div>
+              <div>密码：{createdInfo.password}</div>
+            </div>
+
+            <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '8px 12px', marginTop: 12 }}>
+              <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 6 }}>公司主拥有的功能模块：</Text>
+              <Space size={[4, 4]} wrap>
+                {OWNER_MODULES.map(m => <Tag key={m} style={{ margin: 0 }}>{m}</Tag>)}
+              </Space>
+            </div>
+          </div>
+        )}
       </Modal>
 
     </Card>
