@@ -31,7 +31,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useMemo, useState } from 'react';
 import {
-  getMockAuth, getMockRoles, ROLE_LABELS,
+  getMockAuth, getMockRoles, ROLE_LABELS, ROLE_ROUTES,
   GROUP_ROLES, COMPANY_ROLES,
   type Role, type GroupRole, type CompanyRole,
 } from '../../../utils/auth';
@@ -54,6 +54,45 @@ const radioTheme = {
       colorPrimary: '#1677ff',
     },
   },
+};
+
+// 路由 → 模块名映射（用于角色选择时展示模块权限）
+const MODULE_LABELS: Record<string, string> = {
+  '/dashboard':              '集团仪表盘',
+  '/company/list':           '公司清单',
+  '/company/detail':         '公司详情',
+  '/company/transfer':       '内部划转',
+  '/finance/revenue':        '集团收益',
+  '/finance/wallet':         '集团钱包',
+  '/finance/wallet/bind-account': '钱包绑定',
+  '/dashboard/company':      '公司仪表盘',
+  '/company/shareholding':   '公司持股',
+  '/company/revenue':        '公司收益',
+  '/enterprise/list':        '企业清单',
+  '/enterprise/invite':      '邀请企业',
+  '/enterprise/detail':      '企业详情',
+  '/orders/lottery':         '东方彩票订单',
+  '/commission':             '佣金订单',
+  '/finance/my-wallet':      '公司钱包',
+  '/system/notifications':   '通知管理',
+  '/system/users':           '用户管理',
+  '/system/logs':            '系统日志',
+};
+
+/** 根据选中角色列表，合并去重后展示所有模块 Tag */
+const RoleModulesPreview: React.FC<{ selectedRoles: Role[] }> = ({ selectedRoles }) => {
+  if (!selectedRoles || selectedRoles.length === 0) return null;
+  const modules = [...new Set(
+    selectedRoles.flatMap(r => (ROLE_ROUTES[r] ?? []).map(route => MODULE_LABELS[route] ?? route))
+  )];
+  return (
+    <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '8px 12px', marginTop: 8 }}>
+      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 6 }}>已选角色可访问的功能模块：</Text>
+      <Space size={[4, 4]} wrap>
+        {modules.map(m => <Tag key={m} style={{ margin: 0 }}>{m}</Tag>)}
+      </Space>
+    </div>
+  );
 };
 
 const STATUSES = ['启用', '停用'] as const;
@@ -411,7 +450,10 @@ const UserManagePage: React.FC = () => {
               }
             />
           </Form.Item>
-          <Row gutter={12}>
+          <Form.Item noStyle shouldUpdate={(p, c) => p.roles !== c.roles}>
+            {({ getFieldValue }) => <RoleModulesPreview selectedRoles={getFieldValue('roles') ?? []} />}
+          </Form.Item>
+          <Row gutter={12} style={{ marginTop: 16 }}>
             <Col span={12}>
               <Form.Item label="状态" name="status" rules={[{ required: true }]}>
                 <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
@@ -550,6 +592,9 @@ const UserManagePage: React.FC = () => {
                   : COMPANY_ROLES.filter(r => r !== 'company_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
               }
             />
+          </Form.Item>
+          <Form.Item noStyle shouldUpdate={(p, c) => p.roles !== c.roles}>
+            {({ getFieldValue }) => <RoleModulesPreview selectedRoles={getFieldValue('roles') ?? []} />}
           </Form.Item>
 
           <Divider style={{ margin: '12px 0' }} />
