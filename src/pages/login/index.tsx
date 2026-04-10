@@ -207,6 +207,7 @@ const LoginPage: React.FC = () => {
       addLoginLog(
         form.getFieldValue('username') ?? 'Miya',
         mockAuth.roles,
+        '登录',
         '成功',
         mockAuth.level,
         logGroup,

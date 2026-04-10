@@ -10,17 +10,21 @@ export interface OperationLogEntry {
   module: string;
   operateIp: string;
   result: '成功' | '失败';
+  detail?: Record<string, unknown>;
   level: 'group' | 'company';
   group: string;
   company: string;
 }
 
 // ── 登录日志 ─────────────────────────────────────────────────────
+export type LoginAction = '登录' | '登出' | '登录失败';
+
 export interface LoginLogEntry {
   id: string;
   loginTime: string;
   username: string;
   roles: string;
+  action: LoginAction;
   loginIp: string;
   country: string;
   result: '成功' | '失败';
@@ -43,7 +47,7 @@ function genId(prefix: string): string {
 }
 
 /** 记录一条操作日志 */
-export function addOperationLog(operation: string, module: string, result: '成功' | '失败' = '成功') {
+export function addOperationLog(operation: string, module: string, result: '成功' | '失败' = '成功', detail?: Record<string, unknown>) {
   const auth = getMockAuth();
   const entry: OperationLogEntry = {
     id: genId('OL'),
@@ -54,6 +58,7 @@ export function addOperationLog(operation: string, module: string, result: '成�
     module,
     operateIp: '127.0.0.1',
     result,
+    detail,
     level: auth.level,
     group: auth.level === 'group' ? (auth as { groupId: string }).groupId : '',
     company: auth.level === 'company' ? (auth as { companyId: string }).companyId : '',
@@ -76,6 +81,7 @@ export function getOperationLogs(): OperationLogEntry[] {
 export function addLoginLog(
   username: string,
   roles: Role[],
+  action: LoginAction,
   result: '成功' | '失败',
   level: 'group' | 'company',
   group: string,
@@ -85,7 +91,8 @@ export function addLoginLog(
     id: genId('LL'),
     loginTime: now(),
     username,
-    roles: roles.map(r => ROLE_LABELS[r]).join('、'),
+    roles: action === '登录失败' ? '-' : roles.map(r => ROLE_LABELS[r]).join('、') || '-',
+    action,
     loginIp: '127.0.0.1',
     country: '🖥️ 本地网络',
     result,
