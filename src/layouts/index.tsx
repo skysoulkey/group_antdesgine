@@ -10,7 +10,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import logoImg from '../assets/logo.svg';
-import { Badge, Breadcrumb, Button, Divider, Layout, List, Menu, Popover, Select, Space, Typography } from 'antd';
+import { Badge, Breadcrumb, Button, Divider, Layout, List, Menu, Popover, Select, Space, Typography, Watermark } from 'antd';
 import type { MenuProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Outlet, useLocation, useNavigate, useSearchParams } from 'umi';
@@ -286,7 +286,10 @@ const MainLayout: React.FC = () => {
     }
   }, [location.pathname, roles]);
 
+  const username = JSON.parse(localStorage.getItem('userInfo') ?? '{}').name ?? '用户';
+
   return (
+    <Watermark content={username} font={{ fontSize: 14, color: 'rgba(0,0,0,0.04)' }}>
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
         collapsible
@@ -424,6 +427,7 @@ const MainLayout: React.FC = () => {
         </Content>
       </Layout>
     </Layout>
+    </Watermark>
   );
 };
 
