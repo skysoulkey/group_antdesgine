@@ -42,7 +42,7 @@ const allMenuItems: MenuItem[] = [
     label: '集团管理',
     roles: ['group_owner', 'group_ops', 'group_finance'],
     children: [
-      { key: '/company/list',      label: '公司清单',  roles: ['group_owner', 'group_ops'] },
+      { key: '/company/list',      label: '公司清单',  roles: ['group_owner', 'group_ops'] }, // 公司详情 /company/detail/:id 权限跟随此项
       { key: '/company/transfer',  label: '内部划转',  roles: ['group_owner', 'group_ops'] },
       { key: '/finance/revenue',   label: '集团收益',  roles: ['group_owner', 'group_finance'] },
     ],
@@ -63,7 +63,7 @@ const allMenuItems: MenuItem[] = [
     label: '企业管理',
     roles: ['company_owner', 'company_promo'],
     children: [
-      { key: '/enterprise/list',   label: '企业清单' },
+      { key: '/enterprise/list',   label: '企业清单' }, // 企业详情 /enterprise/detail/:id 权限跟随此项
       { key: '/enterprise/invite', label: '邀请企业' },
     ],
   },

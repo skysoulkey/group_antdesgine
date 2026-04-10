@@ -431,6 +431,12 @@ import { Tooltip } from 'antd';
 
 用户管理的创建/编辑弹窗中，角色 Select 为 `mode="multiple"`（多选）。选中角色后，下方显示浅蓝色面板（`background: #f6f8ff`，`border: 1px solid #d6e4ff`），列出所选角色的全部功能模块 Tag（多角色自动合并去重）。
 
-### 11.3 角色切换器（Header，仅 Mock 阶段）
+### 11.3 详情页权限跟随
+
+详情页无独立菜单入口，权限跟随对应的清单页：
+- `/company/detail/:id`（公司详情）→ 权限跟随公司清单（`group_owner`, `group_ops`）
+- `/enterprise/detail/:id`（企业详情）→ 权限跟随企业清单（`company_owner`, `company_promo`）
+
+### 11.4 角色切换器（Header，仅 Mock 阶段）
 
 Header 右侧的角色切换 Select 宽度 `140px`，包含 9 个单角色预设方案。切换后 localStorage 更新 `mock_auth`，菜单和路由守卫即时生效。
