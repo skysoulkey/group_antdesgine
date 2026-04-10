@@ -32,10 +32,11 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useMemo, useState } from 'react';
 import {
-  getMockAuth, getMockRoles, ROLE_LABELS, ROLE_ROUTES,
+  getMockAuth, getMockRoles, isOwner, ROLE_LABELS, ROLE_ROUTES,
   GROUP_ROLES, COMPANY_ROLES,
   type Role, type GroupRole, type CompanyRole,
 } from '../../../utils/auth';
+import { addOperationLog } from '../../../utils/operationLog';
 
 const isExpired = (validPeriod: string): boolean => {
   if (validPeriod === '永久有效') return false;
@@ -196,6 +197,15 @@ const UserManagePage: React.FC = () => {
   const mockAuth = getMockAuth();
   const mockRoles = getMockRoles();
   const currentUserId = 'U001'; // Mock: 当前登录用户 ID
+
+  // 非 Owner 无权限访问
+  if (!isOwner(mockRoles)) {
+    return (
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, textAlign: 'center', padding: '80px 0' }}>
+        <Text type="secondary" style={{ fontSize: 16 }}>暂无权限访问用户管理，仅集团主/公司主可操作</Text>
+      </Card>
+    );
+  }
 
   // 可见范围：owner 才能进入，过滤掉自己
   const visibleData = initialData.filter((r) => {
@@ -458,6 +468,7 @@ const UserManagePage: React.FC = () => {
               ),
             );
             setEditOpen(false);
+            addOperationLog('编辑用户：' + (currentUser?.username ?? ''), '用户管理');
             message.success('保存成功');
           })
         }
@@ -533,6 +544,10 @@ const UserManagePage: React.FC = () => {
             setCreateOpen(false);
             setCreatedInfo({ username: values.username, password: values.password });
             setSuccessOpen(true);
+            // 标记首次登录强制改密
+            localStorage.setItem(`must_change_pwd_${values.username}`, 'true');
+            // 记录操作日志
+            addOperationLog('创建用户：' + values.username, '用户管理');
             createForm.resetFields();
           })
         }
@@ -697,6 +712,9 @@ const UserManagePage: React.FC = () => {
             <div>密码：{createdInfo.password}</div>
           </div>
         )}
+        <div style={{ marginTop: 12, fontSize: 12, color: '#faad14' }}>
+          该用户首次登录将被要求修改密码
+        </div>
       </Modal>
     </div>
   );

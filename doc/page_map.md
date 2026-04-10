@@ -62,6 +62,6 @@
 |------|--------|------|------|
 | `/system/users` | 用户管理 | 系统 | Mock |
 | `/system/roles` | 角色管理（只读展示） | 系统 | Mock |
-| `/system/logs` | 操作日志 | 系统 | Mock |
+| `/system/logs` | 系统日志（登录日志 + 操作日志，按集团/公司权限隔离） | 系统 | Mock |
 | `/system/notifications` | 通知管理 | 系统 | Mock |
-| `/system/profile` | 个人中心（含站内通知开关） | 系统 | Mock |
+| `/system/profile` | 个人中心（多角色权限展示 + 站内通知开关） | 系统 | Mock |

@@ -1,7 +1,12 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Card, ConfigProvider, Input, Radio, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Card, ConfigProvider, Input, Radio, Select, Space, Table, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { getMockAuth, ROLE_LABELS, ALL_ROLES, type Role } from '../../../utils/auth';
+import {
+  getLoginLogs, getOperationLogs,
+  type LoginLogEntry, type OperationLogEntry,
+} from '../../../utils/operationLog';
 
 const radioTheme = { components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } };
 
@@ -9,68 +14,103 @@ const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
-// ── 登录日志 ──────────────────────────────────────────────────────
-interface LoginLog {
-  id: string;
-  loginTime: string;
-  username: string;
-  role: string;
-  loginIp: string;
-  country: string;
-  result: '成功' | '失败';
-}
+// ── 初始 Mock 登录日志（带归属信息 + 新角色体系） ───────────────────
+const MOCK_USERS: { name: string; roles: Role[]; level: 'group' | 'company'; group: string; company: string }[] = [
+  { name: 'Miya',  roles: ['group_owner'],   level: 'group',   group: 'UU Talk', company: '' },
+  { name: 'Ryan',  roles: ['group_finance'], level: 'group',   group: 'UU Talk', company: '' },
+  { name: 'Nina',  roles: ['group_ops'],     level: 'group',   group: 'UU Talk', company: '' },
+  { name: 'Mark',  roles: ['group_audit'],   level: 'group',   group: 'UU Talk', company: '' },
+  { name: 'Tom',   roles: ['company_owner'], level: 'company', group: 'UU Talk', company: '滴滴答答' },
+  { name: 'Alice', roles: ['company_finance'], level: 'company', group: 'UU Talk', company: '滴滴答答' },
+  { name: 'Jack',  roles: ['company_ops'],   level: 'company', group: 'UU Talk', company: 'UU Talk' },
+  { name: 'Leo',   roles: ['company_promo'], level: 'company', group: 'UU Talk', company: 'UU Talk' },
+  { name: 'Eve',   roles: ['company_ops', 'company_audit'], level: 'company', group: 'UU Talk', company: '滴滴答答' },
+];
 
-const loginLogs: LoginLog[] = Array.from({ length: 20 }, (_, i) => ({
-  id: `LL${String(i + 1).padStart(7, '0')}`,
-  loginTime: `2025-11-${String(i + 1).padStart(2, '0')} ${String(8 + (i % 14)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
-  username: ['Miya', 'Admin', 'Jack', 'Lisa', 'Tom'][i % 5],
-  role: ['集团管理员', '公司管理员', '平台管理员'][i % 3],
-  loginIp: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
-  country: ['🇸🇬 新加坡', '🇨🇳 中国', '🇺🇸 美国', '🇬🇧 英国'][i % 4],
-  result: i % 6 === 0 ? '失败' : '成功',
-}));
+const COUNTRIES = ['🇸🇬 新加坡', '🇨🇳 中国', '🇺🇸 美国', '🇬🇧 英国'];
 
-// ── 操作日志 ──────────────────────────────────────────────────────
-interface OperationLog {
-  id: string;
-  operateTime: string;
-  username: string;
-  operation: string;
-  module: string;
-  operateIp: string;
-  result: '成功' | '失败';
-}
+const initialLoginLogs: LoginLogEntry[] = Array.from({ length: 20 }, (_, i) => {
+  const u = MOCK_USERS[i % MOCK_USERS.length];
+  return {
+    id: `LL${String(i + 1).padStart(7, '0')}`,
+    loginTime: `2025-11-${String(20 - i).padStart(2, '0')} ${String(8 + (i % 14)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
+    username: u.name,
+    roles: u.roles.map(r => ROLE_LABELS[r]).join('、'),
+    loginIp: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
+    country: COUNTRIES[i % 4],
+    result: (i % 6 === 0 ? '失败' : '成功') as '成功' | '失败',
+    level: u.level,
+    group: u.group,
+    company: u.company,
+  };
+});
 
-const operationLogs: OperationLog[] = Array.from({ length: 24 }, (_, i) => ({
-  id: `OL${String(i + 1).padStart(7, '0')}`,
-  operateTime: `2025-11-${String(i + 1).padStart(2, '0')} ${String(9 + (i % 12)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
-  username: ['Miya', 'Admin', 'Jack', 'Lisa', 'Tom'][i % 5],
-  operation: ['创建企业', '修改角色权限', '下拨资金', '导出数据', '修改密码', '删除角色', '用户权限变更', '系统配置更新'][i % 8],
-  module: ['用户管理', '企业管理', '角色管理', '集团金融', '系统设置'][i % 5],
-  operateIp: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
-  result: i % 8 === 0 ? '失败' : '成功',
-}));
+// ── 初始 Mock 操作日志 ──────────────────────────────────────────────
+const OP_ACTIONS = ['创建用户', '编辑用户角色', '创建公司', '内部划转', '导出数据', '修改密码', '编辑通知配置', '修改系统设置'];
+const OP_MODULES = ['用户管理', '企业管理', '公司管理', '集团金融', '系统设置', '通知管理'];
 
-const ROLES = ['集团管理员', '公司管理员', '平台管理员'];
+const initialOpLogs: OperationLogEntry[] = Array.from({ length: 24 }, (_, i) => {
+  const u = MOCK_USERS[i % MOCK_USERS.length];
+  return {
+    id: `OL${String(i + 1).padStart(7, '0')}`,
+    operateTime: `2025-11-${String(24 - i).padStart(2, '0')} ${String(9 + (i % 12)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
+    username: u.name,
+    roles: u.roles.map(r => ROLE_LABELS[r]).join('、'),
+    operation: OP_ACTIONS[i % OP_ACTIONS.length],
+    module: OP_MODULES[i % OP_MODULES.length],
+    operateIp: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
+    result: (i % 8 === 0 ? '失败' : '成功') as '成功' | '失败',
+    level: u.level,
+    group: u.group,
+    company: u.company,
+  };
+});
 
+// ── 角色筛选选项 ────────────────────────────────────────────────────
+const ROLE_OPTIONS = ALL_ROLES.map(r => ({ value: ROLE_LABELS[r], label: ROLE_LABELS[r] }));
+
+const MODULE_OPTIONS = [...new Set([...OP_MODULES, ...initialOpLogs.map(l => l.module), ...getOperationLogs().map(l => l.module)])].map(m => ({ value: m, label: m }));
+
+// ── 主组件 ──────────────────────────────────────────────────────────
 const SystemLogsPage: React.FC = () => {
+  const auth = getMockAuth();
+
+  // 权限过滤函数：集团用户看本集团全部，公司用户只看本公司
+  const filterByAuth = <T extends { level: string; group: string; company: string }>(list: T[]): T[] => {
+    if (auth.level === 'group') {
+      const groupId = (auth as { groupId: string }).groupId;
+      return list.filter(r => r.group === groupId);
+    }
+    const companyId = (auth as { companyId: string }).companyId;
+    return list.filter(r => r.level === 'company' && r.company === companyId);
+  };
+
+  // 合并 Mock + localStorage 真实记录，按时间倒序
+  const allLoginLogs = useMemo(() => {
+    const merged = [...getLoginLogs(), ...initialLoginLogs];
+    return filterByAuth(merged).sort((a, b) => b.loginTime.localeCompare(a.loginTime));
+  }, [auth.level]);
+
+  const allOpLogs = useMemo(() => {
+    const merged = [...getOperationLogs(), ...initialOpLogs];
+    return filterByAuth(merged).sort((a, b) => b.operateTime.localeCompare(a.operateTime));
+  }, [auth.level]);
+
   const [loginSearch, setLoginSearch] = useState('');
   const [loginRole, setLoginRole] = useState<string | undefined>();
   const [opSearch, setOpSearch] = useState('');
   const [opModule, setOpModule] = useState<string | undefined>();
   const [opResult, setOpResult] = useState<string | undefined>();
 
-  const filteredLogin = loginLogs.filter((r) => {
+  const filteredLogin = allLoginLogs.filter((r) => {
     const kw = loginSearch.toLowerCase();
     return (
-      (!loginRole || r.role === loginRole) &&
+      (!loginRole || r.roles.includes(loginRole)) &&
       (!kw || r.username.toLowerCase().includes(kw) || r.loginIp.includes(kw))
     );
   });
 
-  const MODULES = ['用户管理', '企业管理', '角色管理', '集团金融', '系统设置'];
-
-  const filteredOp = operationLogs.filter((r) => {
+  const filteredOp = allOpLogs.filter((r) => {
     const kw = opSearch.toLowerCase();
     return (
       (!opModule || r.module === opModule) &&
@@ -79,12 +119,10 @@ const SystemLogsPage: React.FC = () => {
     );
   });
 
-  const loginColumns: ColumnsType<LoginLog> = [
-    { title: '登录时间', dataIndex: 'loginTime', width: 170 },
+  const loginColumns: ColumnsType<LoginLogEntry> = [
+    { title: '登录时间', dataIndex: 'loginTime', width: 170, sorter: (a, b) => a.loginTime.localeCompare(b.loginTime) },
     { title: '账号', dataIndex: 'username', width: 100 },
-    {
-      title: '角色', dataIndex: 'role', width: 120,
-    },
+    { title: '角色', dataIndex: 'roles', width: 160 },
     {
       title: '登录IP', dataIndex: 'loginIp', width: 200,
       render: (v, r) => (
@@ -100,9 +138,10 @@ const SystemLogsPage: React.FC = () => {
     },
   ];
 
-  const opColumns: ColumnsType<OperationLog> = [
-    { title: '操作时间', dataIndex: 'operateTime', width: 170 },
+  const opColumns: ColumnsType<OperationLogEntry> = [
+    { title: '操作时间', dataIndex: 'operateTime', width: 170, sorter: (a, b) => a.operateTime.localeCompare(b.operateTime) },
     { title: '账号', dataIndex: 'username', width: 100 },
+    { title: '角色', dataIndex: 'roles', width: 160 },
     { title: '操作行为', dataIndex: 'operation', width: 140 },
     { title: '所属模块', dataIndex: 'module', width: 110 },
     {
@@ -115,96 +154,93 @@ const SystemLogsPage: React.FC = () => {
     },
   ];
 
-  const tabItems = [
-    {
-      key: 'login',
-      label: '登录日志',
-      children: (
-        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
-            <Space size={24} wrap align="center">
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group value={loginRole ?? '全部'} onChange={(e) => setLoginRole(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
-                  {['全部', ...ROLES].map((v) => (
-                    <Radio.Button key={v} value={v} style={(loginRole ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v}</Radio.Button>
-                  ))}
-                </Radio.Group>
-              </ConfigProvider>
-              <Input
-                prefix={<SearchOutlined />}
-                placeholder="账号名 / 登录IP"
-                value={loginSearch}
-                onChange={(e) => setLoginSearch(e.target.value)}
-                allowClear
-                style={{ width: 240 }}
-              />
-            </Space>
-          </Space>
-          <Table
-            columns={loginColumns}
-            dataSource={filteredLogin}
-            rowKey="id"
-            size="middle"
-            scroll={{ x: 800 }}
-            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-          />
-        </Card>
-      ),
-    },
-    {
-      key: 'operation',
-      label: '操作日志',
-      children: (
-        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <Space size={24} wrap align="center" style={{ marginBottom: 16 }}>
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={opModule ?? '全部'} onChange={(e) => setOpModule(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
-                {['全部', ...MODULES].map((v) => (
-                  <Radio.Button key={v} value={v}>{v}</Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
-                <Radio.Button value="全部">全部结果</Radio.Button>
-                <Radio.Button value="成功">成功</Radio.Button>
-                <Radio.Button value="失败">失败</Radio.Button>
-              </Radio.Group>
-            </ConfigProvider>
-            <Input
-              prefix={<SearchOutlined />}
-              placeholder="账号名 / 操作 / IP"
-              value={opSearch}
-              onChange={(e) => setOpSearch(e.target.value)}
-              allowClear
-              style={{ width: 240 }}
-            />
-          </Space>
-          <Table
-            columns={opColumns}
-            dataSource={filteredOp}
-            rowKey="id"
-            size="middle"
-            scroll={{ x: 900 }}
-            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-          />
-        </Card>
-      ),
-    },
-  ];
+  // 权限提示
+  const scopeHint = auth.level === 'group'
+    ? `当前查看范围：${(auth as { groupId: string }).groupId} 集团全部日志（含下属公司）`
+    : `当前查看范围：${(auth as { companyId: string }).companyId} 公司日志`;
 
   return (
-    <div style={{ marginTop: -16 }}>
-      <Tabs
-        items={tabItems}
-        tabBarStyle={{
-          background: '#fff',
-          margin: '0 -24px',
-          padding: '0 24px',
-        }}
-      />
+    <div>
+      <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
+        <div>{scopeHint}</div>
+      </div>
+
+      {/* ── 登录日志 ── */}
+      <Card
+        bordered={false}
+        title="登录日志"
+        style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}
+      >
+        <Space size={24} wrap align="center" style={{ marginBottom: 16 }}>
+          <Select
+            placeholder="筛选角色"
+            value={loginRole}
+            onChange={setLoginRole}
+            allowClear
+            style={{ width: 140 }}
+            options={ROLE_OPTIONS}
+          />
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder="账号名 / 登录IP"
+            value={loginSearch}
+            onChange={(e) => setLoginSearch(e.target.value)}
+            allowClear
+            style={{ width: 240 }}
+          />
+        </Space>
+        <Table
+          columns={loginColumns}
+          dataSource={filteredLogin}
+          rowKey="id"
+          size="middle"
+          scroll={{ x: 800 }}
+          pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+        />
+      </Card>
+
+      {/* ── 操作日志 ── */}
+      <Card
+        bordered={false}
+        title="操作日志"
+        style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+      >
+        <Space size={24} wrap align="center" style={{ marginBottom: 16 }}>
+          <Select
+            placeholder="筛选模块"
+            value={opModule}
+            onChange={setOpModule}
+            allowClear
+            style={{ width: 140 }}
+            options={MODULE_OPTIONS}
+          />
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+              {['全部', '成功', '失败'].map((v) => (
+                <Radio.Button key={v} value={v} style={(opResult ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v === '全部' ? '全部结果' : v}</Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
+          <Input
+            prefix={<SearchOutlined />}
+            placeholder="账号名 / 操作 / IP"
+            value={opSearch}
+            onChange={(e) => setOpSearch(e.target.value)}
+            allowClear
+            style={{ width: 240 }}
+          />
+        </Space>
+        <Table
+          columns={opColumns}
+          dataSource={filteredOp}
+          rowKey="id"
+          size="middle"
+          scroll={{ x: 900 }}
+          pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+        />
+      </Card>
     </div>
   );
 };

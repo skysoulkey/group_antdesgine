@@ -4,6 +4,7 @@ import { Button, ConfigProvider, Form, Input, message, Typography } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
 import { defaultRoute, type UserAuth } from '../../utils/auth';
+import { addLoginLog } from '../../utils/operationLog';
 
 const { Title, Text } = Typography;
 
@@ -200,8 +201,21 @@ const LoginPage: React.FC = () => {
       localStorage.setItem('mock_auth', JSON.stringify(mockAuth));
       localStorage.setItem('userInfo', JSON.stringify({ name: 'Miya' }));
 
-      // Mock: 检测首次登录（演示模式直接跳过）
-      const mustChangePwd = false; // 后端返回
+      // 记录登录日志
+      const logGroup = mockAuth.level === 'group' ? (mockAuth as { groupId: string }).groupId : '';
+      const logCompany = mockAuth.level !== 'group' ? (mockAuth as { companyId: string }).companyId : '';
+      addLoginLog(
+        form.getFieldValue('username') ?? 'Miya',
+        mockAuth.roles,
+        '成功',
+        mockAuth.level,
+        logGroup,
+        logCompany,
+      );
+
+      // 检测首次登录强制改密（从 localStorage 读取标记）
+      const username = form.getFieldValue('username') ?? 'Miya';
+      const mustChangePwd = localStorage.getItem(`must_change_pwd_${username}`) === 'true';
       if (mustChangePwd) {
         setLoading(false);
         setStep('change-pwd');
@@ -451,6 +465,9 @@ const LoginPage: React.FC = () => {
                 message.error('两次密码不一致');
                 return;
               }
+              // 清除首次改密标记
+              const username = form.getFieldValue('username') ?? 'Miya';
+              localStorage.removeItem(`must_change_pwd_${username}`);
               message.success('密码修改成功，正在进入系统…');
               const raw = localStorage.getItem('mock_auth');
               const auth: UserAuth = raw ? JSON.parse(raw) : { level: 'group', groupId: '', roles: [] };

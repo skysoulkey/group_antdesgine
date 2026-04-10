@@ -3,21 +3,44 @@ import {
   Button,
   Card,
   Descriptions,
-  Divider,
   Form,
   Input,
   Modal,
   Space,
   Switch,
+  Tag,
   Typography,
   message,
 } from 'antd';
 import React, { useState } from 'react';
-import { getMockAuth, ROLE_LABELS } from '../../../utils/auth';
+import { getMockAuth, ROLE_LABELS, ROLE_ROUTES, type Role } from '../../../utils/auth';
 
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+
+// 路由 → 模块名映射
+const MODULE_LABELS: Record<string, string> = {
+  '/dashboard':              '集团仪表盘',
+  '/company/list':           '公司清单',
+  '/company/detail':         '公司详情',
+  '/company/transfer':       '内部划转',
+  '/finance/revenue':        '集团收益',
+  '/finance/wallet':         '集团钱包',
+  '/finance/wallet/bind-account': '钱包绑定',
+  '/dashboard/company':      '公司仪表盘',
+  '/company/shareholding':   '公司持股',
+  '/company/revenue':        '公司收益',
+  '/enterprise/list':        '企业清单',
+  '/enterprise/invite':      '邀请企业',
+  '/enterprise/detail':      '企业详情',
+  '/orders/lottery':         '东方彩票订单',
+  '/commission':             '佣金订单',
+  '/finance/my-wallet':      '公司钱包',
+  '/system/notifications':   '通知管理',
+  '/system/users':           '用户管理',
+  '/system/logs':            '系统日志',
+};
 
 const ProfilePage: React.FC = () => {
   const [pwdOpen, setPwdOpen] = useState(false);
@@ -28,7 +51,6 @@ const ProfilePage: React.FC = () => {
 
   const personalInfo = {
     username: 'Miya',
-    role: roles.map(r => ROLE_LABELS[r]).join('、'),
     validPeriod: '永久有效',
     ipRestrict: false,
     ipWhitelist: '',
@@ -46,16 +68,44 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div>
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 600 }}>
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, maxWidth: 680 }}>
         <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130, whiteSpace: 'nowrap' }} bordered>
           <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
-          <Descriptions.Item label="角色">{personalInfo.role}</Descriptions.Item>
           {auth.level === 'group' && (
             <Descriptions.Item label="归属集团">{(auth as { groupId: string }).groupId}</Descriptions.Item>
           )}
           {auth.level === 'company' && (
             <Descriptions.Item label="归属公司">{(auth as { companyId: string }).companyId}</Descriptions.Item>
           )}
+
+          {/* ── 角色 ── */}
+          <Descriptions.Item label="角色">
+            <Space size={[4, 4]} wrap>
+              {roles.map((role: Role) => (
+                <Tag key={role} style={{ margin: 0 }}>{ROLE_LABELS[role]}</Tag>
+              ))}
+            </Space>
+          </Descriptions.Item>
+
+          {/* ── 模块权限 ── */}
+          <Descriptions.Item label="模块权限">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {roles.map((role: Role) => {
+                const modules = (ROLE_ROUTES[role] ?? []).map(r => MODULE_LABELS[r] ?? r);
+                return (
+                  <div key={role}>
+                    <Text type="secondary" style={{ fontSize: 12 }}>{ROLE_LABELS[role]}：</Text>
+                    <div style={{ marginTop: 4 }}>
+                      <Space size={[4, 4]} wrap>
+                        {modules.map(m => <Tag key={m} style={{ margin: 0 }}>{m}</Tag>)}
+                      </Space>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Descriptions.Item>
+
           <Descriptions.Item label="账户有效期">
             <Text type="success">{personalInfo.validPeriod}</Text>
           </Descriptions.Item>
