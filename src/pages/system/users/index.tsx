@@ -439,7 +439,7 @@ const UserManagePage: React.FC = () => {
         width={480}
         destroyOnClose
       >
-        <Form form={editForm} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 18 }} style={{ marginTop: 16 }}>
+        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item label="角色" name="roles" rules={[{ required: true, message: '请选择角色' }]}>
             <Select
               mode="multiple"
@@ -453,12 +453,18 @@ const UserManagePage: React.FC = () => {
           <Form.Item noStyle shouldUpdate={(p, c) => p.roles !== c.roles}>
             {({ getFieldValue }) => <RoleModulesPreview selectedRoles={getFieldValue('roles') ?? []} />}
           </Form.Item>
-          <Form.Item label="状态" name="status" rules={[{ required: true }]} style={{ marginTop: 16 }}>
-            <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
-          </Form.Item>
-          <Form.Item label="账户有效期" name="validPeriod">
-            <Select options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]} />
-          </Form.Item>
+          <Row gutter={12} style={{ marginTop: 16 }}>
+            <Col span={12}>
+              <Form.Item label="状态" name="status" rules={[{ required: true }]}>
+                <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="账户有效期" name="validPeriod">
+                <Select options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]} />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item label="IP限制" name="ipRestrict" valuePropName="checked">
             <Switch onChange={setEditIpRestrict} />
           </Form.Item>
@@ -509,7 +515,7 @@ const UserManagePage: React.FC = () => {
         destroyOnClose
         styles={{ body: { maxHeight: '65vh', overflowY: 'auto', paddingRight: 4 } }}
       >
-        <Form form={createForm} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 18 }} style={{ marginTop: 16 }}>
+        <Form form={createForm} layout="vertical" style={{ marginTop: 16 }}>
           {/* 账号信息 */}
           <Form.Item label="用户名" name="username" rules={[{ required: true, message: '请输入用户名' }]}>
             <Input placeholder="请输入用户名" />
@@ -518,7 +524,7 @@ const UserManagePage: React.FC = () => {
             <Input.Password placeholder="请输入登录密码（至少8位）" />
           </Form.Item>
           <Form.Item
-            label="确认密码"
+            label="再次输入密码"
             name="confirmPwd"
             rules={[
               { required: true },

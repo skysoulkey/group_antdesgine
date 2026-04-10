@@ -101,7 +101,7 @@ const ProfilePage: React.FC = () => {
         }}
         width={420}
       >
-        <Form form={pwdForm} layout="horizontal" labelCol={{ span: 6 }} wrapperCol={{ span: 18 }} style={{ marginTop: 16 }}>
+        <Form form={pwdForm} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item label="当前密码" name="oldPwd" rules={[{ required: true }]}>
             <Input.Password placeholder="请输入当前密码" />
           </Form.Item>
