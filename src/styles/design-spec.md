@@ -312,7 +312,7 @@ Sider（固定，dark 主题，width=220，collapsed=80）
       收起态：仅退出图标居中
 Header（sticky，高度 48px，白色背景）
   └─ 左：Breadcrumb
-  └─ 右：角色切换 + 余额 + BellOutlined（Badge）
+  └─ 右：角色切换（9 角色预设方案 + 组合方案）+ 余额（仅 owner/finance 角色显示）+ BellOutlined（Badge）
 Content（padding: 16px 24px 24px）
   └─ 页面内容
 ```
@@ -418,3 +418,19 @@ import { Tooltip } from 'antd';
 - 图标大小：`12px`，颜色：`rgba(0,0,0,0.3)`，`cursor: help`
 - 折线图卡片 title 同样可加注释图标
 - Tooltip 文案说明：数据统计来源、汇总口径
+
+---
+
+## 十一、权限相关页面规范
+
+### 11.1 角色管理页（只读展示）
+
+角色管理页为只读展示，不可新增、编辑、删除。集团侧和公司侧角色分两个 Card 并排展示（`Col span={12}`），每个 Card 内一个 Table 列出角色名及对应功能模块（Tag 平铺）。
+
+### 11.2 角色选择 + 模块预览
+
+用户管理的创建/编辑弹窗中，角色 Select 为 `mode="multiple"`（多选）。选中角色后，下方显示浅蓝色面板（`background: #f6f8ff`，`border: 1px solid #d6e4ff`），列出所选角色的全部功能模块 Tag（多角色自动合并去重）。
+
+### 11.3 角色切换器（Header，仅 Mock 阶段）
+
+Header 右侧的角色切换 Select 宽度 `140px`，包含 9 个单角色预设方案 + 若干组合方案（如"集团经营+财务"）。切换后 localStorage 更新 `mock_auth`，菜单和路由守卫即时生效。

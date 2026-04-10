@@ -402,7 +402,27 @@ axis: {
 
 ---
 
-## 16. macOS SVG → PNG 导出透明背景
+## 16. 嵌套页面目录的模块导入路径
+
+**遇到的问题**
+`src/pages/system/users/index.tsx` 中写 `from '../../utils/auth'` 导致 esbuild 报 `Could not resolve` 错误。
+
+**根本原因**
+`src/pages/system/users/` 到 `src/utils/` 需要 3 层 `../`，而非 2 层。
+- `src/pages/403/index.tsx` → `../../utils/auth` ✅（2 层目录）
+- `src/pages/system/users/index.tsx` → `../../../utils/auth` ✅（3 层目录）
+
+目录越深，`../` 层数越多，很容易写错一层。
+
+**解决方案**
+写相对路径前先数目录层级。或在 `tsconfig.json` / `.umirc.ts` 中配置路径别名（如 `@/utils/auth`）避免相对路径问题。
+
+**如何检查**
+`umi build` 报 `Could not resolve` 时，检查导入路径的 `../` 层数是否与实际目录深度匹配。
+
+---
+
+## 17. macOS SVG → PNG 导出透明背景
 
 **遇到的问题**
 用 `qlmanage -t -s 256` 将 SVG 导出为 PNG 后，背景变成白色而非透明。
