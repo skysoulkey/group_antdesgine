@@ -13,27 +13,22 @@ import {
   message,
 } from 'antd';
 import React, { useState } from 'react';
-import { MOCK_ROLE, type Role } from '../../../utils/auth';
+import { getMockAuth, ROLE_LABELS } from '../../../utils/auth';
 
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
-const roleLabel: Record<Role, string> = {
-  group_admin: '集团管理员',
-  company_admin: '公司管理员',
-  system_admin: '平台管理员',
-};
-
 const ProfilePage: React.FC = () => {
   const [pwdOpen, setPwdOpen] = useState(false);
   const [pwdForm] = Form.useForm();
 
-  const role = ((localStorage.getItem('mock_role') as Role) ?? MOCK_ROLE);
+  const auth = getMockAuth();
+  const roles = auth.roles;
 
   const personalInfo = {
     username: 'Miya',
-    role: roleLabel[role],
+    role: roles.map(r => ROLE_LABELS[r]).join('、'),
     validPeriod: '永久有效',
     ipRestrict: false,
     ipWhitelist: '',
@@ -55,11 +50,11 @@ const ProfilePage: React.FC = () => {
         <Descriptions column={1} labelStyle={{ color: '#8c8c8c', width: 130, whiteSpace: 'nowrap' }} bordered>
           <Descriptions.Item label="用户名">{personalInfo.username}</Descriptions.Item>
           <Descriptions.Item label="角色">{personalInfo.role}</Descriptions.Item>
-          {(role === 'group_admin' || role === 'company_admin') && (
-            <Descriptions.Item label="归属集团">UU Talk 集团</Descriptions.Item>
+          {auth.level === 'group' && (
+            <Descriptions.Item label="归属集团">{(auth as { groupId: string }).groupId}</Descriptions.Item>
           )}
-          {role === 'company_admin' && (
-            <Descriptions.Item label="归属公司">炸雷第一波</Descriptions.Item>
+          {auth.level === 'company' && (
+            <Descriptions.Item label="归属公司">{(auth as { companyId: string }).companyId}</Descriptions.Item>
           )}
           <Descriptions.Item label="账户有效期">
             <Text type="success">{personalInfo.validPeriod}</Text>
