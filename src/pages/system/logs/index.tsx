@@ -1,7 +1,8 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { ConfigProvider, Input, Modal, Radio, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Card, ConfigProvider, Input, Modal, Radio, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useMemo, useState, useCallback } from 'react';
+import { useSearchParams } from 'umi';
 import { getMockAuth, ROLE_LABELS, ALL_ROLES, type Role } from '../../../utils/auth';
 import {
   getLoginLogs, getOperationLogs,
@@ -9,6 +10,9 @@ import {
 } from '../../../utils/operationLog';
 
 const radioTheme = { components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } };
+
+const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+const CARD_RADIUS = 12;
 
 const { Text } = Typography;
 
@@ -83,15 +87,12 @@ const initialOpLogs: OperationLogEntry[] = Array.from({ length: 24 }, (_, i) => 
 // ── 筛选选项 ────────────────────────────────────────────────────────
 const ROLE_OPTIONS = ALL_ROLES.map(r => ({ value: ROLE_LABELS[r], label: ROLE_LABELS[r] }));
 const MODULE_OPTIONS = [...new Set([...OP_MODULES, ...getOperationLogs().map(l => l.module)])].map(m => ({ value: m, label: m }));
-const ACTION_OPTIONS: { value: LoginAction; label: string }[] = [
-  { value: '登录', label: '登录' },
-  { value: '登出', label: '登出' },
-  { value: '登录失败', label: '登录失败' },
-];
 
 // ── 主组件 ──────────────────────────────────────────────────────────
 const SystemLogsPage: React.FC = () => {
   const auth = getMockAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'login';
 
   const filterByAuth = <T extends { level: string; group: string; company: string }>(list: T[]): T[] => {
     if (auth.level === 'group') {
@@ -115,7 +116,7 @@ const SystemLogsPage: React.FC = () => {
   // 登录日志筛选
   const [loginSearch, setLoginSearch] = useState('');
   const [loginRole, setLoginRole] = useState<string | undefined>();
-  const [loginAction, setLoginAction] = useState<LoginAction | undefined>();
+  const [loginAction, setLoginAction] = useState<string | undefined>();
 
   // 操作日志筛选
   const [opSearch, setOpSearch] = useState('');
@@ -205,101 +206,118 @@ const SystemLogsPage: React.FC = () => {
     ? `当前查看范围：${(auth as { groupId: string }).groupId} 集团全部日志（含下属公司）`
     : `当前查看范围：${(auth as { companyId: string }).companyId} 公司日志`;
 
-  return (
-    <div>
-      <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
-        <div>{scopeHint}</div>
-      </div>
+  const tabItems = [
+    {
+      key: 'login',
+      label: '登录日志',
+      children: (
+        <>
+        <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
+          {scopeHint}
+        </div>
+        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+          <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={loginAction ?? '全部'}
+                onChange={(e) => setLoginAction(e.target.value === '全部' ? undefined : e.target.value)}
+                buttonStyle="outline"
+              >
+                {['全部', '登录', '登出', '登录失败'].map((v) => (
+                  <Radio.Button key={v} value={v} style={(loginAction ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v === '全部' ? '全部类型' : v}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+            <Select
+              placeholder="筛选角色"
+              value={loginRole}
+              onChange={setLoginRole}
+              allowClear
+              style={{ width: 140 }}
+              options={ROLE_OPTIONS}
+            />
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="账号名 / 登录IP"
+              value={loginSearch}
+              onChange={(e) => setLoginSearch(e.target.value)}
+              allowClear
+              style={{ width: 240 }}
+            />
+          </Space>
+          <Table
+            columns={loginColumns}
+            dataSource={filteredLogin}
+            rowKey="id"
+            size="middle"
+            scroll={{ x: 800 }}
+            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          />
+        </Card>
+        </>
+      ),
+    },
+    {
+      key: 'operation',
+      label: '操作日志',
+      children: (
+        <>
+        <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
+          {scopeHint}
+        </div>
+        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+          <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
+            <Select
+              placeholder="筛选模块"
+              value={opModule}
+              onChange={setOpModule}
+              allowClear
+              style={{ width: 140 }}
+              options={MODULE_OPTIONS}
+            />
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                {['全部', '成功', '失败'].map((v) => (
+                  <Radio.Button key={v} value={v} style={(opResult ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v === '全部' ? '全部结果' : v}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="账号名 / 操作 / IP"
+              value={opSearch}
+              onChange={(e) => setOpSearch(e.target.value)}
+              allowClear
+              style={{ width: 240 }}
+            />
+          </Space>
+          <Table
+            columns={opColumns}
+            dataSource={filteredOp}
+            rowKey="id"
+            size="middle"
+            scroll={{ x: 900 }}
+            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          />
+        </Card>
+        </>
+      ),
+    },
+  ];
 
+  return (
+    <div style={{ marginTop: -16 }}>
       <Tabs
-        defaultActiveKey="login"
-        items={[
-          {
-            key: 'login',
-            label: '登录日志',
-            children: (
-              <>
-                <Space size={24} wrap align="center" style={{ marginBottom: 16 }}>
-                  <Select
-                    placeholder="操作类型"
-                    value={loginAction}
-                    onChange={setLoginAction}
-                    allowClear
-                    style={{ width: 120 }}
-                    options={ACTION_OPTIONS}
-                  />
-                  <Select
-                    placeholder="筛选角色"
-                    value={loginRole}
-                    onChange={setLoginRole}
-                    allowClear
-                    style={{ width: 140 }}
-                    options={ROLE_OPTIONS}
-                  />
-                  <Input
-                    prefix={<SearchOutlined />}
-                    placeholder="账号名 / 登录IP"
-                    value={loginSearch}
-                    onChange={(e) => setLoginSearch(e.target.value)}
-                    allowClear
-                    style={{ width: 240 }}
-                  />
-                </Space>
-                <Table
-                  columns={loginColumns}
-                  dataSource={filteredLogin}
-                  rowKey="id"
-                  size="middle"
-                  scroll={{ x: 800 }}
-                  pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-                  rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-                />
-              </>
-            ),
-          },
-          {
-            key: 'operation',
-            label: '操作日志',
-            children: (
-              <>
-                <Space size={24} wrap align="center" style={{ marginBottom: 16 }}>
-                  <Select
-                    placeholder="筛选模块"
-                    value={opModule}
-                    onChange={setOpModule}
-                    allowClear
-                    style={{ width: 140 }}
-                    options={MODULE_OPTIONS}
-                  />
-                  <ConfigProvider theme={radioTheme}>
-                    <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
-                      {['全部', '成功', '失败'].map((v) => (
-                        <Radio.Button key={v} value={v} style={(opResult ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v === '全部' ? '全部结果' : v}</Radio.Button>
-                      ))}
-                    </Radio.Group>
-                  </ConfigProvider>
-                  <Input
-                    prefix={<SearchOutlined />}
-                    placeholder="账号名 / 操作 / IP"
-                    value={opSearch}
-                    onChange={(e) => setOpSearch(e.target.value)}
-                    allowClear
-                    style={{ width: 240 }}
-                  />
-                </Space>
-                <Table
-                  columns={opColumns}
-                  dataSource={filteredOp}
-                  rowKey="id"
-                  size="middle"
-                  scroll={{ x: 900 }}
-                  pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-                  rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-                />
-              </>
-            ),
-          },
-        ]}
+        items={tabItems}
+        activeKey={activeTab}
+        onChange={(key) => setSearchParams({ tab: key })}
+        tabBarStyle={{
+          background: '#fff',
+          margin: '0 -24px',
+          padding: '0 24px',
+        }}
       />
     </div>
   );

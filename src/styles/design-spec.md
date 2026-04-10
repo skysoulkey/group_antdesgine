@@ -434,3 +434,12 @@ import { Tooltip } from 'antd';
 ### 11.3 角色切换器（Header，仅 Mock 阶段）
 
 Header 右侧的角色切换 Select 宽度 `140px`，包含 9 个单角色预设方案。切换后 localStorage 更新 `mock_auth`，菜单和路由守卫即时生效。
+
+---
+
+## 十二、全局水印
+
+- 组件：Ant Design `<Watermark>`，包裹整个 Layout
+- 内容：`{用户名} {MM-DD}`，如 `Miya 04-10`
+- 字号 14px，颜色 `rgba(0,0,0,0.04)`
+- 间距：`gap={[80, 80]}`（水平 80px、垂直 80px）

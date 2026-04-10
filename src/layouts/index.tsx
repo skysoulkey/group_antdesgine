@@ -147,6 +147,10 @@ const tabBreadcrumbMap: Record<string, Record<string, string[]>> = {
     lottery:       ['企业管理', '企业清单', '东方彩票'],
     commission:    ['企业管理', '企业清单', '佣金订单'],
   },
+  '/system/logs': {
+    login:     ['设置中心', '系统日志', '登录日志'],
+    operation: ['设置中心', '系统日志', '操作日志'],
+  },
 };
 
 function getBreadcrumb(pathname: string, tab?: string): string[] {
@@ -287,9 +291,10 @@ const MainLayout: React.FC = () => {
   }, [location.pathname, roles]);
 
   const username = JSON.parse(localStorage.getItem('userInfo') ?? '{}').name ?? '用户';
+  const todayStr = `${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
 
   return (
-    <Watermark content={username} font={{ fontSize: 14, color: 'rgba(0,0,0,0.04)' }}>
+    <Watermark content={`${username} ${todayStr}`} gap={[80, 80]} font={{ fontSize: 14, color: 'rgba(0,0,0,0.04)' }}>
     <Layout style={{ minHeight: '100vh' }}>
       <Sider
         collapsible
