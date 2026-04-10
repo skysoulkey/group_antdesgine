@@ -34,7 +34,7 @@ import {
   getMockAuth, getMockRoles, ROLE_LABELS,
   GROUP_ROLES, COMPANY_ROLES,
   type Role, type GroupRole, type CompanyRole,
-} from '../../utils/auth';
+} from '../../../utils/auth';
 
 const isExpired = (validPeriod: string): boolean => {
   if (validPeriod === '永久有效') return false;
