@@ -3,7 +3,6 @@ import {
   BankOutlined,
   CopyOutlined,
   PlusOutlined,
-  QrcodeOutlined,
   SearchOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -31,14 +30,16 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useMemo, useState } from 'react';
-import { type Role } from '../../utils/auth';
+import {
+  getMockAuth, getMockRoles, ROLE_LABELS,
+  GROUP_ROLES, COMPANY_ROLES,
+  type Role, type GroupRole, type CompanyRole,
+} from '../../utils/auth';
 
 const isExpired = (validPeriod: string): boolean => {
   if (validPeriod === '永久有效') return false;
   return new Date(validPeriod) < new Date(new Date().toDateString());
 };
-// 当前登录用户所属集团（mock）
-const CURRENT_GROUP = 'UU Talk';
 
 const { Text } = Typography;
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
@@ -55,8 +56,6 @@ const radioTheme = {
   },
 };
 
-const ROLES = ['集团管理员', '公司管理员', '平台管理员'] as const;
-type UserRole = typeof ROLES[number];
 const STATUSES = ['启用', '停用'] as const;
 type UserStatus = typeof STATUSES[number];
 
@@ -67,20 +66,15 @@ const COMPANIES: Record<string, string[]> = {
   'Star Game': ['Star Tech', 'Nova Corp'],
 };
 
-const roleColors: Record<UserRole, string> = {
-  '集团管理员': 'blue',
-  '公司管理员': 'green',
-  '平台管理员': 'red',
-};
-
 interface UserRecord {
   id: string;
   username: string;
   phone: string;
   email: string;
+  level: 'group' | 'company';
   group: string;
   company: string;
-  role: UserRole;
+  roles: Role[];
   status: UserStatus;
   createdAt: string;
   ipRestrict: boolean;
@@ -90,57 +84,66 @@ interface UserRecord {
 }
 
 const initialData: UserRecord[] = [
-  // U001 — 启用，永久有效，正常
-  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', group: 'UU Talk', company: '滴滴答答', role: '集团管理员', status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya' },
-  // U002 — 启用，有效期内，正常
-  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin' },
-  // U003 — 停用（管理员手动停用）
-  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
-  // U004 — 启用，已过期
-  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '公司管理员', status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-01-01', notifyAccounts: '@alice_finance' },
-  // U005 — 启用，永久有效
-  { id: 'U005', username: 'SysAdmin', phone: '+65 6888 8888', email: 'sysadmin@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-07-01 08:00:00', ipRestrict: true, ipWhitelist: '203.0.113.0/24', validPeriod: '永久有效', notifyAccounts: '' },
-  // U006 — 启用，已过期
-  { id: 'U006', username: 'Leo', phone: '+65 9123 4567', email: 'leo@uutalk.com', group: 'UU Talk', company: 'UU Talk', role: '公司管理员', status: '启用', createdAt: '2025-06-10 10:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-03-01', notifyAccounts: '@leo_ops' },
-  // U007 — 停用，已过期（停用且到期）
-  { id: 'U007', username: 'Nina', phone: '+86 139 8888 7777', email: 'nina@stargame.io', group: 'Star Game', company: 'Nova Corp', role: '公司管理员', status: '停用', createdAt: '2025-05-20 09:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-06-30', notifyAccounts: '' },
-  // U008 — 集团管理员，启用，有效期内，正常
-  { id: 'U008', username: 'Ryan', phone: '+65 8234 5678', email: 'ryan@heytalk.com', group: 'Hey Talk', company: 'Hey Talk Corp', role: '集团管理员', status: '启用', createdAt: '2025-04-15 08:00:00', ipRestrict: true, ipWhitelist: '192.168.1.0/24', validPeriod: '2027-06-30', notifyAccounts: '@ryan_admin' },
-  // U009 — 平台管理员，启用，永久有效，正常
-  { id: 'U009', username: 'Eve', phone: '+65 6777 9999', email: 'eve@platform.sg', group: '全部集团', company: '全部公司', role: '平台管理员', status: '启用', createdAt: '2025-03-01 12:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
-  // U010 — 启用，即将到期（2026-04-30），正常（用于对比）
-  { id: 'U010', username: 'Mark', phone: '+86 188 0000 1234', email: 'mark@stargame.io', group: 'Star Game', company: 'Star Tech', role: '公司管理员', status: '启用', createdAt: '2025-02-18 15:45:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2026-04-30', notifyAccounts: '@mark_ops' },
+  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', level: 'group', group: 'UU Talk', company: '', roles: ['group_owner'], status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya' },
+  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_owner'], status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin' },
+  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@uutalk.com', level: 'company', group: 'UU Talk', company: 'UU Talk', roles: ['company_ops'], status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
+  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_finance'], status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-01-01', notifyAccounts: '@alice_finance' },
+  { id: 'U005', username: 'Ryan', phone: '+65 8234 5678', email: 'ryan@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_finance'], status: '启用', createdAt: '2025-04-15 08:00:00', ipRestrict: true, ipWhitelist: '192.168.1.0/24', validPeriod: '2027-06-30', notifyAccounts: '@ryan_admin' },
+  { id: 'U006', username: 'Leo', phone: '+65 9123 4567', email: 'leo@uutalk.com', level: 'company', group: 'UU Talk', company: 'UU Talk', roles: ['company_promo'], status: '启用', createdAt: '2025-06-10 10:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-03-01', notifyAccounts: '@leo_ops' },
+  { id: 'U007', username: 'Nina', phone: '+86 139 8888 7777', email: 'nina@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_ops'], status: '启用', createdAt: '2025-05-20 09:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
+  { id: 'U008', username: 'Mark', phone: '+86 188 0000 1234', email: 'mark@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_audit'], status: '启用', createdAt: '2025-02-18 15:45:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@mark_ops' },
+  { id: 'U009', username: 'Eve', phone: '+65 6777 9999', email: 'eve@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_ops', 'company_audit'], status: '启用', createdAt: '2025-03-01 12:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
 ];
 
 // ── 集团-公司-管理员 树数据 ────────────────────────────────────────
 const buildTreeData = (data: UserRecord[]) => {
   const groups = [...new Set(data.map((r) => r.group))];
-  return groups.map((group) => ({
-    title: <Text style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{group}</Text>,
-    key: `g::${group}`,
-    icon: <BankOutlined style={{ color: '#1677ff' }} />,
-    children: [...new Set(data.filter((r) => r.group === group).map((r) => r.company))].map(
-      (company) => ({
-        title: <Text style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{company}</Text>,
-        key: `c::${company}`,
-        icon: <ApartmentOutlined style={{ color: '#1677ff' }} />,
-        children: data
-          .filter((r) => r.group === group && r.company === company)
-          .map((user) => ({
-            title: <Text style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{user.username}</Text>,
-            key: `u::${user.id}`,
-            icon: <UserOutlined style={{ color: '#52c41a', fontSize: 12 }} />,
-          })),
-      }),
-    ),
-  }));
+  return groups.map((group) => {
+    const groupUsers = data.filter((r) => r.group === group);
+    // 集团级用户（无公司归属）
+    const groupLevelUsers = groupUsers.filter((r) => r.level === 'group');
+    // 公司分组
+    const companies = [...new Set(groupUsers.filter((r) => r.level === 'company').map((r) => r.company))];
+    return {
+      title: <Text style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{group}</Text>,
+      key: `g::${group}`,
+      icon: <BankOutlined style={{ color: '#1677ff' }} />,
+      children: [
+        // 集团级用户直接挂在集团下
+        ...groupLevelUsers.map((user) => ({
+          title: <Text style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{user.username}</Text>,
+          key: `u::${user.id}`,
+          icon: <UserOutlined style={{ color: '#52c41a', fontSize: 12 }} />,
+        })),
+        // 公司节点
+        ...companies.map((company) => ({
+          title: <Text style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{company}</Text>,
+          key: `c::${company}`,
+          icon: <ApartmentOutlined style={{ color: '#1677ff' }} />,
+          children: groupUsers
+            .filter((r) => r.company === company && r.level === 'company')
+            .map((user) => ({
+              title: <Text style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{user.username}</Text>,
+              key: `u::${user.id}`,
+              icon: <UserOutlined style={{ color: '#52c41a', fontSize: 12 }} />,
+            })),
+        })),
+      ],
+    };
+  });
 };
 
 const UserManagePage: React.FC = () => {
-  const mockRole = (localStorage.getItem('mock_role') ?? 'group_admin') as Role;
-  const visibleData = mockRole === 'system_admin'
-    ? initialData
-    : initialData.filter((r) => r.group === CURRENT_GROUP && r.role !== '集团管理员');
+  const mockAuth = getMockAuth();
+  const mockRoles = getMockRoles();
+  const currentUserId = 'U001'; // Mock: 当前登录用户 ID
+
+  // 可见范围：owner 才能进入，过滤掉自己
+  const visibleData = initialData.filter((r) => {
+    if (r.id === currentUserId) return false; // 不显示自己
+    if (mockAuth.level === 'group') return r.group === (mockAuth as { groupId: string }).groupId;
+    return r.level === 'company' && r.company === (mockAuth as { companyId: string }).companyId;
+  });
   const [users, setUsers] = useState<UserRecord[]>(visibleData);
 
   const [search, setSearch] = useState('');
@@ -157,16 +160,14 @@ const UserManagePage: React.FC = () => {
   const [editForm] = Form.useForm();
 
   // create form 联级状态
-  const [createRole, setCreateRole] = useState<string>('');
   const [createGroup, setCreateGroup] = useState<string | undefined>();
+  const [createLevel, setCreateLevel] = useState<'group' | 'company'>('company');
 
   const [editIpRestrict, setEditIpRestrict] = useState(false);
 
   // 创建成功弹窗
   const [successOpen, setSuccessOpen] = useState(false);
   const [createdInfo, setCreatedInfo] = useState<{ username: string; password: string } | null>(null);
-
-  const APP_USERNAME_REGEX = /^@[a-zA-Z0-9_]{2,30}$/;
 
   const copyCreatedInfo = () => {
     if (!createdInfo) return;
@@ -192,7 +193,7 @@ const UserManagePage: React.FC = () => {
       r.status === statusFilter;
     return (
       statusMatch &&
-      (!roleFilter || r.role === roleFilter) &&
+      (!roleFilter || r.roles.includes(roleFilter as Role)) &&
       (!kw || r.username.toLowerCase().includes(kw) || r.email.toLowerCase().includes(kw) || r.phone.includes(kw))
     );
   });
@@ -200,7 +201,7 @@ const UserManagePage: React.FC = () => {
   const openEdit = (r: UserRecord) => {
     setCurrentUser(r);
     setEditIpRestrict(r.ipRestrict);
-    editForm.setFieldsValue({ role: r.role, status: r.status, validPeriod: r.validPeriod, ipRestrict: r.ipRestrict, ipWhitelist: r.ipWhitelist });
+    editForm.setFieldsValue({ roles: r.roles, status: r.status, validPeriod: r.validPeriod, ipRestrict: r.ipRestrict, ipWhitelist: r.ipWhitelist });
     setEditOpen(true);
   };
 
@@ -208,8 +209,11 @@ const UserManagePage: React.FC = () => {
     { title: '创建时间', dataIndex: 'createdAt', width: 170, sorter: (a, b) => a.createdAt.localeCompare(b.createdAt) },
     { title: '用户名', dataIndex: 'username', width: 110, render: (v) => <Text strong>{v}</Text> },
     { title: '归属集团', dataIndex: 'group', width: 100 },
-    { title: '归属公司', dataIndex: 'company', width: 110 },
-    { title: '角色', dataIndex: 'role', width: 110 },
+    { title: '归属公司', dataIndex: 'company', width: 110, render: (v) => v || '-' },
+    {
+      title: '角色', dataIndex: 'roles', width: 160,
+      render: (v: Role[]) => v.map(r => ROLE_LABELS[r]).join('、'),
+    },
     {
       title: '状态', dataIndex: 'status', width: 130,
       render: (v: UserStatus, r: UserRecord) => (
@@ -223,8 +227,8 @@ const UserManagePage: React.FC = () => {
     {
       title: '操作', width: 170, fixed: 'right' as const,
       render: (_, r) => {
-        // 集团管理员只能操作公司管理员
-        const canManage = mockRole === 'system_admin' || (mockRole === 'group_admin' && r.role === '公司管理员');
+        // owner 才可操作；集团主可操作所有人，公司主只操作公司用户
+        const canManage = mockRoles.includes('group_owner') || (mockRoles.includes('company_owner') && r.level === 'company');
         return (
           <Space size={0}>
             <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => { setCurrentUser(r); setViewOpen(true); }}>查看</Button>
@@ -238,6 +242,11 @@ const UserManagePage: React.FC = () => {
   ];
 
   const treeData = useMemo(() => buildTreeData(users), [users]);
+
+  // 可分配的角色列表
+  const assignableRoles: Role[] = mockAuth.level === 'group'
+    ? [...(GROUP_ROLES.filter(r => r !== 'group_owner') as Role[]), ...(COMPANY_ROLES.filter(r => r !== 'company_owner') as Role[])]
+    : COMPANY_ROLES.filter(r => r !== 'company_owner');
 
   return (
     <div style={{ display: 'flex', gap: 12, alignItems: 'stretch' }}>
@@ -267,9 +276,10 @@ const UserManagePage: React.FC = () => {
         <Space direction="vertical" size={16} style={{ display: 'flex' }}>
           {/* 说明 */}
           <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
-            <div>1. 集团管理员可查看本集团管理员账号及下属公司管理员账号</div>
-            <div>2. 同一公司管理员之间数据不做权限隔离，功能模块权限按照授予【角色】控制</div>
-            <div>3. 数据权限由【归属集团】和【归属公司】进行控制，功能权限由【角色】进行控制</div>
+            <div>1. 集团主可查看本集团所有用户（含下属公司），公司主可查看本公司所有用户</div>
+            <div>2. 用户列表不显示自己，不可编辑自己的角色</div>
+            <div>3. 同一公司管理员之间数据不做权限隔离，功能模块权限按角色控制</div>
+            <div>4. 一个用户可持有多个角色，权限取并集；集团/公司角色不可混搭</div>
           </div>
 
           {/* 筛选 + 操作 */}
@@ -289,7 +299,7 @@ const UserManagePage: React.FC = () => {
                 onChange={setRoleFilter}
                 allowClear
                 style={{ width: 130 }}
-                options={ROLES.map((r) => ({ value: r, label: r }))}
+                options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
               />
               <Input
                 suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
@@ -304,13 +314,13 @@ const UserManagePage: React.FC = () => {
                 icon={<PlusOutlined />}
                 onClick={() => {
                   createForm.resetFields();
-                  if (mockRole === 'group_admin') {
-                    setCreateRole('公司管理员');
-                    setCreateGroup(CURRENT_GROUP);
-                    createForm.setFieldsValue({ role: '公司管理员', group: CURRENT_GROUP });
+                  if (mockAuth.level === 'group') {
+                    setCreateGroup((mockAuth as { groupId: string }).groupId);
+                    createForm.setFieldsValue({ group: (mockAuth as { groupId: string }).groupId });
+                    setCreateLevel('company');
                   } else {
-                    setCreateRole('');
                     setCreateGroup(undefined);
+                    setCreateLevel('company');
                   }
                   setCreateOpen(true);
                 }}
@@ -349,8 +359,8 @@ const UserManagePage: React.FC = () => {
               <Descriptions.Item label="手机号">{u.phone}</Descriptions.Item>
               <Descriptions.Item label="邮箱">{u.email}</Descriptions.Item>
               <Descriptions.Item label="归属集团">{u.group}</Descriptions.Item>
-              <Descriptions.Item label="归属公司">{u.company}</Descriptions.Item>
-              <Descriptions.Item label="角色">{u.role}</Descriptions.Item>
+              {u.company && <Descriptions.Item label="归属公司">{u.company}</Descriptions.Item>}
+              <Descriptions.Item label="角色">{u.roles.map(r => ROLE_LABELS[r]).join('、')}</Descriptions.Item>
               <Descriptions.Item label="状态">
                 <Space size={4} wrap>
                   <Tag color={u.status === '启用' ? 'success' : 'default'}>{u.status}</Tag>
@@ -376,7 +386,7 @@ const UserManagePage: React.FC = () => {
             setUsers((prev) =>
               prev.map((u) =>
                 u.id === currentUser?.id
-                  ? { ...u, role: values.role, status: values.status, validPeriod: values.validPeriod, ipRestrict: values.ipRestrict ?? false, ipWhitelist: values.ipRestrict ? (values.ipWhitelist ?? '') : '' }
+                  ? { ...u, roles: values.roles, status: values.status, validPeriod: values.validPeriod, ipRestrict: values.ipRestrict ?? false, ipWhitelist: values.ipRestrict ? (values.ipWhitelist ?? '') : '' }
                   : u,
               ),
             );
@@ -391,15 +401,16 @@ const UserManagePage: React.FC = () => {
         destroyOnClose
       >
         <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
-          {mockRole === 'system_admin' ? (
-            <Form.Item label="角色" name="role" rules={[{ required: true }]}>
-              <Select options={ROLES.map((r) => ({ value: r, label: r }))} />
-            </Form.Item>
-          ) : (
-            <Form.Item label="角色" name="role">
-              <Select disabled options={[{ value: currentUser?.role, label: currentUser?.role }]} />
-            </Form.Item>
-          )}
+          <Form.Item label="角色" name="roles" rules={[{ required: true, message: '请选择角色' }]}>
+            <Select
+              mode="multiple"
+              options={
+                currentUser?.level === 'group'
+                  ? GROUP_ROLES.filter(r => r !== 'group_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
+                  : COMPANY_ROLES.filter(r => r !== 'company_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
+              }
+            />
+          </Form.Item>
           <Row gutter={12}>
             <Col span={12}>
               <Form.Item label="状态" name="status" rules={[{ required: true }]}>
@@ -435,9 +446,10 @@ const UserManagePage: React.FC = () => {
               username: values.username,
               phone: '',
               email: '',
-              group: values.group ?? '全部集团',
-              company: values.company ?? '全部公司',
-              role: values.role,
+              level: createLevel,
+              group: values.group ?? '',
+              company: values.company ?? '',
+              roles: values.roles ?? [],
               status: values.status,
               createdAt: new Date().toLocaleString('zh-CN', { hour12: false }).replace(/\//g, '-'),
               ipRestrict: values.ipRestrict ?? false,
@@ -446,7 +458,6 @@ const UserManagePage: React.FC = () => {
                 ? values.expireDate.format('YYYY-MM-DD')
                 : '永久有效',
               notifyAccounts: values.appUsername ?? '',
-              isLocked: false,
             };
             setUsers((prev) => [...prev, newUser]);
             setCreateOpen(false);
@@ -488,90 +499,58 @@ const UserManagePage: React.FC = () => {
 
           <Divider style={{ margin: '12px 0' }} />
 
-          {/* 角色（先选角色，再联级选归属） */}
-          <Form.Item label="角色" name="role" rules={[{ required: true, message: '请选择角色' }]}>
-            {mockRole === 'group_admin' ? (
-              <Select disabled options={[{ value: '公司管理员', label: '公司管理员' }]} />
+          {/* 归属层级 — 集团主可选集团或公司，公司主只能创建公司用户 */}
+          {mockAuth.level === 'group' && (
+            <Form.Item label="用户层级">
+              <Radio.Group value={createLevel} onChange={(e) => {
+                setCreateLevel(e.target.value);
+                createForm.resetFields(['roles', 'company']);
+              }}>
+                <Radio.Button value="group">集团用户</Radio.Button>
+                <Radio.Button value="company">公司用户</Radio.Button>
+              </Radio.Group>
+            </Form.Item>
+          )}
+
+          {/* 归属集团 */}
+          <Form.Item label="归属集团" name="group" rules={[{ required: true, message: '请选择归属集团' }]}>
+            {mockAuth.level === 'group' ? (
+              <Select disabled options={[{ value: (mockAuth as { groupId: string }).groupId, label: (mockAuth as { groupId: string }).groupId }]} />
             ) : (
               <Select
-                placeholder="请选择角色"
-                options={ROLES.map((r) => ({ value: r, label: r }))}
+                placeholder="请选择归属集团"
+                options={GROUPS.map((g) => ({ value: g, label: g }))}
                 onChange={(v) => {
-                  setCreateRole(v);
-                  setCreateGroup(undefined);
-                  createForm.resetFields(['group', 'company']);
+                  setCreateGroup(v);
+                  createForm.resetFields(['company']);
                 }}
               />
             )}
           </Form.Item>
 
-          {/* 联级归属：集团管理员 → 仅选集团 */}
-          {createRole === '集团管理员' && (
-            <>
-              <Form.Item label="归属集团" name="group" rules={[{ required: true, message: '请选择归属集团' }]}>
-                <Select
-                  placeholder="请选择归属集团"
-                  options={GROUPS.map((g) => ({ value: g, label: g }))}
-                />
-              </Form.Item>
-              {mockRole === 'system_admin' && (
-                <Form.Item
-                  label="APP 用户名"
-                  name="appUsername"
-                  rules={[
-                    { required: true, message: '请输入 APP 用户名' },
-                    {
-                      validator: (_, value) => {
-                        if (!value) return Promise.resolve();
-                        if (!APP_USERNAME_REGEX.test(value)) {
-                          return Promise.reject(new Error('格式：@字母/数字/下划线，2-30位，如 @miya_admin'));
-                        }
-                        if (users.some((u) => u.notifyAccounts === value)) {
-                          return Promise.reject(new Error('该 APP 用户名已被使用'));
-                        }
-                        return Promise.resolve();
-                      },
-                    },
-                  ]}
-                >
-                  <Input placeholder="请输入 APP 用户名，如 @miya_admin" />
-                </Form.Item>
-              )}
-            </>
+          {/* 归属公司 — 仅公司用户需要 */}
+          {createLevel === 'company' && (
+            <Form.Item label="归属公司" name="company" rules={[{ required: true, message: '请选择归属公司' }]}>
+              <Select
+                placeholder={createGroup ? '请选择归属公司' : '请先选择集团'}
+                disabled={!createGroup}
+                options={(createGroup ? COMPANIES[createGroup] ?? [] : []).map((c) => ({ value: c, label: c }))}
+              />
+            </Form.Item>
           )}
 
-          {/* 联级归属：公司管理员 → 先选集团，再选公司 */}
-          {createRole === '公司管理员' && (
-            <Row gutter={12}>
-              <Col span={12}>
-                <Form.Item label="归属集团" name="group" rules={[{ required: true, message: '请选择归属集团' }]}>
-                  {mockRole === 'group_admin' ? (
-                    <Select disabled options={[{ value: CURRENT_GROUP, label: CURRENT_GROUP }]} />
-                  ) : (
-                    <Select
-                      placeholder="请选择归属集团"
-                      options={GROUPS.map((g) => ({ value: g, label: g }))}
-                      onChange={(v) => {
-                        setCreateGroup(v);
-                        createForm.resetFields(['company']);
-                      }}
-                    />
-                  )}
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label="归属公司" name="company" rules={[{ required: true, message: '请选择归属公司' }]}>
-                  <Select
-                    placeholder={createGroup ? '请选择归属公司' : '请先选择集团'}
-                    disabled={!createGroup}
-                    options={(createGroup ? COMPANIES[createGroup] ?? [] : []).map((c) => ({ value: c, label: c }))}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          )}
-
-          {/* 平台管理员：无需归属 */}
+          {/* 角色 — 多选，根据层级显示对应角色 */}
+          <Form.Item label="角色" name="roles" rules={[{ required: true, message: '请选择角色' }]}>
+            <Select
+              mode="multiple"
+              placeholder="请选择角色"
+              options={
+                createLevel === 'group'
+                  ? GROUP_ROLES.filter(r => r !== 'group_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
+                  : COMPANY_ROLES.filter(r => r !== 'company_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
+              }
+            />
+          </Form.Item>
 
           <Divider style={{ margin: '12px 0' }} />
 
