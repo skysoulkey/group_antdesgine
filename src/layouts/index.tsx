@@ -55,6 +55,7 @@ const allMenuItems: MenuItem[] = [
     children: [
       { key: '/company/shareholding', label: '公司持股', roles: ['company_owner', 'company_ops'] },
       { key: '/company/revenue',      label: '公司收益', roles: ['company_owner', 'company_finance'] },
+      { key: '/finance/approvals',    label: '通知审批', roles: ['company_owner', 'company_ops'] },
     ],
   },
   {
@@ -88,7 +89,6 @@ const allMenuItems: MenuItem[] = [
       { key: '/system/users',           label: '用户管理',  roles: ['group_owner', 'company_owner'] },
       { key: '/system/logs',            label: '系统日志',  roles: ['group_owner', 'group_audit', 'company_owner', 'company_audit'] },
       { key: '/system/notifications',   label: '通知管理',  roles: ['company_owner', 'company_ops'] },
-      { key: '/finance/approvals',     label: '审批中心',  roles: ['company_owner', 'company_ops'] },
     ],
   },
 ];
@@ -127,7 +127,7 @@ const breadcrumbMap: Record<string, string[]> = {
   '/system/users':           ['设置中心', '用户管理'],
   '/system/logs':            ['设置中心', '系统日志'],
   '/system/notifications':   ['设置中心', '通知管理'],
-  '/finance/approvals':      ['设置中心', '审批中心'],
+  '/finance/approvals':      ['公司管理', '通知审批'],
   '/403':                    ['错误', '无权限'],
 };
 
@@ -154,8 +154,8 @@ const tabBreadcrumbMap: Record<string, Record<string, string[]>> = {
     operation: ['设置中心', '系统日志', '操作日志'],
   },
   '/finance/approvals': {
-    list:  ['设置中心', '审批中心', '审批列表'],
-    rules: ['设置中心', '审批中心', '审批规则'],
+    list:  ['公司管理', '通知审批', '审批列表'],
+    rules: ['公司管理', '通知审批', '审批规则'],
   },
 };
 
@@ -182,6 +182,7 @@ function getDefaultOpenKeys(pathname: string): string[] {
   if (pathname.startsWith('/dashboard')) return ['dashboard'];
   if (pathname.startsWith('/company/list') || pathname.startsWith('/company/transfer') ||
       pathname.startsWith('/finance/revenue')) return ['group'];
+  if (pathname.startsWith('/finance/approvals')) return ['company'];
   if (pathname.startsWith('/company/')) return ['company'];
   if (pathname.startsWith('/enterprise')) return ['enterprise'];
   if (pathname.startsWith('/orders') || pathname.startsWith('/commission')) return ['orders'];
