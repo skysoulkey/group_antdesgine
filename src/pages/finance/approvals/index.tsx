@@ -196,7 +196,7 @@ const ApprovalListTab: React.FC = () => {
     { title: '企业主用户名', dataIndex: 'sourceOwnerUsername', width: 120 },
     { title: '归属公司', dataIndex: 'companyName', width: 100 },
     { title: '归属公司ID', dataIndex: 'companyId', width: 110 },
-    { title: '业务摘要', width: 280, render: (_: unknown, r: ApprovalRecord) => <Text style={{ fontSize: 12 }}>{businessSummary(r)}</Text> },
+    { title: '业务摘要', width: 320, render: (_: unknown, r: ApprovalRecord) => <Text style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{businessSummary(r)}</Text> },
     {
       title: '审批状态', dataIndex: 'status', width: 100,
       render: (v: ApprovalStatus) => <Tag color={STATUS_COLORS[v]}>{STATUS_LABELS[v]}</Tag>,
@@ -265,7 +265,7 @@ const ApprovalListTab: React.FC = () => {
           dataSource={filtered}
           rowKey="id"
           size="middle"
-          scroll={{ x: 2200 }}
+          scroll={{ x: 2300 }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />

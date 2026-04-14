@@ -26,6 +26,7 @@ const TRIGGER_LABELS: Record<TriggerConditionType, string> = {
 interface ApprovalRule {
   id: string;
   name: string;
+  priority: number;
   eventType: EventType;
   scope: string;
   triggerType: TriggerConditionType;
@@ -46,19 +47,19 @@ const MOCK_ENTERPRISES_FOR_RULES = [
 
 const initialRules: ApprovalRule[] = [
   {
-    id: 'RULE001', name: '小额投资自动通过', eventType: 'additional_investment',
+    id: 'RULE001', name: '小额投资自动通过', priority: 1, eventType: 'additional_investment',
     scope: '全部企业', triggerType: 'amount',
     conditions: [{ field: 'investAmount', operator: '≤', value: '10000' }],
     enabled: true, createdAt: '2026-04-01 10:00:00', updatedAt: '2026-04-10 14:30:00', companyId: 'COM001',
   },
   {
-    id: 'RULE002', name: 'CyberBot自动通过', eventType: 'share_release',
+    id: 'RULE002', name: 'CyberBot自动通过', priority: 2, eventType: 'share_release',
     scope: 'CyberBot', triggerType: 'company',
     conditions: [{ field: 'sourceCompanyId', operator: '=', value: 'ENT001' }],
     enabled: true, createdAt: '2026-04-02 11:00:00', updatedAt: '2026-04-08 09:00:00', companyId: 'COM001',
   },
   {
-    id: 'RULE003', name: 'StarLink小额释放自动通过', eventType: 'share_release',
+    id: 'RULE003', name: 'StarLink小额释放自动通过', priority: 3, eventType: 'share_release',
     scope: 'StarLink', triggerType: 'amount_and_company',
     conditions: [
       { field: 'sourceCompanyId', operator: '=', value: 'ENT002' },
@@ -84,6 +85,7 @@ const ApprovalRulesTab: React.FC = () => {
     setEditingRule(rule);
     form.setFieldsValue({
       name: rule.name,
+      priority: rule.priority,
       eventType: rule.eventType,
       triggerType: rule.triggerType,
       amountOperator: rule.conditions.find((c) => c.field.includes('Amount'))?.operator || '≤',
@@ -142,7 +144,7 @@ const ApprovalRulesTab: React.FC = () => {
         setRules((prev) =>
           prev.map((r) =>
             r.id === editingRule.id
-              ? { ...r, name: values.name, eventType: values.eventType, triggerType: values.triggerType, conditions, scope: scopeNames || '全部企业', enabled: values.enabled ?? r.enabled, updatedAt: now }
+              ? { ...r, name: values.name, priority: values.priority, eventType: values.eventType, triggerType: values.triggerType, conditions, scope: scopeNames || '全部企业', enabled: values.enabled ?? r.enabled, updatedAt: now }
               : r,
           ),
         );
@@ -151,6 +153,7 @@ const ApprovalRulesTab: React.FC = () => {
         const newRule: ApprovalRule = {
           id: `RULE${String(rules.length + 1).padStart(3, '0')}`,
           name: values.name,
+          priority: values.priority,
           eventType: values.eventType,
           triggerType: values.triggerType,
           scope: scopeNames || '全部企业',
@@ -172,6 +175,7 @@ const ApprovalRulesTab: React.FC = () => {
   const columns: ColumnsType<ApprovalRule> = [
     { title: '创建时间', dataIndex: 'createdAt', width: 170, sorter: (a, b) => a.createdAt.localeCompare(b.createdAt) },
     { title: '更新时间', dataIndex: 'updatedAt', width: 170 },
+    { title: '优先级', dataIndex: 'priority', width: 80, sorter: (a, b) => a.priority - b.priority, defaultSortOrder: 'ascend' },
     { title: '规则名称', dataIndex: 'name', width: 180 },
     { title: '适用事件类型', dataIndex: 'eventType', width: 160, render: (v: EventType) => EVENT_LABELS[v] },
     { title: '适用范围', dataIndex: 'scope', width: 140 },
@@ -223,6 +227,9 @@ const ApprovalRulesTab: React.FC = () => {
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item name="name" label="规则名称" rules={[{ required: true, message: '请输入规则名称' }]}>
             <Input placeholder="例：小额投资自动通过" />
+          </Form.Item>
+          <Form.Item name="priority" label="优先级" rules={[{ required: true, message: '请输入优先级' }]} extra="数字越小优先级越高，匹配时按优先级从高到低逐条检查">
+            <Input type="number" placeholder="例：1" style={{ width: 120 }} min={1} />
           </Form.Item>
           <Form.Item name="eventType" label="适用事件类型" rules={[{ required: true, message: '请选择事件类型' }]}>
             <Radio.Group>
