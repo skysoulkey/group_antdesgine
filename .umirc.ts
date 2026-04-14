@@ -44,6 +44,7 @@ export default defineConfig({
     { path: '/system/roles',            component: 'system/roles/index' },
     { path: '/system/logs',             component: 'system/logs/index' },
     { path: '/system/notifications',    component: 'system/notifications/index' },
+    { path: '/finance/approvals',       component: 'finance/approvals/index' },
   ],
   proxy: {},
 });

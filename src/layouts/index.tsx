@@ -88,6 +88,7 @@ const allMenuItems: MenuItem[] = [
       { key: '/system/users',           label: '用户管理',  roles: ['group_owner', 'company_owner'] },
       { key: '/system/logs',            label: '系统日志',  roles: ['group_owner', 'group_audit', 'company_owner', 'company_audit'] },
       { key: '/system/notifications',   label: '通知管理',  roles: ['company_owner', 'company_ops'] },
+      { key: '/finance/approvals',     label: '审批中心',  roles: ['company_owner', 'company_ops'] },
     ],
   },
 ];
@@ -126,6 +127,7 @@ const breadcrumbMap: Record<string, string[]> = {
   '/system/users':           ['设置中心', '用户管理'],
   '/system/logs':            ['设置中心', '系统日志'],
   '/system/notifications':   ['设置中心', '通知管理'],
+  '/finance/approvals':      ['设置中心', '审批中心'],
   '/403':                    ['错误', '无权限'],
 };
 
@@ -150,6 +152,10 @@ const tabBreadcrumbMap: Record<string, Record<string, string[]>> = {
   '/system/logs': {
     login:     ['设置中心', '系统日志', '登录日志'],
     operation: ['设置中心', '系统日志', '操作日志'],
+  },
+  '/finance/approvals': {
+    list:  ['设置中心', '审批中心', '审批列表'],
+    rules: ['设置中心', '审批中心', '审批规则'],
   },
 };
 

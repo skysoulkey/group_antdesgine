@@ -48,6 +48,7 @@
 | `/finance/recall` | 资金调回 | 财务 | Mock |
 | `/finance/revenue` | 收益明细 | 财务 | Mock |
 | `/finance/revenue/detail/:month` | 月度收益详情 | 财务 | Mock |
+| `/finance/approvals` | 审批中心（审批列表 + 审批规则） | 财务 | Mock |
 
 ## 公司订单
 
