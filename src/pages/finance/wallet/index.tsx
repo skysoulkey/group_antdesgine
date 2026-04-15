@@ -173,39 +173,37 @@ const WalletPage: React.FC = () => {
       <Card
         bordered={false}
         style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-        title="订单记录"
-        extra={
-          <Space wrap>
-            <Select
-              value={typeFilter}
-              onChange={setTypeFilter}
-              style={{ width: 110 }}
-              options={[
-                { value: '全部', label: '全部类型' },
-                { value: '充值', label: '充值' },
-                { value: '转出', label: '转出' },
-              ]}
-            />
-            <Select
-              value={statusFilter}
-              onChange={setStatusFilter}
-              style={{ width: 110 }}
-              options={[
-                { value: '全部', label: '全部状态' },
-                { value: '待审批', label: '待审批' },
-                { value: '成功',   label: '成功' },
-                { value: '失败',   label: '失败' },
-              ]}
-            />
-            <DatePicker.RangePicker
-              style={{ width: 240 }}
-              placeholder={['开始时间', '结束时间']}
-              onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
-            />
-          </Space>
-        }
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <Space style={{ marginBottom: 16 }} wrap>
+          <Select
+            value={typeFilter}
+            onChange={setTypeFilter}
+            style={{ width: 110 }}
+            options={[
+              { value: '全部', label: '全部类型' },
+              { value: '充值', label: '充值' },
+              { value: '转出', label: '转出' },
+            ]}
+          />
+          <Select
+            value={statusFilter}
+            onChange={setStatusFilter}
+            style={{ width: 110 }}
+            options={[
+              { value: '全部', label: '全部状态' },
+              { value: '待审批', label: '待审批' },
+              { value: '成功',   label: '成功' },
+              { value: '失败',   label: '失败' },
+            ]}
+          />
+          <DatePicker.RangePicker
+            style={{ width: 240 }}
+            placeholder={['开始时间', '结束时间']}
+            onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
+          />
+        </Space>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>订单记录</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
         <Table

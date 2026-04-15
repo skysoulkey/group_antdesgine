@@ -120,7 +120,8 @@ const FinanceRevenuePage: React.FC = () => {
           </ConfigProvider>
           <DatePicker picker="month" placeholder="汇算月份" onChange={(_, v) => setMonth(v as string)} style={{ width: 150 }} />
         </Space>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>账单列表</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
         <Table columns={columns} dataSource={filtered} rowKey="id" size="middle"

@@ -446,13 +446,11 @@ const TransferPage: React.FC = () => {
       </Card>
 
       {/* 表格区 */}
-      <Card
-        bordered={false}
-        title={<Text strong>内部划转记录</Text>}
-        extra={
+      <Card bordered={false}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>内部划转记录</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
-        }
-      >
+        </div>
         <Table
           columns={columns} dataSource={filtered} rowKey="id" size="middle"
           scroll={{ x: 1300 }}

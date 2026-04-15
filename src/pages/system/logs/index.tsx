@@ -304,7 +304,8 @@ const SystemLogsPage: React.FC = () => {
               style={{ width: 240 }}
             />
           </Space>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: 600 }}>登录日志</Text>
             <TableToolbar onRefresh={handleRefresh} containerRef={loginContainerRef} />
           </div>
           <Table
@@ -356,7 +357,8 @@ const SystemLogsPage: React.FC = () => {
               style={{ width: 240 }}
             />
           </Space>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: 600 }}>操作日志</Text>
             <TableToolbar onRefresh={handleRefresh} containerRef={opContainerRef} />
           </div>
           <Table

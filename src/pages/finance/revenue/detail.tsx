@@ -189,13 +189,13 @@ const FinanceRevenueDetail: React.FC = () => {
       <Card
         bordered={false}
         style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}
-        title={<Text strong>公司收益明细</Text>}
-        extra={
-          <Button icon={<DownloadOutlined />} size="small">下载账单</Button>
-        }
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>收益明细</Text>
+          <Space>
+            <Button icon={<DownloadOutlined />} size="small">下载账单</Button>
+            <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+          </Space>
         </div>
         <Table
           columns={detailCols}

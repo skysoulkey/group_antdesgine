@@ -79,7 +79,8 @@ const RoleManagePage: React.FC = () => {
             title={<><BankOutlined style={{ marginRight: 8, color: '#1677ff' }} />集团侧角色</>}
             style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
           >
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 14, fontWeight: 600 }}>集团侧角色</Text>
               <TableToolbar onRefresh={handleRefresh} containerRef={groupContainerRef} />
             </div>
             <Table columns={columns} dataSource={buildRows(GROUP_ROLES)} pagination={false} size="middle" />
@@ -93,7 +94,8 @@ const RoleManagePage: React.FC = () => {
             title={<><ShopOutlined style={{ marginRight: 8, color: '#1677ff' }} />公司侧角色</>}
             style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
           >
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 14, fontWeight: 600 }}>公司侧角色</Text>
               <TableToolbar onRefresh={handleRefresh} containerRef={companyContainerRef} />
             </div>
             <Table columns={columns} dataSource={buildRows(COMPANY_ROLES)} pagination={false} size="middle" />

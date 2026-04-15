@@ -363,7 +363,8 @@ const CompanyListPage: React.FC = () => {
         </Text>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <Text style={{ fontSize: 14, fontWeight: 600 }}>公司清单</Text>
         <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
       </div>
 

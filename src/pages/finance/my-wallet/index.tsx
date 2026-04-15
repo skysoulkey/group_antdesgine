@@ -130,7 +130,8 @@ const MyWalletPage: React.FC = () => {
             style={{ width: 200 }}
           />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>流水记录</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
         <Table

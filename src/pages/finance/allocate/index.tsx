@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message } from 'antd';
-import { SearchOutlined, ArrowDownOutlined, PlusOutlined } from '@ant-design/icons';
+import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import TableToolbar from '../../../components/TableToolbar';
 
@@ -110,11 +110,7 @@ export default function FinanceAllocate() {
       </Row>
 
       <Card bordered={false}>
-        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ArrowDownOutlined style={{ color: '#1677ff', fontSize: 18 }} />
-            <Text style={{ fontSize: 16, fontWeight: 600 }}>集团下拨</Text>
-          </div>
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalOpen(true)}>
             发起下拨
           </Button>
@@ -134,7 +130,8 @@ export default function FinanceAllocate() {
           </Col>
           <Col><RangePicker style={{ width: 280 }} /></Col>
         </Row>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>下拨记录</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
         <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1200 }}

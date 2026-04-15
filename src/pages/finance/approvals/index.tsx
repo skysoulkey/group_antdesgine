@@ -302,7 +302,8 @@ const ApprovalListTab: React.FC = () => {
           <RangePicker onChange={(dates) => setDateRange(dates as [any, any] | null)} />
         </Space>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>审批列表</Text>
           <TableToolbar
             columns={ALL_COLUMN_DEFS.map((c) => ({ key: c.key, title: c.title }))}
             visibleKeys={visibleKeys}
