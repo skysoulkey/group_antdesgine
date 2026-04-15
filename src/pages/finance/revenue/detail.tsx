@@ -4,6 +4,7 @@ import {
   Card,
   Col,
   Descriptions,
+  message,
   Row,
   Select,
   Space,
@@ -12,8 +13,9 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'umi';
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text, Title } = Typography;
 
@@ -62,6 +64,8 @@ const revenueDetailData: RevenueDetail[] = [
 
 const FinanceRevenueDetail: React.FC = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const { month: paramMonth } = useParams<{ month: string }>();
   const [selectedMonth, setSelectedMonth] = useState(paramMonth ?? '2026-02');
 
@@ -109,7 +113,7 @@ const FinanceRevenueDetail: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div ref={containerRef}>
       {/* 返回 + 标题 */}
       <Space style={{ marginBottom: 16 }}>
         <Button
@@ -190,6 +194,9 @@ const FinanceRevenueDetail: React.FC = () => {
           <Button icon={<DownloadOutlined />} size="small">下载账单</Button>
         }
       >
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+        </div>
         <Table
           columns={detailCols}
           dataSource={revenueDetailData}

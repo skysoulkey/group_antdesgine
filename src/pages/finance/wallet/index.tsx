@@ -5,7 +5,8 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import TableToolbar from '../../../components/TableToolbar';
 import { useNavigate } from 'umi';
 import { CARD_SHADOW } from './constants';
 
@@ -64,6 +65,8 @@ const mockOrders: OrderRecord[] = [
 // ── 主组件 ────────────────────────────────────────────────────────
 const WalletPage: React.FC = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
 
   // 绑定账号（mock 只读；实际需从全局 state 或 context 读取以在修改后刷新）
   const [boundAccount] = useState<BoundAccount>(mockBoundAccount);
@@ -128,7 +131,7 @@ const WalletPage: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div ref={containerRef}>
       {/* ── 余额 + 绑定账号（紧凑单行） ─────────────────────────────── */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 16 }}
         styles={{ body: { padding: '16px 24px' } }}>
@@ -202,6 +205,9 @@ const WalletPage: React.FC = () => {
           </Space>
         }
       >
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+        </div>
         <Table
           columns={orderColumns}
           dataSource={filteredOrders}

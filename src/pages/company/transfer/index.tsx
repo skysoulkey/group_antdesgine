@@ -2,10 +2,7 @@ import {
   ArrowLeftOutlined,
   ArrowRightOutlined,
   CheckCircleFilled,
-  FullscreenOutlined,
-  ReloadOutlined,
   SearchOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
 import {
   Button,
@@ -15,6 +12,7 @@ import {
   Form,
   Input,
   InputNumber,
+  message,
   Modal,
   Radio,
   Select,
@@ -24,8 +22,9 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useLocation } from 'umi';
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
 
@@ -369,6 +368,8 @@ const radioTheme = {
 };
 
 const TransferPage: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const initCompany = params.get('companyName') ?? undefined;
@@ -411,6 +412,7 @@ const TransferPage: React.FC = () => {
   ];
 
   return (
+    <div ref={containerRef}>
     <Space direction="vertical" size={16} style={{ display: 'flex' }}>
       {/* 筛选 + 操作（合并一行）*/}
       <Card bordered={false}>
@@ -448,11 +450,7 @@ const TransferPage: React.FC = () => {
         bordered={false}
         title={<Text strong>内部划转记录</Text>}
         extra={
-          <Space size={8}>
-            <Button icon={<ReloadOutlined />} type="text" />
-            <Button icon={<SettingOutlined />} type="text" />
-            <Button icon={<FullscreenOutlined />} type="text" />
-          </Space>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         }
       >
         <Table
@@ -472,6 +470,7 @@ const TransferPage: React.FC = () => {
         />
       )}
     </Space>
+    </div>
   );
 };
 

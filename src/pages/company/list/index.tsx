@@ -21,8 +21,9 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
+import TableToolbar from '../../../components/TableToolbar';
 import { ROLE_ROUTES } from '../../../utils/auth';
 
 const { Text } = Typography;
@@ -134,6 +135,8 @@ const ColTitle = ({ label, tip }: { label: string; tip?: string }) => (
 
 const CompanyListPage: React.FC = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [searchVal, setSearchVal] = useState('');
   const [currency, setCurrency] = useState('USDT');
   const [createOpen, setCreateOpen] = useState(false);
@@ -314,6 +317,7 @@ const CompanyListPage: React.FC = () => {
   ];
 
   return (
+    <div ref={containerRef}>
     <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)' }}>
       <Row gutter={16} style={{ marginBottom: 16 }} align="middle">
         <Col>
@@ -357,6 +361,10 @@ const CompanyListPage: React.FC = () => {
         <Text type="secondary" style={{ fontSize: 12 }}>
           数据更新于 2025-11-02 12:33:02 &nbsp;|&nbsp; 总共 {filtered.length} 个项目
         </Text>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
       </div>
 
       <Table
@@ -423,69 +431,57 @@ const CompanyListPage: React.FC = () => {
             <Input placeholder="请输入用户名" />
           </Form.Item>
 
-          <Form.Item
-            label="登录密码"
-            name="password"
-            rules={[{ required: true, validator: validatePassword }]}
-            extra={<Text type="secondary" style={{ fontSize: 11 }}>8-30 位，需包含大/小写字母、数字、特殊字符中至少 3 种</Text>}
-          >
-            <Space.Compact style={{ width: '100%' }}>
-              {showPwd ? (
-                <Input
-                  value={createForm.getFieldValue('password')}
-                  onChange={(e) => {
-                    createForm.setFieldsValue({ password: e.target.value });
-                    setShowPwd(false);
-                  }}
-                  style={{ flex: 1 }}
-                />
-              ) : (
-                <Input.Password placeholder="请输入密码" style={{ flex: 1 }} />
-              )}
-              <Button icon={<ReloadOutlined />} onClick={handleGeneratePassword}>
-                随机生成
-              </Button>
-            </Space.Compact>
-          </Form.Item>
-
-          <Form.Item
-            label="再次输入密码"
-            name="confirmPwd"
-            rules={[
-              { required: true, message: '请再次输入密码' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) return Promise.resolve();
-                  return Promise.reject(new Error('两次密码不一致'));
-                },
-              }),
-            ]}
-          >
-            {showPwd ? (
-              <Input value={createForm.getFieldValue('confirmPwd')} disabled />
-            ) : (
-              <Input.Password placeholder="请再次输入密码" />
+          <Form.Item noStyle shouldUpdate={(p, c) => p.password !== c.password}>
+            {({ getFieldValue }) => (
+              <Form.Item
+                label="登录密码"
+                name="password"
+                rules={[{ required: true, validator: validatePassword }]}
+                extra={<Text type="secondary" style={{ fontSize: 11 }}>8-30 位，需包含大/小写字母、数字、特殊字符中至少 3 种</Text>}
+              >
+                <Space.Compact style={{ width: '100%' }}>
+                  {showPwd ? (
+                    <Input
+                      value={getFieldValue('password')}
+                      onChange={(e) => {
+                        createForm.setFieldsValue({ password: e.target.value });
+                        setShowPwd(false);
+                      }}
+                      style={{ flex: 1 }}
+                    />
+                  ) : (
+                    <Input.Password placeholder="请输入密码" style={{ flex: 1 }} />
+                  )}
+                  <Button icon={<ReloadOutlined />} onClick={handleGeneratePassword}>
+                    随机生成
+                  </Button>
+                </Space.Compact>
+              </Form.Item>
             )}
           </Form.Item>
 
-          <Row gutter={12}>
-            <Col span={12}>
-              <Form.Item label="手机号" name="phone">
-                <Input placeholder="+65 8000 0000" />
+          <Form.Item noStyle shouldUpdate={(p, c) => p.confirmPwd !== c.confirmPwd}>
+            {({ getFieldValue }) => (
+              <Form.Item
+                label="再次输入密码"
+                name="confirmPwd"
+                rules={[
+                  { required: true, message: '请再次输入密码' },
+                  () => ({
+                    validator(_, value) {
+                      if (!value || createForm.getFieldValue('password') === value) return Promise.resolve();
+                      return Promise.reject(new Error('两次密码不一致'));
+                    },
+                  }),
+                ]}
+              >
+                {showPwd ? (
+                  <Input value={getFieldValue('confirmPwd')} disabled />
+                ) : (
+                  <Input.Password placeholder="请再次输入密码" />
+                )}
               </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="邮箱" name="email">
-                <Input placeholder="admin@example.com" />
-              </Form.Item>
-            </Col>
-          </Row>
-
-          <Form.Item
-            label="消息通知账号"
-            name="notifyAccounts"
-          >
-            <Input placeholder="请输入 APP 用户名，如 @miya_miya" />
+            )}
           </Form.Item>
 
           <Divider style={{ margin: '12px 0' }} />
@@ -574,6 +570,7 @@ const CompanyListPage: React.FC = () => {
       </Modal>
 
     </Card>
+    </div>
   );
 };
 

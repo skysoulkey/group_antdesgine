@@ -1,10 +1,7 @@
 import { Bar, Column } from '@ant-design/plots';
 import {
   CloseCircleFilled,
-  FullscreenOutlined,
-  ReloadOutlined,
   SearchOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
 import {
   Button,
@@ -13,6 +10,7 @@ import {
   ConfigProvider,
   Divider,
   Drawer,
+  message,
   Radio,
   Row,
   Select,
@@ -23,7 +21,8 @@ import {
   Input,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import TableToolbar from '../../components/TableToolbar';
 
 const { Text } = Typography;
 
@@ -105,6 +104,8 @@ const sourceMock: SourceOrder[] = Array.from({ length: 5 }, (_, i) => ({
 
 // ── 佣金订单页面 ──────────────────────────────────────────────────
 const CommissionOrderTab: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [currencyFilter, setCurrencyFilter] = useState<string>('全部');
   const [app, setApp] = useState<string | undefined>();
   const [game, setGame] = useState<string | undefined>();
@@ -165,7 +166,7 @@ const CommissionOrderTab: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div ref={containerRef}>
       {/* 筛选区 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
         <Space size={24} wrap align="center" style={{ marginBottom: 14 }}>
@@ -257,7 +258,7 @@ const CommissionOrderTab: React.FC = () => {
               colorField="enterprise"
               height={220}
               style={{ marginTop: 8, cursor: 'pointer' }}
-              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 } }}
+              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { domainMin: 0 }, y: { paddingInner: 0.4 } }}
               axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
               tooltip={{
                 items: [(d: any) => ({ name: `${d.enterprise}佣金`, value: d.value })],
@@ -297,7 +298,7 @@ const CommissionOrderTab: React.FC = () => {
               colorField="enterprise"
               height={220}
               style={{ marginTop: 8, cursor: 'pointer' }}
-              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 } }}
+              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 }, y: { domainMin: 0 } }}
               axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
               tooltip={{ items: [{ channel: 'y', name: '订单数', valueFormatter: (v: number) => `${v}单` }] }}
               onReady={(chart: any) => {
@@ -327,11 +328,7 @@ const CommissionOrderTab: React.FC = () => {
               </Tag>
             )}
           </Space>
-          <Space size={8}>
-            <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
-            <SettingOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
-            <FullscreenOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
-          </Space>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
         <Table
           columns={columns}

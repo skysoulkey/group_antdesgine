@@ -1,8 +1,9 @@
 import { SearchOutlined } from '@ant-design/icons';
-import { Card, ConfigProvider, Input, Modal, Radio, Select, Space, Table, Tabs, Tag, Typography } from 'antd';
+import { Card, ConfigProvider, Input, Modal, Radio, Select, Space, Table, Tabs, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'umi';
+import TableToolbar from '../../../components/TableToolbar';
 import { getMockAuth, ROLE_LABELS, ALL_ROLES, type Role } from '../../../utils/auth';
 import {
   getLoginLogs, getOperationLogs,
@@ -52,32 +53,86 @@ const initialLoginLogs: LoginLogEntry[] = Array.from({ length: 24 }, (_, i) => {
 });
 
 // ── 初始 Mock 操作日志 ──────────────────────────────────────────────
-const OP_ACTIONS = ['创建用户', '编辑用户角色', '创建公司', '内部划转', '导出数据', '修改密码', '编辑通知配置', '修改系统设置'];
-const OP_MODULES = ['用户管理', '企业管理', '公司管理', '集团金融', '系统设置', '通知管理'];
+const OP_ACTIONS = [
+  '创建用户', '编辑用户', '删除用户', '禁用/启用用户', '重置密码',
+  '创建公司', '编辑公司信息',
+  '资金下拨', '资金调回', '钱包充值', '钱包转出',
+  '绑定出金账号', '修改出金账号', '绑定入金账号', '修改入金账号',
+  '生成邀请码', '解散企业',
+  '添加通知对象', '编辑通知对象', '删除通知对象', '修改通知渠道开关',
+  '保存安全设置', '保存通用设置', '保存通知配置',
+  '修改密码', '修改站内通知开关',
+  '导出数据',
+];
+const OP_MODULES = ['用户管理', '公司管理', '集团金融', '企业管理', '通知管理', '系统设置'];
 
+// 统一 key：targetName / targetId / targetRole / company / oldValue / newValue
+// from / to / amount / currency / walletType / bindAccount / inviteCode
+// appUsername / email / changes / reportName / dateRange / exportFormat
 const MOCK_DETAILS: Record<string, unknown>[] = [
-  { targetUser: 'new_user_01', assignedRoles: ['company_ops'], company: '滴滴答答' },
-  { targetUser: 'Alice', oldRoles: ['company_finance'], newRoles: ['company_finance', 'company_audit'] },
-  { companyName: '新星科技', region: '新加坡', currency: 'USDT' },
+  // 用户管理 (5)
+  { targetName: 'new_user_01', targetRole: '公司经营', company: '滴滴答答' },
+  { targetName: 'Alice', oldValue: '公司财务', newValue: '公司财务、公司审计' },
+  { targetName: 'Jack', targetRole: '公司经营', company: '滴滴答答' },
+  { targetName: 'Leo', oldValue: '启用', newValue: '禁用' },
+  { targetName: 'Tom' },
+  // 公司管理 (3)
+  { targetName: '新星科技', currency: 'USDT', bindAccount: 'Leo' },
+  { targetName: '滴滴答答', oldValue: 'old@example.com', newValue: 'new@example.com' },
+  // 集团金融 (8)
   { from: '集团钱包', to: '滴滴答答', amount: 50000, currency: 'USDT' },
-  { exportType: '公司收益报表', dateRange: '2025-10 ~ 2025-11', format: 'xlsx' },
-  { targetUser: 'Tom', action: '重置密码' },
-  { notificationType: '集团下拨', enabled: true, channels: ['站内信', '邮件'] },
-  { settingKey: 'session_timeout', oldValue: 30, newValue: 60, unit: 'min' },
+  { from: '滴滴答答', to: '集团钱包', amount: 20000, currency: 'USDT' },
+  { walletType: 'TRC-20', amount: 100000, currency: 'USDT' },
+  { walletType: 'TRC-20', amount: 30000, currency: 'USDT', bindAccount: 'TXyz...abc' },
+  { walletType: 'TRC-20', bindAccount: 'TRbc...def' },
+  { walletType: 'TRC-20', oldValue: 'TRbc...def', newValue: 'TRnew...xyz' },
+  { walletType: 'ERC-20', bindAccount: '0xAbc...123' },
+  { walletType: 'ERC-20', oldValue: '0xAbc...123', newValue: '0xNew...456' },
+  // 企业管理 (2)
+  { inviteCode: 'INV20251120' },
+  { targetName: 'CyberBot', targetId: '283984' },
+  // 通知管理 (4)
+  { targetName: 'Tom', appUsername: 'tom_app', email: 'tom@example.com' },
+  { targetName: 'Tom', oldValue: 'tom@old.com', newValue: 'tom@new.com' },
+  { targetName: 'Tom' },
+  { targetName: 'Tom', oldValue: '关闭', newValue: '开启' },
+  // 系统设置 (3)
+  { changes: [{ name: '会话超时时长', oldValue: '30分钟', newValue: '60分钟' }, { name: '强制MFA', oldValue: '关闭', newValue: '开启' }] },
+  { changes: [{ name: '时区', oldValue: 'UTC+8', newValue: 'UTC+0' }] },
+  { changes: [{ name: '邮件通知', oldValue: '关闭', newValue: '开启' }] },
+  // 个人中心→系统设置 (2)
+  { targetName: 'Miya' },
+  { targetName: 'Miya', oldValue: '开启', newValue: '关闭' },
+  // 导出数据 (1)
+  { reportName: '公司收益报表', dateRange: '2025-10 ~ 2025-11', exportFormat: 'xlsx' },
+];
+
+// 操作行为 → 所属模块映射（与 OP_ACTIONS 一一对应，共 28 条）
+const OP_ACTION_MODULE: string[] = [
+  '用户管理', '用户管理', '用户管理', '用户管理', '用户管理',
+  '公司管理', '公司管理',
+  '集团金融', '集团金融', '集团金融', '集团金融',
+  '集团金融', '集团金融', '集团金融', '集团金融',
+  '企业管理', '企业管理',
+  '通知管理', '通知管理', '通知管理', '通知管理',
+  '系统设置', '系统设置', '系统设置',
+  '系统设置', '系统设置',
+  '集团金融',
 ];
 
 const initialOpLogs: OperationLogEntry[] = Array.from({ length: 24 }, (_, i) => {
   const u = MOCK_USERS[i % MOCK_USERS.length];
+  const actionIdx = i % OP_ACTIONS.length;
   return {
     id: `OL${String(i + 1).padStart(7, '0')}`,
     operateTime: `2025-11-${String(24 - i).padStart(2, '0')} ${String(9 + (i % 12)).padStart(2, '0')}:${String(i % 60).padStart(2, '0')}:00`,
     username: u.name,
     roles: u.roles.map(r => ROLE_LABELS[r]).join('、'),
-    operation: OP_ACTIONS[i % OP_ACTIONS.length],
-    module: OP_MODULES[i % OP_MODULES.length],
+    operation: OP_ACTIONS[actionIdx],
+    module: OP_ACTION_MODULE[actionIdx],
     operateIp: `104.${28 + (i % 10)}.${200 + (i % 55)}.${i % 255}`,
     result: (i % 8 === 0 ? '失败' : '成功') as '成功' | '失败',
-    detail: MOCK_DETAILS[i % MOCK_DETAILS.length],
+    detail: MOCK_DETAILS[actionIdx],
     level: u.level,
     group: u.group,
     company: u.company,
@@ -86,11 +141,14 @@ const initialOpLogs: OperationLogEntry[] = Array.from({ length: 24 }, (_, i) => 
 
 // ── 筛选选项 ────────────────────────────────────────────────────────
 const ROLE_OPTIONS = ALL_ROLES.map(r => ({ value: ROLE_LABELS[r], label: ROLE_LABELS[r] }));
-const MODULE_OPTIONS = [...new Set([...OP_MODULES, ...getOperationLogs().map(l => l.module)])].map(m => ({ value: m, label: m }));
+const MODULE_OPTIONS = [...new Set([...OP_MODULES, ...OP_ACTION_MODULE, ...getOperationLogs().map(l => l.module)])].map(m => ({ value: m, label: m }));
 
 // ── 主组件 ──────────────────────────────────────────────────────────
 const SystemLogsPage: React.FC = () => {
   const auth = getMockAuth();
+  const loginContainerRef = useRef<HTMLDivElement>(null);
+  const opContainerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'login';
 
@@ -215,6 +273,7 @@ const SystemLogsPage: React.FC = () => {
         <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
           {scopeHint}
         </div>
+        <div ref={loginContainerRef}>
         <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
           <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
             <ConfigProvider theme={radioTheme}>
@@ -245,6 +304,9 @@ const SystemLogsPage: React.FC = () => {
               style={{ width: 240 }}
             />
           </Space>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <TableToolbar onRefresh={handleRefresh} containerRef={loginContainerRef} />
+          </div>
           <Table
             columns={loginColumns}
             dataSource={filteredLogin}
@@ -255,6 +317,7 @@ const SystemLogsPage: React.FC = () => {
             rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           />
         </Card>
+        </div>
         </>
       ),
     },
@@ -266,6 +329,7 @@ const SystemLogsPage: React.FC = () => {
         <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
           {scopeHint}
         </div>
+        <div ref={opContainerRef}>
         <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
           <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
             <Select
@@ -292,6 +356,9 @@ const SystemLogsPage: React.FC = () => {
               style={{ width: 240 }}
             />
           </Space>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <TableToolbar onRefresh={handleRefresh} containerRef={opContainerRef} />
+          </div>
           <Table
             columns={opColumns}
             dataSource={filteredOp}
@@ -302,6 +369,7 @@ const SystemLogsPage: React.FC = () => {
             rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           />
         </Card>
+        </div>
         </>
       ),
     },

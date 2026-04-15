@@ -1,7 +1,8 @@
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Card, ConfigProvider, DatePicker, Divider, Form, Input, Modal, Radio, Space, Table, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
 
@@ -70,6 +71,8 @@ const KpiCard: React.FC<KpiCardProps> = ({ title, value, sub }) => (
 );
 
 const EnterpriseInvitePage: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [data, setData] = useState(mockData);
   const [inviteStatus, setInviteStatus] = useState<string | undefined>();
   const [searchCode, setSearchCode] = useState('');
@@ -163,6 +166,7 @@ const EnterpriseInvitePage: React.FC = () => {
       </div>
 
       {/* 筛选 + 表格 */}
+      <div ref={containerRef}>
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
           <ConfigProvider theme={radioTheme}>
@@ -189,6 +193,9 @@ const EnterpriseInvitePage: React.FC = () => {
           </Button>
         </Space>
 
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+        </div>
         <Table
           columns={columns}
           dataSource={filtered}
@@ -198,6 +205,7 @@ const EnterpriseInvitePage: React.FC = () => {
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />
       </Card>
+      </div>
 
       {/* 生成邀请码弹窗 */}
       <Modal

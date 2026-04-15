@@ -6,6 +6,7 @@ import {
   ConfigProvider,
   Descriptions,
   Input,
+  message,
   Modal,
   Radio,
   Row,
@@ -18,7 +19,9 @@ import {
   Typography,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
 
@@ -492,6 +495,8 @@ const DividendContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnte
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const CompanyShareholding: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [activeTab, setActiveTab] = useState('holding');
   const [switchedEnterprise, setSwitchedEnterprise] = useState<string | undefined>();
 
@@ -519,7 +524,10 @@ const CompanyShareholding: React.FC = () => {
   ];
 
   return (
-    <div style={{ marginTop: -16 }}>
+    <div ref={containerRef} style={{ marginTop: -16 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+      </div>
       <Tabs
         items={tabItems}
         activeKey={activeTab}

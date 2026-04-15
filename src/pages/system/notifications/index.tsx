@@ -1,14 +1,15 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Card, ConfigProvider, Descriptions, Divider, Input, Modal, Radio, Space, Switch, Table, Tabs, Tag, Typography, message } from 'antd';
+import { Button, Card, ConfigProvider, Descriptions, Divider, Input, Modal, Radio, Select, Space, Switch, Table, Tabs, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 
 // 通知类型
-const NOTIF_TYPES = ['集团下拨', '集团调回', '持股企业追加投资', '企业解散', '新增订阅企业', '企业认证过期'];
+const NOTIF_TYPES = ['集团下拨', '集团调回', '持股企业追加投资', '持股企业释放股份', '企业解散', '新增订阅企业', '企业认证过期', '企业续费成功', '余额不足'];
 
 // ── 通知用户 mock ─────────────────────────────────────────────────
 interface NotifUser {
@@ -88,6 +89,10 @@ const receiptColor = (v: string) => {
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const NotificationsPage: React.FC = () => {
+  const recordsContainerRef = useRef<HTMLDivElement>(null);
+  const configContainerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
+
   // 通知记录
   const [methodFilter, setMethodFilter] = useState<string | undefined>();
   const [typeFilter, setTypeFilter] = useState<string | undefined>();
@@ -230,6 +235,7 @@ const NotificationsPage: React.FC = () => {
       key: 'records',
       label: '通知记录',
       children: (
+        <div ref={recordsContainerRef}>
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
           <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
             <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
@@ -239,6 +245,12 @@ const NotificationsPage: React.FC = () => {
                     <Radio.Button key={v} value={v} style={(methodFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v}</Radio.Button>
                   ))}
                 </Radio.Group>
+                <Select
+                  value={typeFilter ?? '全部'}
+                  onChange={(v) => setTypeFilter(v === '全部' ? undefined : v)}
+                  style={{ width: 200 }}
+                  options={['全部', ...NOTIF_TYPES].map((v) => ({ label: v, value: v }))}
+                />
                 <Input
                   placeholder="通知对象"
                   value={searchKw}
@@ -247,13 +259,11 @@ const NotificationsPage: React.FC = () => {
                   style={{ width: 200 }}
                 />
               </Space>
-              <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
-                {['全部', ...NOTIF_TYPES].map((v) => (
-                  <Radio.Button key={v} value={v} style={(typeFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v}</Radio.Button>
-                ))}
-              </Radio.Group>
             </Space>
           </ConfigProvider>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <TableToolbar onRefresh={handleRefresh} containerRef={recordsContainerRef} />
+          </div>
           <Table
             columns={recordColumns}
             dataSource={filtered}
@@ -264,18 +274,23 @@ const NotificationsPage: React.FC = () => {
             rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           />
         </Card>
+        </div>
       ),
     },
     {
       key: 'config',
       label: '通知配置',
       children: (
+        <div ref={configContainerRef}>
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
           styles={{ body: { padding: '16px 24px' } }}>
           {/* 通知对象配置 */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <Text style={{ fontSize: 15, fontWeight: 600 }}>通知对象</Text>
             <Button icon={<EditOutlined />} onClick={openUserModal}>编辑</Button>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+            <TableToolbar onRefresh={handleRefresh} containerRef={configContainerRef} />
           </div>
           <Table
             columns={prefColumns}
@@ -285,6 +300,7 @@ const NotificationsPage: React.FC = () => {
             pagination={false}
           />
         </Card>
+        </div>
       ),
     },
   ];

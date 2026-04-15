@@ -1,12 +1,11 @@
+import { PlusOutlined } from '@ant-design/icons';
 import {
-  FullscreenExitOutlined, FullscreenOutlined, PlusOutlined, ReloadOutlined, SettingOutlined,
-} from '@ant-design/icons';
-import {
-  Button, Card, Form, Input, InputNumber, Modal, Select,
+  Button, Card, Form, InputNumber, Modal, Select,
   Space, Switch, Table, Tag, message,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useRef, useState, useMemo, useCallback } from 'react';
+import TableToolbar from '../../../components/TableToolbar';
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
@@ -165,23 +164,11 @@ const ApprovalRulesTab: React.FC = () => {
     },
   ];
 
-  const [refreshKey, setRefreshKey] = useState(0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleRefresh = useCallback(() => {
-    setRefreshKey((k) => k + 1);
     message.success('已刷新');
   }, []);
-
-  const handleFullscreen = () => {
-    if (!containerRef.current) return;
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true));
-    } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false));
-    }
-  };
 
   return (
     <div ref={containerRef}>
@@ -191,13 +178,7 @@ const ApprovalRulesTab: React.FC = () => {
             每个企业最多配置一条规则。有规则且金额 ≤ 上限自动通过，否则需人工审批。
           </span>
           <Space size={12}>
-            <Space size={8}>
-              <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleRefresh} />
-              {isFullscreen
-                ? <FullscreenExitOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
-                : <FullscreenOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
-              }
-            </Space>
+            <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增规则</Button>
           </Space>
         </div>

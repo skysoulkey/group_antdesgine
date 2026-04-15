@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message } from 'antd';
 import { SearchOutlined, ArrowUpOutlined, SwapOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import TableToolbar from '../../../components/TableToolbar';
 
 const { RangePicker } = DatePicker;
 const { Text } = Typography;
@@ -40,6 +41,8 @@ const mockData: RecallRecord[] = Array.from({ length: 20 }, (_, i) => ({
 }));
 
 export default function FinanceRecall() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [search, setSearch] = useState('');
   const [companyFilter, setCompanyFilter] = useState<string | undefined>();
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
@@ -88,7 +91,7 @@ export default function FinanceRecall() {
   ];
 
   return (
-    <div>
+    <div ref={containerRef}>
       <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
         <Col xs={24} sm={12}>
           <Card bordered={false} style={{ textAlign: 'center' }}>
@@ -131,6 +134,9 @@ export default function FinanceRecall() {
           </Col>
           <Col><RangePicker style={{ width: 280 }} /></Col>
         </Row>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+        </div>
         <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1200 }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />

@@ -1,7 +1,8 @@
 import { BankOutlined, ShopOutlined } from '@ant-design/icons';
-import { Card, Col, Row, Table, Tag, Typography } from 'antd';
+import { Card, Col, Row, Table, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
+import TableToolbar from '../../../components/TableToolbar';
 import { ROLE_LABELS, ROLE_ROUTES, GROUP_ROLES, COMPANY_ROLES, type Role } from '../../../utils/auth';
 
 const { Text } = Typography;
@@ -58,34 +59,50 @@ const columns: ColumnsType<RoleRow> = [
   },
 ];
 
-const RoleManagePage: React.FC = () => (
-  <div>
-    <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
-      <div>1. 所有角色为系统内置，不可新增、编辑或删除</div>
-      <div>2. 用户可持有多个同侧角色，权限取并集；集团/公司角色不可混搭</div>
-      <div>3. 集团主/公司主拥有对应侧所有模块权限 + 用户管理权限</div>
+const RoleManagePage: React.FC = () => {
+  const groupContainerRef = useRef<HTMLDivElement>(null);
+  const companyContainerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
+
+  return (
+    <div>
+      <div style={{ background: '#f6f8ff', border: '1px solid #d6e4ff', borderRadius: 6, padding: '10px 16px', marginBottom: 16, fontSize: 12, color: '#595959', lineHeight: 1.8 }}>
+        <div>1. 所有角色为系统内置，不可新增、编辑或删除</div>
+        <div>2. 用户可持有多个同侧角色，权限取并集；集团/公司角色不可混搭</div>
+        <div>3. 集团主/公司主拥有对应侧所有模块权限 + 用户管理权限</div>
+      </div>
+      <Row gutter={16}>
+        <Col span={12}>
+          <div ref={groupContainerRef}>
+          <Card
+            bordered={false}
+            title={<><BankOutlined style={{ marginRight: 8, color: '#1677ff' }} />集团侧角色</>}
+            style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <TableToolbar onRefresh={handleRefresh} containerRef={groupContainerRef} />
+            </div>
+            <Table columns={columns} dataSource={buildRows(GROUP_ROLES)} pagination={false} size="middle" />
+          </Card>
+          </div>
+        </Col>
+        <Col span={12}>
+          <div ref={companyContainerRef}>
+          <Card
+            bordered={false}
+            title={<><ShopOutlined style={{ marginRight: 8, color: '#1677ff' }} />公司侧角色</>}
+            style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <TableToolbar onRefresh={handleRefresh} containerRef={companyContainerRef} />
+            </div>
+            <Table columns={columns} dataSource={buildRows(COMPANY_ROLES)} pagination={false} size="middle" />
+          </Card>
+          </div>
+        </Col>
+      </Row>
     </div>
-    <Row gutter={16}>
-      <Col span={12}>
-        <Card
-          bordered={false}
-          title={<><BankOutlined style={{ marginRight: 8, color: '#1677ff' }} />集团侧角色</>}
-          style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-        >
-          <Table columns={columns} dataSource={buildRows(GROUP_ROLES)} pagination={false} size="middle" />
-        </Card>
-      </Col>
-      <Col span={12}>
-        <Card
-          bordered={false}
-          title={<><ShopOutlined style={{ marginRight: 8, color: '#1677ff' }} />公司侧角色</>}
-          style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-        >
-          <Table columns={columns} dataSource={buildRows(COMPANY_ROLES)} pagination={false} size="middle" />
-        </Card>
-      </Col>
-    </Row>
-  </div>
-);
+  );
+};
 
 export default RoleManagePage;

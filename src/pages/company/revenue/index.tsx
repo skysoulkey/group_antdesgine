@@ -1,7 +1,9 @@
 import { DownloadOutlined, FundOutlined } from '@ant-design/icons';
-import { Button, Card, Col, DatePicker, Descriptions, Row, Select, Space, Table, Tabs, Typography } from 'antd';
+import { Button, Card, Col, DatePicker, Descriptions, message, Row, Select, Space, Table, Tabs, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
 
@@ -111,6 +113,8 @@ const StatCard: React.FC<{ label: string; value: string; color?: string }> = ({ 
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const CompanyRevenuePage: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('2026-06');
   const [detailPeriod, setDetailPeriod] = useState<string | undefined>();
 
@@ -320,7 +324,10 @@ const CompanyRevenuePage: React.FC = () => {
   ];
 
   return (
-    <div style={{ marginTop: -16 }}>
+    <div ref={containerRef} style={{ marginTop: -16 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+      </div>
       <Tabs
         items={tabItems}
         tabBarStyle={{

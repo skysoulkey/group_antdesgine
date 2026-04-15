@@ -212,7 +212,46 @@ border:        none（bordered={false}）
 
 **ID 类字段**（集团ID、公司ID、企业ID、认证码等）：`fontFamily: 'monospace', color: '#141414'`，不用蓝色。
 
-### 6.3 卡片包裹
+### 6.4 表格工具栏
+
+**所有主数据表格必须包含工具栏**，位于表格上方右侧，包含三个图标按钮：
+
+| 按钮 | 图标 | 功能 |
+|------|------|------|
+| 刷新 | `ReloadOutlined` | 刷新表格数据 |
+| 列设置 | `SettingOutlined` | 点击弹出 Popover，Checkbox 勾选控制列显示/隐藏（可选） |
+| 全屏 | `FullscreenOutlined` / `FullscreenExitOutlined` | 切换表格区域全屏 |
+
+**使用方式：** 统一使用共享组件 `src/components/TableToolbar.tsx`，不允许内联实现。
+
+```tsx
+import TableToolbar from '@/components/TableToolbar';
+
+// 基础用法（刷新 + 全屏）
+<div ref={containerRef}>
+  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+    <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+  </div>
+  <Table ... />
+</div>
+
+// 带列设置（可选）
+<TableToolbar
+  columns={columnDefs}
+  visibleKeys={visibleKeys}
+  onVisibleKeysChange={setVisibleKeys}
+  onRefresh={handleRefresh}
+  containerRef={containerRef}
+/>
+```
+
+**样式规范：**
+- 图标颜色：`#8c8c8c`
+- 图标间距：`Space size={8}`
+- 位置：表格上方，右对齐（`justifyContent: 'flex-end'`）
+- 与表格间距：`marginBottom: 12`
+
+### 6.5 卡片包裹
 
 - 表格外层 Card 使用 `styles={{ body: { padding: '16px 24px' } }}`（表格不顶边）
 - 仪表盘 TOP5 等独立表格区使用分区标题 + Card 包裹
@@ -297,6 +336,73 @@ point={{ shape: 'circle', size: 4, style: { fill: '#fff', stroke: color, lineWid
 | ≤ 7 天 | 不过滤 | `M/D`（dayjs 格式化） |
 | 8–90 天 | `tickFilter: i % 2 === 0` | `MM-DD` |
 | > 90 天 | `tickFilter: i % 3 === 0` | `MM-DD` |
+
+---
+
+## 七-B、柱状图 / 条形图规范（@ant-design/plots v2）
+
+### 7B.1 组件选型
+
+| 方向 | 组件 | xField | yField |
+|------|------|--------|--------|
+| 纵向柱状图 | `Column` | 分类字段 | 数值字段 |
+| 横向条形图 | `Bar` | 数值字段 | 分类字段 |
+
+### 7B.2 scale 轴配置规则
+
+**核心原则：`paddingInner` 只能放在分类轴（band scale），`domainMin` 放在值轴（linear scale）。**
+
+| 组件 | 分类轴 | 值轴 | scale 写法 |
+|------|--------|------|-----------|
+| `Column` | x（横轴） | y（纵轴） | `scale={{ x: { paddingInner: 0.4 }, y: { domainMin: 0 } }}` |
+| `Bar` | y（纵轴） | x（横轴） | `scale={{ x: { domainMin: 0 }, y: { paddingInner: 0.4 } }}` |
+
+> **为什么必须设 `domainMin: 0`？**
+> G2 默认开启 `nice` 算法，会自动扩展值轴域范围以获得"好看"的刻度值。
+> 这会导致 0 点远离分类轴，柱条起点与坐标轴之间出现大段空白。
+> 显式设置 `domainMin: 0` 可确保值轴从 0 开始、紧贴分类轴。
+
+### 7B.3 标准配置示例
+
+```tsx
+// 横向条形图（Bar）
+<Bar
+  data={data}
+  xField="value"
+  yField="category"
+  colorField="category"
+  height={220}
+  scale={{
+    color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] },
+    x: { domainMin: 0 },          // 值轴：强制从 0 开始
+    y: { paddingInner: 0.4 },      // 分类轴：柱条间距
+  }}
+  axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
+/>
+
+// 纵向柱状图（Column）
+<Column
+  data={data}
+  xField="category"
+  yField="value"
+  colorField="category"
+  height={220}
+  scale={{
+    color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] },
+    x: { paddingInner: 0.4 },      // 分类轴：柱条间距
+    y: { domainMin: 0 },           // 值轴：强制从 0 开始
+  }}
+  axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
+/>
+```
+
+### 7B.4 颜色 range
+
+TOP5 排行类图表统一使用 5 色序列：
+
+```ts
+['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a']
+```
 
 ---
 

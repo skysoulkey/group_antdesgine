@@ -3,10 +3,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
   CloseCircleFilled,
-  FullscreenOutlined,
-  ReloadOutlined,
   SearchOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
 import {
   Button,
@@ -16,6 +13,7 @@ import {
   DatePicker,
   Divider,
   Drawer,
+  message,
   Radio,
   Row,
   Select,
@@ -26,7 +24,8 @@ import {
   Input,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -126,6 +125,8 @@ const detailMock: DetailRecord[] = Array.from({ length: 5 }, (_, i) => ({
 }));
 
 const LotteryPage: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [statusFilter, setStatusFilter] = useState<string>('全部');
   const [sourceFilter, setSourceFilter] = useState<string>('全部');
   const [currencyFilter, setCurrencyFilter] = useState<string>('全部');
@@ -200,7 +201,7 @@ const LotteryPage: React.FC = () => {
   ];
 
   return (
-    <div>
+    <div ref={containerRef}>
       {/* ── 筛选区 ── */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
         <Space size={24} wrap align="center" style={{ marginBottom: 14 }}>
@@ -385,7 +386,7 @@ const LotteryPage: React.FC = () => {
                 colorField="enterprise"
                 height={220}
                 style={{ marginTop: 8, cursor: 'pointer' }}
-                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 } }}
+                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 }, y: { domainMin: 0 } }}
                 axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
                 tooltip={{ items: [{ channel: 'y', name: '盈亏', valueFormatter: (v: number) => `${v.toLocaleString()}.00  USDT` }] }}
                 onReady={(chart: any) => {
@@ -426,11 +427,7 @@ const LotteryPage: React.FC = () => {
               </Tag>
             )}
           </Space>
-          <Space size={8}>
-            <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
-            <SettingOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
-            <FullscreenOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
-          </Space>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
         <Table
           columns={columns}

@@ -1,13 +1,11 @@
 import {
-  FullscreenExitOutlined, FullscreenOutlined, ReloadOutlined, SettingOutlined,
-} from '@ant-design/icons';
-import {
-  Button, Card, Checkbox, ConfigProvider, DatePicker, Descriptions, Modal,
-  Popover, Radio, Select, Space, Table, Tabs, Tag, Typography, message,
+  Button, Card, ConfigProvider, DatePicker, Descriptions, Modal,
+  Radio, Select, Space, Table, Tabs, Tag, Typography, message,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'umi';
+import TableToolbar from '../../../components/TableToolbar';
 import ApprovalRulesTab from './ApprovalRulesTab';
 
 const { Text } = Typography;
@@ -123,60 +121,6 @@ const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
   };
 });
 
-// ── 工具栏：刷新 + 列设置 + 全屏 ─────────────────────────────────
-interface TableToolbarProps {
-  allColumns: { key: string; title: string }[];
-  visibleKeys: string[];
-  onVisibleKeysChange: (keys: string[]) => void;
-  onRefresh: () => void;
-  containerRef: React.RefObject<HTMLDivElement | null>;
-}
-
-const TableToolbar: React.FC<TableToolbarProps> = ({ allColumns, visibleKeys, onVisibleKeysChange, onRefresh, containerRef }) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const handleFullscreen = () => {
-    if (!containerRef.current) return;
-    if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true));
-    } else {
-      document.exitFullscreen().then(() => setIsFullscreen(false));
-    }
-  };
-
-  const columnSettingsContent = (
-    <div style={{ maxHeight: 360, overflowY: 'auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <Text strong style={{ fontSize: 13 }}>列展示</Text>
-        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => onVisibleKeysChange(allColumns.map((c) => c.key))}>
-          重置
-        </Button>
-      </div>
-      <Checkbox.Group
-        value={visibleKeys}
-        onChange={(checked) => onVisibleKeysChange(checked as string[])}
-        style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
-      >
-        {allColumns.map((col) => (
-          <Checkbox key={col.key} value={col.key}>{col.title}</Checkbox>
-        ))}
-      </Checkbox.Group>
-    </div>
-  );
-
-  return (
-    <Space size={8}>
-      <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={onRefresh} />
-      <Popover content={columnSettingsContent} trigger="click" placement="bottomRight" arrow={false}>
-        <SettingOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
-      </Popover>
-      {isFullscreen
-        ? <FullscreenExitOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
-        : <FullscreenOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
-      }
-    </Space>
-  );
-};
 
 // ── 所有列定义（含 key 标记） ─────────────────────────────────────
 const ALL_COLUMN_DEFS: { key: string; title: string; defaultVisible: boolean }[] = [
@@ -360,7 +304,7 @@ const ApprovalListTab: React.FC = () => {
 
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
           <TableToolbar
-            allColumns={ALL_COLUMN_DEFS.map((c) => ({ key: c.key, title: c.title }))}
+            columns={ALL_COLUMN_DEFS.map((c) => ({ key: c.key, title: c.title }))}
             visibleKeys={visibleKeys}
             onVisibleKeysChange={setVisibleKeys}
             onRefresh={handleRefresh}

@@ -9,10 +9,12 @@ import {
   Table,
   Tag,
   Typography,
+  message,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'umi';
+import TableToolbar from '../../../components/TableToolbar';
 
 const { Text: Txt } = Typography;
 
@@ -66,6 +68,8 @@ const mockData: Enterprise[] = Array.from({ length: 25 }, (_, i) => ({
 
 const EnterpriseListPage: React.FC = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [searchVal, setSearchVal] = useState('');
   const [companySearch, setCompanySearch] = useState('');
   const [currencyFilter, setCurrencyFilter] = useState('all');
@@ -157,6 +161,7 @@ const EnterpriseListPage: React.FC = () => {
   ];
 
   return (
+    <div ref={containerRef}>
     <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
       styles={{ body: { padding: '16px 24px' } }}>
       {/* 筛选行 */}
@@ -201,6 +206,9 @@ const EnterpriseListPage: React.FC = () => {
         />
       </Space>
 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+      </div>
       <Table
         columns={columns}
         dataSource={filtered}
@@ -216,6 +224,7 @@ const EnterpriseListPage: React.FC = () => {
         rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
       />
     </Card>
+    </div>
   );
 };
 
