@@ -1,10 +1,14 @@
 import {
   ApartmentOutlined,
   BankOutlined,
+  CalendarOutlined,
   CopyOutlined,
+  DeleteOutlined,
+  KeyOutlined,
   PlusOutlined,
   ReloadOutlined,
   SearchOutlined,
+  StopOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
@@ -25,6 +29,7 @@ import {
   Switch,
   Table,
   Tag,
+  Tooltip,
   Tree,
   Typography,
   message,
@@ -141,18 +146,19 @@ interface UserRecord {
   ipWhitelist: string;
   validPeriod: string;
   notifyAccounts: string;
+  mfaEnabled: boolean;
 }
 
 const initialData: UserRecord[] = [
-  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', level: 'group', group: 'UU Talk', company: '', roles: ['group_owner'], status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya' },
-  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_owner'], status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin' },
-  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@uutalk.com', level: 'company', group: 'UU Talk', company: 'UU Talk', roles: ['company_ops'], status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
-  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_finance'], status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-01-01', notifyAccounts: '@alice_finance' },
-  { id: 'U005', username: 'Ryan', phone: '+65 8234 5678', email: 'ryan@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_finance'], status: '启用', createdAt: '2025-04-15 08:00:00', ipRestrict: true, ipWhitelist: '192.168.1.0/24', validPeriod: '2027-06-30', notifyAccounts: '@ryan_admin' },
-  { id: 'U006', username: 'Leo', phone: '+65 9123 4567', email: 'leo@uutalk.com', level: 'company', group: 'UU Talk', company: 'UU Talk', roles: ['company_promo'], status: '启用', createdAt: '2025-06-10 10:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-03-01', notifyAccounts: '@leo_ops' },
-  { id: 'U007', username: 'Nina', phone: '+86 139 8888 7777', email: 'nina@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_ops'], status: '启用', createdAt: '2025-05-20 09:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
-  { id: 'U008', username: 'Mark', phone: '+86 188 0000 1234', email: 'mark@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_audit'], status: '启用', createdAt: '2025-02-18 15:45:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@mark_ops' },
-  { id: 'U009', username: 'Eve', phone: '+65 6777 9999', email: 'eve@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_ops', 'company_audit'], status: '启用', createdAt: '2025-03-01 12:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '' },
+  { id: 'U001', username: 'Miya', phone: '+65 8991 0293', email: 'miya@cyberbot.sg', level: 'group', group: 'UU Talk', company: '', roles: ['group_owner'], status: '启用', createdAt: '2025-11-23 13:56:21', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@miya_miya', mfaEnabled: true },
+  { id: 'U002', username: 'Tom Admin', phone: '+65 8765 4321', email: 'tom@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_owner'], status: '启用', createdAt: '2025-10-01 09:00:00', ipRestrict: true, ipWhitelist: '104.28.0.0/16', validPeriod: '2026-12-31', notifyAccounts: '@tom_admin', mfaEnabled: true },
+  { id: 'U003', username: 'Jack', phone: '+86 138 0001 0001', email: 'jack@uutalk.com', level: 'company', group: 'UU Talk', company: 'UU Talk', roles: ['company_ops'], status: '停用', createdAt: '2025-09-15 14:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '', mfaEnabled: false },
+  { id: 'U004', username: 'Alice', phone: '+1 415 555 0101', email: 'alice@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_finance'], status: '启用', createdAt: '2025-08-20 11:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-01-01', notifyAccounts: '@alice_finance', mfaEnabled: true },
+  { id: 'U005', username: 'Ryan', phone: '+65 8234 5678', email: 'ryan@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_finance'], status: '启用', createdAt: '2025-04-15 08:00:00', ipRestrict: true, ipWhitelist: '192.168.1.0/24', validPeriod: '2027-06-30', notifyAccounts: '@ryan_admin', mfaEnabled: true },
+  { id: 'U006', username: 'Leo', phone: '+65 9123 4567', email: 'leo@uutalk.com', level: 'company', group: 'UU Talk', company: 'UU Talk', roles: ['company_promo'], status: '启用', createdAt: '2025-06-10 10:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '2025-03-01', notifyAccounts: '@leo_ops', mfaEnabled: false },
+  { id: 'U007', username: 'Nina', phone: '+86 139 8888 7777', email: 'nina@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_ops'], status: '启用', createdAt: '2025-05-20 09:30:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '', mfaEnabled: true },
+  { id: 'U008', username: 'Mark', phone: '+86 188 0000 1234', email: 'mark@uutalk.com', level: 'group', group: 'UU Talk', company: '', roles: ['group_audit'], status: '启用', createdAt: '2025-02-18 15:45:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '@mark_ops', mfaEnabled: false },
+  { id: 'U009', username: 'Eve', phone: '+65 6777 9999', email: 'eve@uutalk.com', level: 'company', group: 'UU Talk', company: '滴滴答答', roles: ['company_ops', 'company_audit'], status: '启用', createdAt: '2025-03-01 12:00:00', ipRestrict: false, ipWhitelist: '', validPeriod: '永久有效', notifyAccounts: '', mfaEnabled: true },
 ];
 
 // ── 集团-公司-管理员 树数据 ────────────────────────────────────────
@@ -221,18 +227,23 @@ const UserManagePage: React.FC = () => {
   const [treeSelected, setTreeSelected] = useState<string[]>([]);
 
   const [viewOpen, setViewOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserRecord | null>(null);
 
+  // 新增弹窗状态
+  const [resetPwdOpen, setResetPwdOpen] = useState(false);
+  const [resetMfaOpen, setResetMfaOpen] = useState(false);
+  const [validPeriodOpen, setValidPeriodOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
   const [createForm] = Form.useForm();
-  const [editForm] = Form.useForm();
+  const [adminPwdForm] = Form.useForm();
+  const [validPeriodForm] = Form.useForm();
 
   // create form 联级状态
   const [createGroup, setCreateGroup] = useState<string | undefined>();
   const [createLevel, setCreateLevel] = useState<'group' | 'company'>('company');
 
-  const [editIpRestrict, setEditIpRestrict] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
 
   const handleGeneratePassword = () => {
@@ -274,11 +285,50 @@ const UserManagePage: React.FC = () => {
     );
   });
 
-  const openEdit = (r: UserRecord) => {
-    setCurrentUser(r);
-    setEditIpRestrict(r.ipRestrict);
-    editForm.setFieldsValue({ roles: r.roles, status: r.status, validPeriod: r.validPeriod, ipRestrict: r.ipRestrict, ipWhitelist: r.ipWhitelist });
-    setEditOpen(true);
+  // ── 操作处理 ─────────────────────────────────────────────────────
+  const handleToggleStatus = (r: UserRecord) => {
+    const newStatus: UserStatus = r.status === '启用' ? '停用' : '启用';
+    setUsers((prev) => prev.map((u) => u.id === r.id ? { ...u, status: newStatus } : u));
+    addOperationLog(`${newStatus === '停用' ? '停用' : '启用'}用户：${r.username}`, '用户管理');
+    message.success(`已${newStatus}`);
+  };
+
+  const handleResetPwd = () => {
+    adminPwdForm.validateFields().then(() => {
+      addOperationLog(`重置密码：${currentUser?.username}`, '用户管理');
+      setResetPwdOpen(false);
+      adminPwdForm.resetFields();
+      message.success('密码已重置');
+    });
+  };
+
+  const handleResetMfa = () => {
+    if (!currentUser) return;
+    setUsers((prev) => prev.map((u) => u.id === currentUser.id ? { ...u, mfaEnabled: false } : u));
+    addOperationLog(`重置MFA：${currentUser.username}`, '用户管理');
+    setResetMfaOpen(false);
+    message.success('MFA 已重置');
+  };
+
+  const handleUpdateValidPeriod = () => {
+    validPeriodForm.validateFields().then((values) => {
+      const period = values.periodType === '永久有效' ? '永久有效' : values.expireDate?.format('YYYY-MM-DD') ?? '永久有效';
+      setUsers((prev) => prev.map((u) => u.id === currentUser?.id ? { ...u, validPeriod: period } : u));
+      addOperationLog(`修改有效期：${currentUser?.username} → ${period}`, '用户管理');
+      setValidPeriodOpen(false);
+      validPeriodForm.resetFields();
+      message.success('有效期已更新');
+    });
+  };
+
+  const handleDelete = () => {
+    adminPwdForm.validateFields().then(() => {
+      setUsers((prev) => prev.filter((u) => u.id !== currentUser?.id));
+      addOperationLog(`删除用户：${currentUser?.username}`, '用户管理');
+      setDeleteOpen(false);
+      adminPwdForm.resetFields();
+      message.success('用户已删除');
+    });
   };
 
   const columns: ColumnsType<UserRecord> = [
@@ -291,25 +341,33 @@ const UserManagePage: React.FC = () => {
       render: (v: Role[]) => v.map(r => ROLE_LABELS[r]).join('、'),
     },
     {
-      title: '状态', dataIndex: 'status', width: 130,
-      render: (v: UserStatus, r: UserRecord) => (
-        <Space size={4} wrap>
-          <Tag color={v === '启用' ? 'success' : 'default'}>{v}</Tag>
-          {isExpired(r.validPeriod) && <Tag color="warning">已过期</Tag>}
-        </Space>
-      ),
+      title: '状态', dataIndex: 'status', width: 100,
+      render: (v: UserStatus, r: UserRecord) => {
+        const canManage = mockRoles.includes('group_owner') || (mockRoles.includes('company_owner') && r.level === 'company');
+        return canManage
+          ? <Switch size="small" checked={v === '启用'} checkedChildren="启用" unCheckedChildren="停用" onChange={() => handleToggleStatus(r)} />
+          : <Tag color={v === '启用' ? 'success' : 'default'}>{v}</Tag>;
+      },
+    },
+    {
+      title: 'MFA', dataIndex: 'mfaEnabled', width: 70,
+      render: (v: boolean) => <Tag color={v ? 'success' : 'default'}>{v ? '开启' : '关闭'}</Tag>,
     },
     { title: '有效期', dataIndex: 'validPeriod', width: 120 },
     {
-      title: '操作', width: 170, fixed: 'right' as const,
-      render: (_, r) => {
-        // owner 才可操作；集团主可操作所有人，公司主只操作公司用户
+      title: '操作', width: 180, fixed: 'right' as const,
+      render: (_: unknown, r: UserRecord) => {
         const canManage = mockRoles.includes('group_owner') || (mockRoles.includes('company_owner') && r.level === 'company');
         return (
-          <Space size={0}>
-            <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => { setCurrentUser(r); setViewOpen(true); }}>查看</Button>
+          <Space size={4}>
+            <Tooltip title="查看"><Button type="link" size="small" icon={<UserOutlined />} onClick={() => { setCurrentUser(r); setViewOpen(true); }} /></Tooltip>
             {canManage && (
-              <Button type="link" size="small" style={{ padding: '0 4px' }} onClick={() => openEdit(r)}>编辑</Button>
+              <>
+                <Tooltip title="重置密码"><Button type="link" size="small" icon={<KeyOutlined />} onClick={() => { setCurrentUser(r); adminPwdForm.resetFields(); setResetPwdOpen(true); }} /></Tooltip>
+                <Tooltip title="重置MFA"><Button type="link" size="small" icon={<StopOutlined />} onClick={() => { setCurrentUser(r); setResetMfaOpen(true); }} /></Tooltip>
+                <Tooltip title="修改有效期"><Button type="link" size="small" icon={<CalendarOutlined />} onClick={() => { setCurrentUser(r); validPeriodForm.setFieldsValue({ periodType: r.validPeriod === '永久有效' ? '永久有效' : '自定义' }); setValidPeriodOpen(true); }} /></Tooltip>
+                <Tooltip title="删除"><Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => { setCurrentUser(r); adminPwdForm.resetFields(); setDeleteOpen(true); }} /></Tooltip>
+              </>
             )}
           </Space>
         );
@@ -411,7 +469,7 @@ const UserManagePage: React.FC = () => {
               dataSource={filtered}
               rowKey="id"
               size="middle"
-              scroll={{ x: 1200 }}
+              scroll={{ x: 1400 }}
               pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
               rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
             />
@@ -446,6 +504,7 @@ const UserManagePage: React.FC = () => {
               </Descriptions.Item>
               <Descriptions.Item label="账户有效期">{u.validPeriod}</Descriptions.Item>
               <Descriptions.Item label="IP限制">{u.ipRestrict ? '已开启' : '未开启'}</Descriptions.Item>
+              <Descriptions.Item label="MFA">{u.mfaEnabled ? '已开启' : '未开启'}</Descriptions.Item>
               {u.ipRestrict && <Descriptions.Item label="IP白名单">{u.ipWhitelist}</Descriptions.Item>}
               {u.notifyAccounts && <Descriptions.Item label="消息通知">{u.notifyAccounts}</Descriptions.Item>}
               <Descriptions.Item label="创建时间">{u.createdAt}</Descriptions.Item>
@@ -454,65 +513,83 @@ const UserManagePage: React.FC = () => {
         })()}
       </Modal>
 
-      {/* ── 编辑弹窗 ─────────────────────────────────────────────── */}
+      {/* ── 重置密码弹窗（需校验管理员密码） ────────────────────── */}
       <Modal
-        title="编辑用户"
-        open={editOpen}
-        onOk={() =>
-          editForm.validateFields().then((values) => {
-            setUsers((prev) =>
-              prev.map((u) =>
-                u.id === currentUser?.id
-                  ? { ...u, roles: values.roles, status: values.status, validPeriod: values.validPeriod, ipRestrict: values.ipRestrict ?? false, ipWhitelist: values.ipRestrict ? (values.ipWhitelist ?? '') : '' }
-                  : u,
-              ),
-            );
-            setEditOpen(false);
-            addOperationLog('编辑用户：' + (currentUser?.username ?? ''), '用户管理');
-            message.success('保存成功');
-          })
-        }
-        onCancel={() => setEditOpen(false)}
-        okText="保 存"
-        cancelText="取 消"
-        width={480}
+        title={`重置密码 — ${currentUser?.username}`}
+        open={resetPwdOpen}
+        onOk={handleResetPwd}
+        onCancel={() => { setResetPwdOpen(false); adminPwdForm.resetFields(); }}
+        okText="确认重置"
         destroyOnClose
+        width={400}
       >
-        <Form form={editForm} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item label="角色" name="roles" rules={[{ required: true, message: '请选择角色' }]}>
-            <Select
-              mode="multiple"
-              options={
-                currentUser?.level === 'group'
-                  ? GROUP_ROLES.filter(r => r !== 'group_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
-                  : COMPANY_ROLES.filter(r => r !== 'company_owner').map(r => ({ value: r, label: ROLE_LABELS[r] }))
-              }
-            />
+        <Form form={adminPwdForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item label="请输入您的管理员密码" name="adminPassword" rules={[{ required: true, message: '请输入密码' }]}>
+            <Input.Password placeholder="输入当前管理员的登录密码" />
           </Form.Item>
-          <Form.Item noStyle shouldUpdate={(p, c) => p.roles !== c.roles}>
-            {({ getFieldValue }) => <RoleModulesPreview selectedRoles={getFieldValue('roles') ?? []} />}
-          </Form.Item>
-          <Row gutter={12} style={{ marginTop: 16 }}>
-            <Col span={12}>
-              <Form.Item label="状态" name="status" rules={[{ required: true }]}>
-                <Select options={STATUSES.map((s) => ({ value: s, label: s }))} />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item label="账户有效期" name="validPeriod">
-                <Select options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]} />
-              </Form.Item>
-            </Col>
-          </Row>
-          <Form.Item label="IP限制" name="ipRestrict" valuePropName="checked">
-            <Switch onChange={setEditIpRestrict} />
-          </Form.Item>
-          {editIpRestrict && (
-            <Form.Item label="IP白名单" name="ipWhitelist" rules={[{ required: true, message: '请输入IP白名单' }]}>
-              <Input.TextArea rows={2} placeholder="每行一个 IP 或 CIDR，例如：104.28.0.0/16" />
-            </Form.Item>
-          )}
         </Form>
+        <Text type="secondary" style={{ fontSize: 12 }}>重置后将生成新的随机密码，用户下次登录需使用新密码。</Text>
+      </Modal>
+
+      {/* ── 重置 MFA 弹窗 ──────────────────────────────────────── */}
+      <Modal
+        title={`重置 MFA — ${currentUser?.username}`}
+        open={resetMfaOpen}
+        onOk={handleResetMfa}
+        onCancel={() => setResetMfaOpen(false)}
+        okText="确认重置"
+        width={400}
+      >
+        <div style={{ marginTop: 16 }}>
+          <Text>确认重置 <Text strong>{currentUser?.username}</Text> 的 MFA 认证？</Text>
+          <br />
+          <Text type="secondary" style={{ fontSize: 12 }}>重置后用户下次登录需要重新绑定 MFA 设备。</Text>
+        </div>
+      </Modal>
+
+      {/* ── 修改有效期弹窗 ─────────────────────────────────────── */}
+      <Modal
+        title={`修改有效期 — ${currentUser?.username}`}
+        open={validPeriodOpen}
+        onOk={handleUpdateValidPeriod}
+        onCancel={() => { setValidPeriodOpen(false); validPeriodForm.resetFields(); }}
+        okText="保 存"
+        destroyOnClose
+        width={400}
+      >
+        <Form form={validPeriodForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item label="有效期" name="periodType" initialValue="永久有效" rules={[{ required: true }]}>
+            <Select options={[{ value: '永久有效', label: '永久有效' }, { value: '自定义', label: '自定义' }]} />
+          </Form.Item>
+          <Form.Item noStyle shouldUpdate={(p, c) => p.periodType !== c.periodType}>
+            {({ getFieldValue }) =>
+              getFieldValue('periodType') === '自定义' ? (
+                <Form.Item label="到期时间" name="expireDate" rules={[{ required: true, message: '请选择到期时间' }]}>
+                  <DatePicker style={{ width: '100%' }} />
+                </Form.Item>
+              ) : null
+            }
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* ── 删除用户弹窗（需校验管理员密码） ────────────────────── */}
+      <Modal
+        title={`删除用户 — ${currentUser?.username}`}
+        open={deleteOpen}
+        onOk={handleDelete}
+        onCancel={() => { setDeleteOpen(false); adminPwdForm.resetFields(); }}
+        okText="确认删除"
+        okButtonProps={{ danger: true }}
+        destroyOnClose
+        width={400}
+      >
+        <Form form={adminPwdForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item label="请输入您的管理员密码" name="adminPassword" rules={[{ required: true, message: '请输入密码' }]}>
+            <Input.Password placeholder="输入当前管理员的登录密码" />
+          </Form.Item>
+        </Form>
+        <Text type="warning" style={{ fontSize: 12, color: '#faad14' }}>此操作不可撤销，用户 <Text strong>{currentUser?.username}</Text> 将被永久删除。</Text>
       </Modal>
 
       {/* ── 创建用户弹窗 ─────────────────────────────────────────── */}
@@ -539,6 +616,7 @@ const UserManagePage: React.FC = () => {
                 ? values.expireDate.format('YYYY-MM-DD')
                 : '永久有效',
               notifyAccounts: values.appUsername ?? '',
+              mfaEnabled: false,
             };
             setUsers((prev) => [...prev, newUser]);
             setCreateOpen(false);
