@@ -242,13 +242,13 @@ const ApprovalListTab: React.FC = () => {
       title: '操作', width: 140, fixed: 'right' as const,
       render: (_: unknown, record: ApprovalRecord) => (
         <Space size={4}>
+          <Button type="link" size="small" onClick={() => showDetail(record)}>详情</Button>
           {record.status === 'pending' && (
             <>
-              <Button type="link" size="small" onClick={() => handleApprove(record)}>通过</Button>
               <Button type="link" size="small" danger onClick={() => handleReject(record)}>拒绝</Button>
+              <Button type="link" size="small" onClick={() => handleApprove(record)}>通过</Button>
             </>
           )}
-          <Button type="link" size="small" onClick={() => showDetail(record)}>详情</Button>
         </Space>
       ),
     },

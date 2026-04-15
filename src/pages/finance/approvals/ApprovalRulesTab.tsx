@@ -23,7 +23,7 @@ interface ApprovalRule {
   companyId: string;
 }
 
-// ── Mock 企业 ─────────────────────────────────────────────────────
+// ── Mock 下辖企业（当前公司的下辖企业，非下辖不可配置） ─────────
 const MOCK_ENTERPRISES = [
   { id: 'ENT001', name: 'CyberBot' },
   { id: 'ENT002', name: 'StarLink' },
@@ -62,7 +62,7 @@ const ApprovalRulesTab: React.FC = () => {
 
   const handleAdd = () => {
     if (availableEnterprises.length === 0) {
-      message.warning('所有企业均已配置规则');
+      message.warning('所有下辖企业均已配置规则');
       return;
     }
     setEditingRule(null);
@@ -174,13 +174,13 @@ const ApprovalRulesTab: React.FC = () => {
     <div ref={containerRef}>
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <span style={{ fontSize: 12, color: '#8c8c8c' }}>
-            每个企业最多配置一条规则。有规则且金额 ≤ 上限自动通过，否则需人工审批。
-          </span>
           <Space size={12}>
-            <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+            <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+              每个企业最多配置一条规则。有规则且申请金额 ≤ 上限自动通过，否则需人工审批。
+            </span>
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增规则</Button>
           </Space>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
         <Table
           columns={columns}
@@ -202,9 +202,9 @@ const ApprovalRulesTab: React.FC = () => {
         okText="保 存"
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item name="enterpriseId" label="企业" rules={[{ required: true, message: '请选择企业' }]}>
+          <Form.Item name="enterpriseId" label="下辖企业" rules={[{ required: true, message: '请选择下辖企业' }]}>
             <Select
-              placeholder="选择企业"
+              placeholder="选择下辖企业"
               options={
                 editingRule
                   ? MOCK_ENTERPRISES.map((e) => ({ value: e.id, label: e.name }))
@@ -212,7 +212,7 @@ const ApprovalRulesTab: React.FC = () => {
               }
             />
           </Form.Item>
-          <Form.Item name="amountLimit" label="自动通过金额上限（USDT）" rules={[{ required: true, message: '请输入金额上限' }]} extra="事务金额 ≤ 此值时自动通过，超过则需人工审批">
+          <Form.Item name="amountLimit" label="自动通过金额上限（USDT）" rules={[{ required: true, message: '请输入金额上限' }]} extra="申请金额 ≤ 此值时自动通过，超过则需人工审批">
             <InputNumber placeholder="例：10000" style={{ width: '100%' }} min={1} precision={2} />
           </Form.Item>
           <Form.Item name="enabled" label="启用状态" valuePropName="checked" initialValue={true}>

@@ -224,31 +224,42 @@ border:        none（bordered={false}）
 
 **使用方式：** 统一使用共享组件 `src/components/TableToolbar.tsx`，不允许内联实现。
 
+**布局规范：** 标题行 = 表格标题（左） + 工具栏（右），同一行。如有操作按钮（如「新增」），放在工具栏左边。
+
+```
+筛选条件区域（如果有）
+──────────────────────────────────────
+表格标题（左）  [新增按钮]   🔄 ⚙️ ⛶（右）
+──────────────────────────────────────
+表格内容
+```
+
 ```tsx
 import TableToolbar from '@/components/TableToolbar';
 
-// 基础用法（刷新 + 全屏）
+// 标准用法：标题左 + 工具栏右
 <div ref={containerRef}>
-  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+    <Text style={{ fontSize: 14, fontWeight: 600 }}>表格标题</Text>
     <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
   </div>
   <Table ... />
 </div>
 
-// 带列设置（可选）
-<TableToolbar
-  columns={columnDefs}
-  visibleKeys={visibleKeys}
-  onVisibleKeysChange={setVisibleKeys}
-  onRefresh={handleRefresh}
-  containerRef={containerRef}
-/>
+// 带操作按钮：按钮放在工具栏左边
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+  <Space size={12}>
+    <Text style={{ fontSize: 14, fontWeight: 600 }}>表格标题</Text>
+    <Button type="primary" icon={<PlusOutlined />}>新增</Button>
+  </Space>
+  <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+</div>
 ```
 
 **样式规范：**
 - 图标颜色：`#8c8c8c`
 - 图标间距：`Space size={8}`
-- 位置：表格上方，右对齐（`justifyContent: 'flex-end'`）
+- 标题行布局：`justifyContent: 'space-between'`，标题左 + 工具栏右
 - 与表格间距：`marginBottom: 12`
 
 ### 6.5 卡片包裹
