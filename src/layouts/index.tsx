@@ -55,7 +55,7 @@ const allMenuItems: MenuItem[] = [
     children: [
       { key: '/company/shareholding', label: '公司持股', roles: ['company_owner', 'company_ops'] },
       { key: '/company/revenue',      label: '公司收益', roles: ['company_owner', 'company_finance'] },
-      { key: '/finance/approvals',    label: '通知审批', roles: ['company_owner', 'company_ops'] },
+      { key: '/finance/approvals',    label: '投资审批', roles: ['company_owner', 'company_ops'] },
     ],
   },
   {
@@ -127,7 +127,7 @@ const breadcrumbMap: Record<string, string[]> = {
   '/system/users':           ['设置中心', '用户管理'],
   '/system/logs':            ['设置中心', '系统日志'],
   '/system/notifications':   ['设置中心', '通知管理'],
-  '/finance/approvals':      ['公司管理', '通知审批'],
+  '/finance/approvals':      ['公司管理', '投资审批'],
   '/403':                    ['错误', '无权限'],
 };
 
@@ -154,8 +154,8 @@ const tabBreadcrumbMap: Record<string, Record<string, string[]>> = {
     operation: ['设置中心', '系统日志', '操作日志'],
   },
   '/finance/approvals': {
-    list:  ['公司管理', '通知审批', '审批列表'],
-    rules: ['公司管理', '通知审批', '审批规则'],
+    list:  ['公司管理', '投资审批', '审批列表'],
+    rules: ['公司管理', '投资审批', '审批规则'],
   },
 };
 

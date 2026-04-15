@@ -26,7 +26,7 @@
 | `/company/shareholding` | 公司持股 | 公司管理 | Mock |
 | `/company/revenue` | 公司收益 | 公司管理 | Mock |
 | `/company/tax` | 公司税费 | 公司管理 | Mock |
-| `/finance/approvals` | 通知审批（审批列表 + 审批规则） | 公司管理 | Mock |
+| `/finance/approvals` | 投资审批（审批列表 + 审批规则） | 公司管理 | Mock |
 
 ## 企业管理
 

@@ -1,36 +1,21 @@
 import { PlusOutlined } from '@ant-design/icons';
 import {
-  Button, Card, Form, Input, Modal, Radio, Select,
+  Button, Card, Form, Input, InputNumber, Modal, Select,
   Space, Switch, Table, Tag, message,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
 
-type EventType = 'additional_investment' | 'share_release';
-type TriggerConditionType = 'amount' | 'company' | 'amount_and_company';
-
-const EVENT_LABELS: Record<EventType, string> = {
-  additional_investment: '持股企业追加投资',
-  share_release: '持股企业释放股份',
-};
-
-const TRIGGER_LABELS: Record<TriggerConditionType, string> = {
-  amount: '金额',
-  company: '企业',
-  amount_and_company: '金额+企业',
-};
-
+// ── 数据结构 ──────────────────────────────────────────────────────
 interface ApprovalRule {
   id: string;
-  name: string;
-  priority: number;
-  eventType: EventType;
-  scope: string;
-  triggerType: TriggerConditionType;
-  conditions: { field: string; operator: string; value: string }[];
+  enterpriseId: string;
+  enterpriseName: string;
+  amountLimit: number;
+  currency: string;
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -38,7 +23,7 @@ interface ApprovalRule {
 }
 
 // ── Mock 企业 ─────────────────────────────────────────────────────
-const MOCK_ENTERPRISES_FOR_RULES = [
+const MOCK_ENTERPRISES = [
   { id: 'ENT001', name: 'CyberBot' },
   { id: 'ENT002', name: 'StarLink' },
   { id: 'ENT003', name: 'QuantumPay' },
@@ -47,25 +32,14 @@ const MOCK_ENTERPRISES_FOR_RULES = [
 
 const initialRules: ApprovalRule[] = [
   {
-    id: 'RULE001', name: '小额投资自动通过', priority: 1, eventType: 'additional_investment',
-    scope: '全部企业', triggerType: 'amount',
-    conditions: [{ field: 'investAmount', operator: '≤', value: '10000' }],
+    id: 'RULE001', enterpriseId: 'ENT001', enterpriseName: 'CyberBot',
+    amountLimit: 10000, currency: 'USDT',
     enabled: true, createdAt: '2026-04-01 10:00:00', updatedAt: '2026-04-10 14:30:00', companyId: 'COM001',
   },
   {
-    id: 'RULE002', name: 'CyberBot自动通过', priority: 2, eventType: 'share_release',
-    scope: 'CyberBot', triggerType: 'company',
-    conditions: [{ field: 'sourceCompanyId', operator: '=', value: 'ENT001' }],
+    id: 'RULE002', enterpriseId: 'ENT002', enterpriseName: 'StarLink',
+    amountLimit: 5000, currency: 'USDT',
     enabled: true, createdAt: '2026-04-02 11:00:00', updatedAt: '2026-04-08 09:00:00', companyId: 'COM001',
-  },
-  {
-    id: 'RULE003', name: 'StarLink小额释放自动通过', priority: 3, eventType: 'share_release',
-    scope: 'StarLink', triggerType: 'amount_and_company',
-    conditions: [
-      { field: 'sourceCompanyId', operator: '=', value: 'ENT002' },
-      { field: 'releaseAmount', operator: '≤', value: '5000' },
-    ],
-    enabled: false, createdAt: '2026-04-05 16:00:00', updatedAt: '2026-04-05 16:00:00', companyId: 'COM001',
   },
 ];
 
@@ -75,7 +49,21 @@ const ApprovalRulesTab: React.FC = () => {
   const [editingRule, setEditingRule] = useState<ApprovalRule | null>(null);
   const [form] = Form.useForm();
 
+  // 已配置规则的企业 ID 集合（排除当前编辑的）
+  const configuredEnterpriseIds = useMemo(() => {
+    return new Set(rules.filter((r) => r.id !== editingRule?.id).map((r) => r.enterpriseId));
+  }, [rules, editingRule]);
+
+  // 可选企业（过滤掉已配置的）
+  const availableEnterprises = useMemo(() => {
+    return MOCK_ENTERPRISES.filter((e) => !configuredEnterpriseIds.has(e.id));
+  }, [configuredEnterpriseIds]);
+
   const handleAdd = () => {
+    if (availableEnterprises.length === 0) {
+      message.warning('所有企业均已配置规则');
+      return;
+    }
     setEditingRule(null);
     form.resetFields();
     setModalOpen(true);
@@ -84,13 +72,8 @@ const ApprovalRulesTab: React.FC = () => {
   const handleEdit = (rule: ApprovalRule) => {
     setEditingRule(rule);
     form.setFieldsValue({
-      name: rule.name,
-      priority: rule.priority,
-      eventType: rule.eventType,
-      triggerType: rule.triggerType,
-      amountOperator: rule.conditions.find((c) => c.field.includes('Amount'))?.operator || '≤',
-      amountValue: rule.conditions.find((c) => c.field.includes('Amount'))?.value || '',
-      companyIds: rule.conditions.filter((c) => c.field === 'sourceCompanyId').map((c) => c.value),
+      enterpriseId: rule.enterpriseId,
+      amountLimit: rule.amountLimit,
       enabled: rule.enabled,
     });
     setModalOpen(true);
@@ -99,7 +82,7 @@ const ApprovalRulesTab: React.FC = () => {
   const handleDelete = (rule: ApprovalRule) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确认删除规则「${rule.name}」？`,
+      content: `确认删除 ${rule.enterpriseName} 的自动审批规则？删除后该企业的事务将需要人工审批。`,
       okText: '删除',
       okButtonProps: { danger: true },
       onOk: () => {
@@ -123,41 +106,24 @@ const ApprovalRulesTab: React.FC = () => {
   const handleSave = () => {
     form.validateFields().then((values) => {
       const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
-      const conditions: { field: string; operator: string; value: string }[] = [];
-      const amountField = values.eventType === 'additional_investment' ? 'investAmount' : 'releaseAmount';
-
-      if (values.triggerType === 'amount' || values.triggerType === 'amount_and_company') {
-        conditions.push({ field: amountField, operator: values.amountOperator, value: values.amountValue });
-      }
-      if (values.triggerType === 'company' || values.triggerType === 'amount_and_company') {
-        (values.companyIds || []).forEach((cid: string) => {
-          conditions.push({ field: 'sourceCompanyId', operator: '=', value: cid });
-        });
-      }
-
-      const scopeNames = (values.companyIds || [])
-        .map((cid: string) => MOCK_ENTERPRISES_FOR_RULES.find((e) => e.id === cid)?.name)
-        .filter(Boolean)
-        .join('、');
+      const enterprise = MOCK_ENTERPRISES.find((e) => e.id === values.enterpriseId)!;
 
       if (editingRule) {
         setRules((prev) =>
           prev.map((r) =>
             r.id === editingRule.id
-              ? { ...r, name: values.name, priority: values.priority, eventType: values.eventType, triggerType: values.triggerType, conditions, scope: scopeNames || '全部企业', enabled: values.enabled ?? r.enabled, updatedAt: now }
+              ? { ...r, enterpriseId: values.enterpriseId, enterpriseName: enterprise.name, amountLimit: values.amountLimit, enabled: values.enabled ?? r.enabled, updatedAt: now }
               : r,
           ),
         );
         message.success('已更新');
       } else {
         const newRule: ApprovalRule = {
-          id: `RULE${String(rules.length + 1).padStart(3, '0')}`,
-          name: values.name,
-          priority: values.priority,
-          eventType: values.eventType,
-          triggerType: values.triggerType,
-          scope: scopeNames || '全部企业',
-          conditions,
+          id: `RULE${String(Date.now()).slice(-6)}`,
+          enterpriseId: values.enterpriseId,
+          enterpriseName: enterprise.name,
+          amountLimit: values.amountLimit,
+          currency: 'USDT',
           enabled: values.enabled ?? true,
           createdAt: now,
           updatedAt: now,
@@ -170,16 +136,15 @@ const ApprovalRulesTab: React.FC = () => {
     });
   };
 
-  const triggerTypeValue = Form.useWatch('triggerType', form);
-
   const columns: ColumnsType<ApprovalRule> = [
     { title: '创建时间', dataIndex: 'createdAt', width: 170, sorter: (a, b) => a.createdAt.localeCompare(b.createdAt) },
     { title: '更新时间', dataIndex: 'updatedAt', width: 170 },
-    { title: '优先级', dataIndex: 'priority', width: 80, sorter: (a, b) => a.priority - b.priority, defaultSortOrder: 'ascend' },
-    { title: '规则名称', dataIndex: 'name', width: 180 },
-    { title: '适用事件类型', dataIndex: 'eventType', width: 160, render: (v: EventType) => EVENT_LABELS[v] },
-    { title: '适用范围', dataIndex: 'scope', width: 140 },
-    { title: '触发条件', dataIndex: 'triggerType', width: 120, render: (v: TriggerConditionType) => TRIGGER_LABELS[v] },
+    { title: '企业名称', dataIndex: 'enterpriseName', width: 140 },
+    { title: '企业ID', dataIndex: 'enterpriseId', width: 100 },
+    {
+      title: '自动通过金额上限', width: 180,
+      render: (_: unknown, r: ApprovalRule) => `≤ ${r.amountLimit.toLocaleString()} ${r.currency}`,
+    },
     {
       title: '启用状态', dataIndex: 'enabled', width: 90,
       render: (v: boolean) => <Tag color={v ? 'success' : 'default'}>{v ? '已启用' : '已停用'}</Tag>,
@@ -201,8 +166,10 @@ const ApprovalRulesTab: React.FC = () => {
   return (
     <>
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+            每个企业最多配置一条规则。有规则且金额 ≤ 上限自动通过，否则需人工审批。
+          </span>
           <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增规则</Button>
         </div>
         <Table
@@ -210,7 +177,7 @@ const ApprovalRulesTab: React.FC = () => {
           dataSource={rules}
           rowKey="id"
           size="middle"
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1000 }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />
@@ -221,53 +188,23 @@ const ApprovalRulesTab: React.FC = () => {
         open={modalOpen}
         onOk={handleSave}
         onCancel={() => setModalOpen(false)}
-        width={560}
+        width={480}
         okText="保 存"
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item name="name" label="规则名称" rules={[{ required: true, message: '请输入规则名称' }]}>
-            <Input placeholder="例：小额投资自动通过" />
+          <Form.Item name="enterpriseId" label="企业" rules={[{ required: true, message: '请选择企业' }]}>
+            <Select
+              placeholder="选择企业"
+              options={
+                editingRule
+                  ? MOCK_ENTERPRISES.map((e) => ({ value: e.id, label: e.name }))
+                  : availableEnterprises.map((e) => ({ value: e.id, label: e.name }))
+              }
+            />
           </Form.Item>
-          <Form.Item name="priority" label="优先级" rules={[{ required: true, message: '请输入优先级' }]} extra="数字越小优先级越高，匹配时按优先级从高到低逐条检查">
-            <Input type="number" placeholder="例：1" style={{ width: 120 }} min={1} />
+          <Form.Item name="amountLimit" label="自动通过金额上限（USDT）" rules={[{ required: true, message: '请输入金额上限' }]} extra="事务金额 ≤ 此值时自动通过，超过则需人工审批">
+            <InputNumber placeholder="例：10000" style={{ width: '100%' }} min={1} precision={2} />
           </Form.Item>
-          <Form.Item name="eventType" label="适用事件类型" rules={[{ required: true, message: '请选择事件类型' }]}>
-            <Radio.Group>
-              <Radio value="additional_investment">持股企业追加投资</Radio>
-              <Radio value="share_release">持股企业释放股份</Radio>
-            </Radio.Group>
-          </Form.Item>
-          <Form.Item name="triggerType" label="触发条件类型" rules={[{ required: true, message: '请选择触发条件' }]}>
-            <Radio.Group>
-              <Radio value="amount">按金额</Radio>
-              <Radio value="company">按企业</Radio>
-              <Radio value="amount_and_company">按金额+企业</Radio>
-            </Radio.Group>
-          </Form.Item>
-
-          {(triggerTypeValue === 'amount' || triggerTypeValue === 'amount_and_company') && (
-            <Form.Item label="金额条件">
-              <Space>
-                <Form.Item name="amountOperator" noStyle initialValue="≤">
-                  <Select style={{ width: 80 }} options={[{ value: '≤', label: '≤' }, { value: '≥', label: '≥' }]} />
-                </Form.Item>
-                <Form.Item name="amountValue" noStyle rules={[{ required: true, message: '请输入金额' }]}>
-                  <Input placeholder="金额" style={{ width: 160 }} suffix="USDT" />
-                </Form.Item>
-              </Space>
-            </Form.Item>
-          )}
-
-          {(triggerTypeValue === 'company' || triggerTypeValue === 'amount_and_company') && (
-            <Form.Item name="companyIds" label="适用企业" rules={[{ required: true, message: '请选择企业' }]}>
-              <Select
-                mode="multiple"
-                placeholder="选择企业"
-                options={MOCK_ENTERPRISES_FOR_RULES.map((e) => ({ value: e.id, label: e.name }))}
-              />
-            </Form.Item>
-          )}
-
           <Form.Item name="enabled" label="启用状态" valuePropName="checked" initialValue={true}>
             <Switch />
           </Form.Item>
