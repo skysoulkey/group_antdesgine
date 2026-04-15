@@ -1,10 +1,12 @@
-import { PlusOutlined } from '@ant-design/icons';
+import {
+  FullscreenExitOutlined, FullscreenOutlined, PlusOutlined, ReloadOutlined, SettingOutlined,
+} from '@ant-design/icons';
 import {
   Button, Card, Form, Input, InputNumber, Modal, Select,
   Space, Switch, Table, Tag, message,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
@@ -163,14 +165,41 @@ const ApprovalRulesTab: React.FC = () => {
     },
   ];
 
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+    message.success('已刷新');
+  }, []);
+
+  const handleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true));
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false));
+    }
+  };
+
   return (
-    <>
+    <div ref={containerRef}>
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <span style={{ fontSize: 12, color: '#8c8c8c' }}>
             每个企业最多配置一条规则。有规则且金额 ≤ 上限自动通过，否则需人工审批。
           </span>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增规则</Button>
+          <Space size={12}>
+            <Space size={8}>
+              <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleRefresh} />
+              {isFullscreen
+                ? <FullscreenExitOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
+                : <FullscreenOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
+              }
+            </Space>
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>新增规则</Button>
+          </Space>
         </div>
         <Table
           columns={columns}
@@ -210,7 +239,7 @@ const ApprovalRulesTab: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
-    </>
+    </div>
   );
 };
 

@@ -1,9 +1,12 @@
 import {
-  Button, Card, ConfigProvider, DatePicker, Descriptions, Modal,
-  Radio, Select, Space, Table, Tabs, Tag, Typography, message,
+  FullscreenExitOutlined, FullscreenOutlined, ReloadOutlined, SettingOutlined,
+} from '@ant-design/icons';
+import {
+  Button, Card, Checkbox, ConfigProvider, DatePicker, Descriptions, Modal,
+  Popover, Radio, Select, Space, Table, Tabs, Tag, Typography, message,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'umi';
 import ApprovalRulesTab from './ApprovalRulesTab';
 
@@ -44,6 +47,7 @@ const EVENT_LABELS: Record<EventType, string> = {
 // ── 审批单数据结构 ────────────────────────────────────────────────
 interface ApprovalRecord {
   id: string;
+  orderId: string;
   eventType: EventType;
   status: ApprovalStatus;
 
@@ -93,6 +97,7 @@ const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
 
   return {
     id: `APR${String(i + 1).padStart(5, '0')}`,
+    orderId: `ORD${String(20000 + i).padStart(8, '0')}`,
     eventType: isInvest ? 'additional_investment' : 'share_release',
     status,
 
@@ -118,6 +123,85 @@ const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
   };
 });
 
+// ── 工具栏：刷新 + 列设置 + 全屏 ─────────────────────────────────
+interface TableToolbarProps {
+  allColumns: { key: string; title: string }[];
+  visibleKeys: string[];
+  onVisibleKeysChange: (keys: string[]) => void;
+  onRefresh: () => void;
+  containerRef: React.RefObject<HTMLDivElement | null>;
+}
+
+const TableToolbar: React.FC<TableToolbarProps> = ({ allColumns, visibleKeys, onVisibleKeysChange, onRefresh, containerRef }) => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleFullscreen = () => {
+    if (!containerRef.current) return;
+    if (!document.fullscreenElement) {
+      containerRef.current.requestFullscreen().then(() => setIsFullscreen(true));
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false));
+    }
+  };
+
+  const columnSettingsContent = (
+    <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+        <Text strong style={{ fontSize: 13 }}>列展示</Text>
+        <Button type="link" size="small" style={{ padding: 0 }} onClick={() => onVisibleKeysChange(allColumns.map((c) => c.key))}>
+          重置
+        </Button>
+      </div>
+      <Checkbox.Group
+        value={visibleKeys}
+        onChange={(checked) => onVisibleKeysChange(checked as string[])}
+        style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+      >
+        {allColumns.map((col) => (
+          <Checkbox key={col.key} value={col.key}>{col.title}</Checkbox>
+        ))}
+      </Checkbox.Group>
+    </div>
+  );
+
+  return (
+    <Space size={8}>
+      <ReloadOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={onRefresh} />
+      <Popover content={columnSettingsContent} trigger="click" placement="bottomRight" arrow={false}>
+        <SettingOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} />
+      </Popover>
+      {isFullscreen
+        ? <FullscreenExitOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
+        : <FullscreenOutlined style={{ cursor: 'pointer', color: '#8c8c8c' }} onClick={handleFullscreen} />
+      }
+    </Space>
+  );
+};
+
+// ── 所有列定义（含 key 标记） ─────────────────────────────────────
+const ALL_COLUMN_DEFS: { key: string; title: string; defaultVisible: boolean }[] = [
+  { key: 'orderId', title: '订单ID', defaultVisible: false },
+  { key: 'createdAt', title: '订单时间', defaultVisible: true },
+  { key: 'deadline', title: '审批截止', defaultVisible: false },
+  { key: 'eventType', title: '事件类型', defaultVisible: true },
+  { key: 'sourceCompanyName', title: '企业名称', defaultVisible: true },
+  { key: 'sourceCompanyId', title: '企业ID', defaultVisible: true },
+  { key: 'sourceOwnerNickname', title: '企业主昵称', defaultVisible: false },
+  { key: 'sourceOwnerId', title: '企业主ID', defaultVisible: false },
+  { key: 'sourceOwnerUsername', title: '企业主用户名', defaultVisible: false },
+  { key: 'amount', title: '金额', defaultVisible: true },
+  { key: 'currency', title: '货币单位', defaultVisible: true },
+  { key: 'companyName', title: '归属公司', defaultVisible: true },
+  { key: 'companyId', title: '归属公司ID', defaultVisible: true },
+  { key: 'status', title: '审批状态', defaultVisible: true },
+  { key: 'approvedByNickname', title: '审批人昵称', defaultVisible: true },
+  { key: 'approvedById', title: '审批人ID', defaultVisible: false },
+  { key: 'approvedAt', title: '审批时间', defaultVisible: true },
+  { key: 'remark', title: '备注', defaultVisible: false },
+];
+
+const DEFAULT_VISIBLE_KEYS = ALL_COLUMN_DEFS.filter((c) => c.defaultVisible).map((c) => c.key);
+
 // ── 审批列表 Tab ──────────────────────────────────────────────────
 const ApprovalListTab: React.FC = () => {
   const [eventFilter, setEventFilter] = useState<string | undefined>();
@@ -126,6 +210,9 @@ const ApprovalListTab: React.FC = () => {
   const [dateRange, setDateRange] = useState<[any, any] | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<ApprovalRecord | null>(null);
+  const [visibleKeys, setVisibleKeys] = useState<string[]>(DEFAULT_VISIBLE_KEYS);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const companyOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -146,7 +233,7 @@ const ApprovalListTab: React.FC = () => {
       }
       return true;
     });
-  }, [eventFilter, statusFilter, companyFilter, dateRange]);
+  }, [eventFilter, statusFilter, companyFilter, dateRange, refreshKey]);
 
   const handleApprove = (record: ApprovalRecord) => {
     Modal.confirm({
@@ -154,9 +241,7 @@ const ApprovalListTab: React.FC = () => {
       content: `确认通过 ${record.sourceCompanyName} 的${EVENT_LABELS[record.eventType]}申请？`,
       okText: '确认通过',
       cancelText: '取消',
-      onOk: () => {
-        message.success('审批已通过');
-      },
+      onOk: () => { message.success('审批已通过'); },
     });
   };
 
@@ -167,9 +252,7 @@ const ApprovalListTab: React.FC = () => {
       okText: '确认拒绝',
       okButtonProps: { danger: true },
       cancelText: '取消',
-      onOk: () => {
-        message.success('审批已拒绝');
-      },
+      onOk: () => { message.success('审批已拒绝'); },
     });
   };
 
@@ -178,50 +261,64 @@ const ApprovalListTab: React.FC = () => {
     setDetailOpen(true);
   };
 
-  const businessSummary = (r: ApprovalRecord): string => {
-    if (r.eventType === 'additional_investment') {
-      return `总额 ${r.totalInvestAmount?.toLocaleString()} ${r.investCurrency}，占股 ${r.shareRatio}%，需投 ${r.investAmount?.toLocaleString()} ${r.investCurrency}`;
-    }
-    return `释放 ${r.releaseRatio}%，总股本 ${r.totalShareValue?.toLocaleString()} ${r.releaseCurrency}，金额 ${r.releaseAmount?.toLocaleString()} ${r.releaseCurrency}`;
+  const getAmount = (r: ApprovalRecord): string => {
+    if (r.eventType === 'additional_investment') return r.investAmount?.toLocaleString() ?? '-';
+    return r.releaseAmount?.toLocaleString() ?? '-';
+  };
+
+  const getCurrency = (r: ApprovalRecord): string => {
+    if (r.eventType === 'additional_investment') return r.investCurrency ?? '-';
+    return r.releaseCurrency ?? '-';
+  };
+
+  const allColumnsMap: Record<string, ColumnsType<ApprovalRecord>[number]> = {
+    orderId: { title: '订单ID', dataIndex: 'orderId', width: 140 },
+    createdAt: { title: '订单时间', dataIndex: 'createdAt', width: 170, sorter: (a: ApprovalRecord, b: ApprovalRecord) => a.createdAt.localeCompare(b.createdAt) },
+    deadline: { title: '审批截止', dataIndex: 'deadline', width: 170 },
+    eventType: { title: '事件类型', dataIndex: 'eventType', width: 160, render: (v: EventType) => EVENT_LABELS[v] },
+    sourceCompanyName: { title: '企业名称', dataIndex: 'sourceCompanyName', width: 120 },
+    sourceCompanyId: { title: '企业ID', dataIndex: 'sourceCompanyId', width: 100 },
+    sourceOwnerNickname: { title: '企业主昵称', dataIndex: 'sourceOwnerNickname', width: 100 },
+    sourceOwnerId: { title: '企业主ID', dataIndex: 'sourceOwnerId', width: 90 },
+    sourceOwnerUsername: { title: '企业主用户名', dataIndex: 'sourceOwnerUsername', width: 120 },
+    amount: { title: '金额', width: 130, render: (_: unknown, r: ApprovalRecord) => <Text style={{ whiteSpace: 'nowrap' }}>{getAmount(r)}</Text> },
+    currency: { title: '货币单位', width: 90, render: (_: unknown, r: ApprovalRecord) => getCurrency(r) },
+    companyName: { title: '归属公司', dataIndex: 'companyName', width: 100 },
+    companyId: { title: '归属公司ID', dataIndex: 'companyId', width: 110 },
+    status: { title: '审批状态', dataIndex: 'status', width: 100, render: (v: ApprovalStatus) => <Tag color={STATUS_COLORS[v]}>{STATUS_LABELS[v]}</Tag> },
+    approvedByNickname: { title: '审批人昵称', dataIndex: 'approvedByNickname', width: 100, render: (v?: string) => v || '-' },
+    approvedById: { title: '审批人ID', dataIndex: 'approvedById', width: 100, render: (v?: string) => v || '-' },
+    approvedAt: { title: '审批时间', dataIndex: 'approvedAt', width: 170, render: (v?: string) => v || '-' },
+    remark: { title: '备注', dataIndex: 'remark', width: 140, render: (v?: string) => v || '-' },
   };
 
   const columns: ColumnsType<ApprovalRecord> = [
-    { title: '审批开始', dataIndex: 'createdAt', width: 170, sorter: (a, b) => a.createdAt.localeCompare(b.createdAt) },
-    { title: '审批截止', dataIndex: 'deadline', width: 170 },
-    { title: '事件类型', dataIndex: 'eventType', width: 160, render: (v: EventType) => EVENT_LABELS[v] },
-    { title: '企业名称', dataIndex: 'sourceCompanyName', width: 120 },
-    { title: '企业ID', dataIndex: 'sourceCompanyId', width: 100 },
-    { title: '企业主昵称', dataIndex: 'sourceOwnerNickname', width: 100 },
-    { title: '企业主ID', dataIndex: 'sourceOwnerId', width: 90 },
-    { title: '企业主用户名', dataIndex: 'sourceOwnerUsername', width: 120 },
-    { title: '归属公司', dataIndex: 'companyName', width: 100 },
-    { title: '归属公司ID', dataIndex: 'companyId', width: 110 },
-    { title: '业务摘要', width: 320, render: (_: unknown, r: ApprovalRecord) => <Text style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{businessSummary(r)}</Text> },
-    {
-      title: '审批状态', dataIndex: 'status', width: 100,
-      render: (v: ApprovalStatus) => <Tag color={STATUS_COLORS[v]}>{STATUS_LABELS[v]}</Tag>,
-    },
-    { title: '审批人昵称', dataIndex: 'approvedByNickname', width: 100, render: (v?: string) => v || '-' },
-    { title: '审批人ID', dataIndex: 'approvedById', width: 100, render: (v?: string) => v || '-' },
-    { title: '审批时间', dataIndex: 'approvedAt', width: 170, render: (v?: string) => v || '-' },
+    ...ALL_COLUMN_DEFS.filter((d) => visibleKeys.includes(d.key)).map((d) => allColumnsMap[d.key]),
     {
       title: '操作', width: 140, fixed: 'right' as const,
-      render: (_: unknown, record: ApprovalRecord) => {
-        if (record.status === 'pending') {
-          return (
-            <Space size={4}>
+      render: (_: unknown, record: ApprovalRecord) => (
+        <Space size={4}>
+          {record.status === 'pending' && (
+            <>
               <Button type="link" size="small" onClick={() => handleApprove(record)}>通过</Button>
               <Button type="link" size="small" danger onClick={() => handleReject(record)}>拒绝</Button>
-            </Space>
-          );
-        }
-        return <Button type="link" size="small" onClick={() => showDetail(record)}>查看详情</Button>;
-      },
+            </>
+          )}
+          <Button type="link" size="small" onClick={() => showDetail(record)}>详情</Button>
+        </Space>
+      ),
     },
   ];
 
+  const scrollX = columns.reduce((sum, c) => sum + ((c.width as number) || 120), 0);
+
+  const handleRefresh = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+    message.success('已刷新');
+  }, []);
+
   return (
-    <>
+    <div ref={containerRef}>
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
           <ConfigProvider theme={radioTheme}>
@@ -260,26 +357,40 @@ const ApprovalListTab: React.FC = () => {
           />
           <RangePicker onChange={(dates) => setDateRange(dates as [any, any] | null)} />
         </Space>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <TableToolbar
+            allColumns={ALL_COLUMN_DEFS.map((c) => ({ key: c.key, title: c.title }))}
+            visibleKeys={visibleKeys}
+            onVisibleKeysChange={setVisibleKeys}
+            onRefresh={handleRefresh}
+            containerRef={containerRef}
+          />
+        </div>
+
         <Table
           columns={columns}
           dataSource={filtered}
           rowKey="id"
           size="middle"
-          scroll={{ x: 2300 }}
+          scroll={{ x: scrollX }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />
       </Card>
 
+      {/* 详情弹窗 — 所有字段 */}
       <Modal
         title={`审批详情 — ${currentRecord?.id}`}
         open={detailOpen}
         onCancel={() => setDetailOpen(false)}
         footer={null}
-        width={600}
+        width={640}
       >
         {currentRecord && (
           <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }} labelStyle={{ whiteSpace: 'nowrap', width: 120 }}>
+            <Descriptions.Item label="审批单ID">{currentRecord.id}</Descriptions.Item>
+            <Descriptions.Item label="订单ID">{currentRecord.orderId}</Descriptions.Item>
             <Descriptions.Item label="事件类型">{EVENT_LABELS[currentRecord.eventType]}</Descriptions.Item>
             <Descriptions.Item label="企业名称">{currentRecord.sourceCompanyName}</Descriptions.Item>
             <Descriptions.Item label="企业ID">{currentRecord.sourceCompanyId}</Descriptions.Item>
@@ -291,6 +402,7 @@ const ApprovalListTab: React.FC = () => {
               <>
                 <Descriptions.Item label="追加投资总金额">{currentRecord.totalInvestAmount?.toLocaleString()} {currentRecord.investCurrency}</Descriptions.Item>
                 <Descriptions.Item label="本公司占股比例">{currentRecord.shareRatio}%</Descriptions.Item>
+                <Descriptions.Item label="需投资货币单位">{currentRecord.investCurrency}</Descriptions.Item>
                 <Descriptions.Item label="需投资金额">{currentRecord.investAmount?.toLocaleString()} {currentRecord.investCurrency}</Descriptions.Item>
               </>
             )}
@@ -298,11 +410,12 @@ const ApprovalListTab: React.FC = () => {
               <>
                 <Descriptions.Item label="释放股份比例">{currentRecord.releaseRatio}%</Descriptions.Item>
                 <Descriptions.Item label="总股本预估金额">{currentRecord.totalShareValue?.toLocaleString()} {currentRecord.releaseCurrency}</Descriptions.Item>
+                <Descriptions.Item label="释放股份货币单位">{currentRecord.releaseCurrency}</Descriptions.Item>
                 <Descriptions.Item label="释放股份金额">{currentRecord.releaseAmount?.toLocaleString()} {currentRecord.releaseCurrency}</Descriptions.Item>
               </>
             )}
 
-            <Descriptions.Item label="审批开始">{currentRecord.createdAt}</Descriptions.Item>
+            <Descriptions.Item label="订单时间">{currentRecord.createdAt}</Descriptions.Item>
             <Descriptions.Item label="审批截止">{currentRecord.deadline}</Descriptions.Item>
             <Descriptions.Item label="审批状态">
               <Tag color={STATUS_COLORS[currentRecord.status]}>{STATUS_LABELS[currentRecord.status]}</Tag>
@@ -316,7 +429,7 @@ const ApprovalListTab: React.FC = () => {
           </Descriptions>
         )}
       </Modal>
-    </>
+    </div>
   );
 };
 
