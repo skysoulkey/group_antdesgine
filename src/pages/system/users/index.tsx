@@ -350,25 +350,21 @@ const UserManagePage: React.FC = () => {
       },
     },
     {
-      title: 'MFA', dataIndex: 'mfaEnabled', width: 70,
-      render: (v: boolean) => <Tag color={v ? 'success' : 'default'}>{v ? '开启' : '关闭'}</Tag>,
+      title: 'MFA', dataIndex: 'mfaEnabled', width: 80,
+      render: (v: boolean) => <Switch size="small" checked={v} checkedChildren="开启" unCheckedChildren="关闭" disabled />,
     },
     { title: '有效期', dataIndex: 'validPeriod', width: 120 },
     {
-      title: '操作', width: 180, fixed: 'right' as const,
+      title: '操作', width: 160, fixed: 'right' as const, align: 'right' as const,
       render: (_: unknown, r: UserRecord) => {
         const canManage = mockRoles.includes('group_owner') || (mockRoles.includes('company_owner') && r.level === 'company');
+        if (!canManage) return null;
         return (
           <Space size={4}>
-            <Tooltip title="查看"><Button type="link" size="small" icon={<UserOutlined />} onClick={() => { setCurrentUser(r); setViewOpen(true); }} /></Tooltip>
-            {canManage && (
-              <>
-                <Tooltip title="重置密码"><Button type="link" size="small" icon={<KeyOutlined />} onClick={() => { setCurrentUser(r); adminPwdForm.resetFields(); setResetPwdOpen(true); }} /></Tooltip>
-                <Tooltip title="重置MFA"><Button type="link" size="small" icon={<StopOutlined />} onClick={() => { setCurrentUser(r); setResetMfaOpen(true); }} /></Tooltip>
-                <Tooltip title="修改有效期"><Button type="link" size="small" icon={<CalendarOutlined />} onClick={() => { setCurrentUser(r); validPeriodForm.setFieldsValue({ periodType: r.validPeriod === '永久有效' ? '永久有效' : '自定义' }); setValidPeriodOpen(true); }} /></Tooltip>
-                <Tooltip title="删除"><Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => { setCurrentUser(r); adminPwdForm.resetFields(); setDeleteOpen(true); }} /></Tooltip>
-              </>
-            )}
+            <Tooltip title="重置密码"><Button type="link" size="small" icon={<KeyOutlined />} onClick={() => { setCurrentUser(r); adminPwdForm.resetFields(); setResetPwdOpen(true); }} /></Tooltip>
+            <Tooltip title="重置MFA"><Button type="link" size="small" icon={<StopOutlined />} onClick={() => { setCurrentUser(r); setResetMfaOpen(true); }} /></Tooltip>
+            <Tooltip title="修改有效期"><Button type="link" size="small" icon={<CalendarOutlined />} onClick={() => { setCurrentUser(r); validPeriodForm.setFieldsValue({ periodType: r.validPeriod === '永久有效' ? '永久有效' : '自定义' }); setValidPeriodOpen(true); }} /></Tooltip>
+            <Tooltip title="删除"><Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => { setCurrentUser(r); adminPwdForm.resetFields(); setDeleteOpen(true); }} /></Tooltip>
           </Space>
         );
       },
