@@ -1,5 +1,15 @@
 # 变更记录
 
+## 2026-04-16 — 审批流程可视化汇报页面
+
+- 新增 `docs/flowcharts/approval-workflow.html`，独立 HTML 长页面
+- 覆盖审批全流程 6 步：业务触发 → 生成审批单 → 规则匹配 → 三渠道通知 → 审批操作 → 结果通知
+- 蓝图风格 Mockup，关键区域高亮标注
+- 用途：老板汇报 + 公司管理员培训
+- 设计文档：`docs/superpowers/specs/2026-04-16-approval-workflow-flowchart-design.md`
+
+---
+
 ## 2026-04-15 — 全站筛选按钮统一填充风格 + 速查表
 
 ### 样式统一

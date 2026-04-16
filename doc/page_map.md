@@ -66,3 +66,9 @@
 | `/system/logs` | 系统日志（登录日志 + 操作日志，按集团/公司权限隔离） | 系统 | Mock |
 | `/system/notifications` | 通知管理 | 系统 | Mock |
 | `/system/profile` | 个人中心（多角色权限展示 + 站内通知开关） | 系统 | Mock |
+
+## 独立文档
+
+| 路径 | 页面名 | 类型 | 说明 |
+|------|--------|------|------|
+| `docs/flowcharts/approval-workflow.html` | 审批流程可视化 | 独立 HTML | 汇报/培训用流程图，浏览器直接打开 |
