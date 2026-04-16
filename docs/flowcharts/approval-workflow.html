@@ -902,5 +902,361 @@
 
   </section>
 
+
+  <!-- ===== STEP 4: THREE-CHANNEL NOTIFICATION ===== -->
+  <div class="arrow-down">▼</div>
+
+  <section id="step4" class="step-block">
+
+    <!-- Step Header -->
+    <div class="step-header">
+      <div class="step-number" style="background: #1677ff;">4</div>
+      <h2 class="step-title">三渠道通知分发 — 同时触达公司管理员</h2>
+    </div>
+
+    <!-- Description -->
+    <p class="step-desc">
+      系统同时通过小程序、邮件、站内三个渠道向公司管理员发送审批通知。小程序渠道带 Inline Keyboard 操作按钮，管理员可直接审批。
+    </p>
+
+    <!-- Big container -->
+    <div style="border: 2px dashed #91caff; border-radius: 12px; padding: 20px; background: #e6f4ff;">
+      <!-- Top label -->
+      <div style="font-weight: 600; color: #1677ff; text-align: center; margin-bottom: 16px;">三渠道同步推送</div>
+
+      <!-- Three columns -->
+      <div style="display: flex; gap: 16px;">
+
+        <!-- Column 1: 小程序通知 -->
+        <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">📱 小程序通知</div>
+
+          <!-- Chat interface -->
+          <div>
+            <!-- Dark top bar -->
+            <div style="background: #1a1a2e; color: white; padding: 10px 14px; border-radius: 8px 8px 0 0; font-size: 13px; font-weight: 600;">HeyTalk Bot</div>
+            <!-- Chat area -->
+            <div style="background: #f0f0f0; padding: 12px; min-height: 180px;">
+              <!-- Message bubble -->
+              <div style="background: #fff; border-radius: 0 8px 8px 8px; padding: 12px; border: 1px solid #e8e8e8; max-width: 90%;">
+                <div style="font-weight: 600; margin-bottom: 6px;">【CyberBot】通知</div>
+                <div style="font-size: 13px; color: #333;">您管辖的企业有一条待处理事项，请10分钟内处理～</div>
+
+                <!-- Inline Keyboard buttons -->
+                <div style="margin-top: 10px; border: 2px dashed #fa8c16; border-radius: 6px; padding: 6px;">
+                  <div style="display: flex; gap: 8px;">
+                    <div style="flex: 1; background: #1677ff; color: #fff; border: none; border-radius: 6px; padding: 8px; font-size: 13px; text-align: center; cursor: pointer;">✅ 同意</div>
+                    <div style="flex: 1; background: #ff4d4f; color: #fff; border: none; border-radius: 6px; padding: 8px; font-size: 13px; text-align: center; cursor: pointer;">❌ 拒绝</div>
+                  </div>
+                  <div class="highlight-label" style="text-align: center; margin-top: 6px;">可直接在小程序内审批</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: 邮件通知 -->
+        <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">📧 邮件通知</div>
+
+          <!-- Email mockup -->
+          <div style="background: #fff; border: 1px solid #e8e8e8; border-radius: 8px;">
+            <!-- Email header -->
+            <div style="padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #999;">
+              <div>From: noreply@heytalk.com</div>
+              <div>To: miya@cyberbot.sg</div>
+            </div>
+            <!-- Subject -->
+            <div style="padding: 10px 14px; font-weight: 600; font-size: 14px; border-bottom: 1px solid #f0f0f0;">消息通知：持股企业追加投资</div>
+            <!-- Body -->
+            <div style="padding: 14px; font-size: 12px; line-height: 1.8; color: #333;">
+              <div>尊敬的用户，</div>
+              <div>【CyberBot】是一家您持有股权利益的企业。该公司已启动额外投资流程。</div>
+              <div>所需程序尚未完成。请登录系统，在 10 分钟内完成必要的操作。</div>
+              <div>如果在指定时间内未完成所需操作，额外投资订单将自动失效并终止。</div>
+              <div style="margin-top: 8px;"><a href="#" style="display: inline-block; background: #1677ff; color: #fff; padding: 8px 20px; border-radius: 4px; text-decoration: none; font-size: 13px;">前往审批页面 →</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 3: 站内通知 -->
+        <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">🔔 站内通知</div>
+
+          <!-- Notification list -->
+          <!-- Item 1 — highlighted -->
+          <div style="background: #e6f4ff; border-left: 3px solid #1677ff; padding: 12px 14px; border-radius: 4px; margin-bottom: 8px; position: relative;">
+            <div style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: #1677ff; border-radius: 50%;"></div>
+            <div style="font-weight: 600; font-size: 13px; padding-right: 16px;">【CyberBot】已启动额外投资流程，所需程序尚未完成，请在 10 分钟内登录系统处理。</div>
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">2026-04-16 09:15</div>
+          </div>
+          <!-- Item 2 — normal -->
+          <div style="padding: 12px 14px; color: #666; font-size: 13px;">
+            <div>【StarLink】的释放股份申请已通过…</div>
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">2026-04-15 14:35</div>
+          </div>
+        </div>
+
+      </div><!-- /.three columns -->
+    </div><!-- /.big container -->
+
+  </section>
+
+  <!-- ===== STEP 5: THREE APPROVAL PATHS ===== -->
+  <div class="arrow-down">▼</div>
+
+  <section id="step5" class="step-block">
+
+    <!-- Step Header -->
+    <div class="step-header">
+      <div class="step-number" style="background: #1677ff;">5</div>
+      <h2 class="step-title">公司管理员审批操作（三条路径）</h2>
+    </div>
+
+    <!-- Description -->
+    <p class="step-desc">
+      管理员可通过小程序直接审批、Web 端审批中心操作，或不操作等待超时自动拒绝。
+    </p>
+
+    <!-- Three columns -->
+    <div style="display: flex; gap: 16px;">
+
+      <!-- Path A: 小程序直接审批 -->
+      <div style="flex: 1; border: 2px solid #1677ff; border-radius: 10px; padding: 16px; position: relative;">
+        <div style="position: absolute; top: -12px; left: 16px; background: #1677ff; color: #fff; padding: 2px 12px; border-radius: 10px; font-size: 12px;">路径 A</div>
+        <div style="font-weight: 600; margin-top: 8px; margin-bottom: 12px;">📱 小程序直接审批</div>
+
+        <!-- 操作前 -->
+        <div style="font-size: 12px; color: #999; margin: 12px 0 6px;">操作前</div>
+        <div style="background: #f0f0f0; padding: 10px; border-radius: 6px;">
+          <div style="background: #fff; border-radius: 0 6px 6px 6px; padding: 10px; border: 1px solid #e8e8e8; font-size: 12px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">【CyberBot】通知</div>
+            <div style="color: #333;">您管辖的企业有一条待处理事项...</div>
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <div style="flex: 1; background: #1677ff; color: #fff; border-radius: 4px; padding: 6px; font-size: 12px; text-align: center; cursor: pointer;">✅ 同意</div>
+              <div style="flex: 1; background: #ff4d4f; color: #fff; border-radius: 4px; padding: 6px; font-size: 12px; text-align: center; cursor: pointer;">❌ 拒绝</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="text-align: center; font-size: 13px; color: #1677ff; margin: 8px 0;">▼ 点击「✅ 同意」</div>
+
+        <!-- 操作后 -->
+        <div style="font-size: 12px; color: #999; margin: 0 0 6px;">操作后</div>
+        <div style="background: #f0f0f0; padding: 10px; border-radius: 6px;">
+          <div style="background: #fff; border-radius: 0 6px 6px 6px; padding: 10px; border: 1px solid #e8e8e8; font-size: 12px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">【CyberBot】通知</div>
+            <div style="color: #333;">您管辖的企业有一条待处理事项...</div>
+            <div style="margin-top: 8px;">
+              <div style="background: #d9d9d9; color: #999; border-radius: 4px; padding: 6px; font-size: 12px; text-align: center;">已同意 ✓</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow -->
+        <div style="text-align: center; font-size: 13px; color: var(--success); margin: 8px 0;">▼ 聊天室收到结果通知</div>
+
+        <!-- 二次结果通知 -->
+        <div style="font-size: 12px; color: #999; margin: 0 0 6px;">二次结果通知</div>
+        <div style="background: #f0f0f0; padding: 10px; border-radius: 6px;">
+          <div style="background: #fff; border-radius: 0 6px 6px 6px; padding: 10px; border: 1px solid #e8e8e8; border-left: 3px solid #52c41a; font-size: 12px; color: #333;">
+            【审批结果】【CyberBot】的追加投资申请已通过。操作人：Miya，操作时间：2026-04-16 09:18。
+          </div>
+        </div>
+      </div>
+
+      <!-- Path B: Web 端审批 -->
+      <div style="flex: 1; border: 2px solid #1677ff; border-radius: 10px; padding: 16px; position: relative;">
+        <div style="position: absolute; top: -12px; left: 16px; background: #1677ff; color: #fff; padding: 2px 12px; border-radius: 10px; font-size: 12px;">路径 B</div>
+        <div style="font-weight: 600; margin-top: 8px; margin-bottom: 12px;">🖥️ Web 端审批</div>
+
+        <!-- 审批列表页 -->
+        <div style="font-size: 12px; color: #999; margin: 12px 0 6px;">审批列表页</div>
+        <div style="border: 1px solid var(--border); border-radius: 6px; overflow: hidden;">
+          <table class="mock-table" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th style="padding: 8px 10px;">企业名称</th>
+                <th style="padding: 8px 10px;">审批状态</th>
+                <th style="padding: 8px 10px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background: #fff7e6;">
+                <td style="padding: 8px 10px;">CyberBot</td>
+                <td style="padding: 8px 10px;"><span class="tag tag-warning">待审批</span></td>
+                <td style="padding: 8px 10px;">
+                  <span style="color: var(--danger); cursor: pointer; margin-right: 6px;">拒绝</span>
+                  <span class="highlight-box" style="color: var(--primary); cursor: pointer;">通过</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="highlight-label" style="font-size: 12px; margin-top: 4px;">← 点击操作</div>
+
+        <!-- Arrow -->
+        <div style="text-align: center; font-size: 13px; color: #1677ff; margin: 8px 0;">▼ 点击「通过」</div>
+
+        <!-- 二次确认弹窗 -->
+        <div style="font-size: 12px; color: #999; margin: 0 0 6px;">二次确认弹窗</div>
+        <div style="background: rgba(0,0,0,0.08); border-radius: 6px; padding: 10px;">
+          <div style="background: #fff; border-radius: 8px; padding: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.12);">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 10px;">确认通过</div>
+            <div style="font-size: 13px; color: #333; margin-bottom: 10px;">确认通过 CyberBot 的持股企业追加投资申请？</div>
+            <input type="text" placeholder="备注（选填）" style="border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 10px; width: 100%; font-size: 12px; margin-bottom: 10px; box-sizing: border-box;" readonly>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <div style="background: #f0f0f0; color: #666; border-radius: 4px; padding: 6px 14px; font-size: 12px; cursor: pointer;">取消</div>
+              <div style="background: #1677ff; color: #fff; border-radius: 4px; padding: 6px 14px; font-size: 12px; cursor: pointer;">确认通过</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Path C: 超时未处理 -->
+      <div style="flex: 1; border: 2px solid #ff4d4f; border-radius: 10px; padding: 16px; position: relative;">
+        <div style="position: absolute; top: -12px; left: 16px; background: #ff4d4f; color: #fff; padding: 2px 12px; border-radius: 10px; font-size: 12px;">路径 C</div>
+        <div style="font-weight: 600; margin-top: 8px; margin-bottom: 12px; color: var(--danger);">⏰ 超时未处理</div>
+
+        <!-- Chat mockup (no buttons) -->
+        <div style="background: #f0f0f0; padding: 10px; border-radius: 6px; margin-bottom: 12px;">
+          <div style="background: #fff; border-radius: 0 6px 6px 6px; padding: 10px; border: 1px solid #e8e8e8; font-size: 12px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">【CyberBot】通知</div>
+            <div style="color: #333;">您管辖的企业有一条待处理事项...</div>
+            <div style="color: #ff4d4f; font-size: 12px; margin-top: 8px;">⏰ 已超时 — 系统自动拒绝</div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div style="font-size: 13px; color: #666; margin-top: 12px; line-height: 1.7;">
+          截止时间内无人操作，系统自动将审批状态变为「超时拒绝」，并发送超时通知。
+        </div>
+      </div>
+
+    </div><!-- /.three columns -->
+
+  </section>
+
+  <!-- ===== STEP 6: APPROVAL RESULT NOTIFICATIONS ===== -->
+  <div class="arrow-down">▼</div>
+
+  <section id="step6" class="step-block">
+
+    <!-- Step Header -->
+    <div class="step-header">
+      <div class="step-number" style="background: #52c41a;">6</div>
+      <h2 class="step-title">审批结果通知 — 三渠道同步</h2>
+    </div>
+
+    <!-- Description -->
+    <p class="step-desc">
+      不论通过哪条路径完成审批，系统都自动向所有通知对象发送结果通知。路径 A（小程序审批）的结果通知直接以新消息形式出现在聊天室中。
+    </p>
+
+    <!-- Three columns -->
+    <div style="display: flex; gap: 16px;">
+
+      <!-- 已通过 -->
+      <div style="flex: 1; border: 2px solid #52c41a; border-radius: 10px; padding: 16px; background: #f6ffed;">
+        <!-- Badge -->
+        <div style="display: inline-block; background: #52c41a; color: #fff; padding: 2px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 14px;">✅ 已通过</div>
+
+        <!-- 小程序 -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">📱 小程序</div>
+          <div style="background: #fff; border-radius: 0 6px 6px 6px; padding: 10px; border: 1px solid #e8e8e8; border-left: 3px solid #52c41a; font-size: 12px; color: #333; line-height: 1.7;">
+            【审批结果】【CyberBot】的追加投资申请已通过。操作人：Miya，操作时间：2026-04-16 09:18。
+          </div>
+        </div>
+
+        <!-- 邮件 -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">📧 邮件</div>
+          <div style="background: #fff; border: 1px solid #e8e8e8; border-radius: 6px; font-size: 12px; overflow: hidden;">
+            <div style="padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-weight: 600; color: #333;">Subject: 消息通知：审批操作结果</div>
+            <div style="padding: 8px 12px; color: #666; line-height: 1.7;">...申请已由 Miya 审批通过。相关流程将继续执行...</div>
+          </div>
+        </div>
+
+        <!-- 站内 -->
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">🔔 站内</div>
+          <div style="background: #e6f4ff; border-left: 3px solid #1677ff; padding: 10px 12px; border-radius: 4px; font-size: 12px; color: #333; line-height: 1.7;">
+            【CyberBot】的追加投资申请已通过，操作人：Miya。
+          </div>
+        </div>
+      </div>
+
+      <!-- 已拒绝 -->
+      <div style="flex: 1; border: 2px solid #ff4d4f; border-radius: 10px; padding: 16px; background: #fff1f0;">
+        <!-- Badge -->
+        <div style="display: inline-block; background: #ff4d4f; color: #fff; padding: 2px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 14px;">❌ 已拒绝</div>
+
+        <!-- 小程序 -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">📱 小程序</div>
+          <div style="background: #fff; border-radius: 0 6px 6px 6px; padding: 10px; border: 1px solid #e8e8e8; border-left: 3px solid #ff4d4f; font-size: 12px; color: #333; line-height: 1.7;">
+            【审批结果】【CyberBot】的追加投资申请已被拒绝。操作人：Tom，操作时间：2026-04-16 09:20。
+          </div>
+        </div>
+
+        <!-- 邮件 -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">📧 邮件</div>
+          <div style="background: #fff; border: 1px solid #e8e8e8; border-radius: 6px; font-size: 12px; overflow: hidden;">
+            <div style="padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-weight: 600; color: #333;">Subject: 消息通知：审批操作结果</div>
+            <div style="padding: 8px 12px; color: #666; line-height: 1.7;">...申请已由 Tom 拒绝。如有疑问，请联系...</div>
+          </div>
+        </div>
+
+        <!-- 站内 -->
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">🔔 站内</div>
+          <div style="background: #fff1f0; border-left: 3px solid #ff4d4f; padding: 10px 12px; border-radius: 4px; font-size: 12px; color: #333; line-height: 1.7;">
+            【CyberBot】的追加投资申请已被拒绝，操作人：Tom。
+          </div>
+        </div>
+      </div>
+
+      <!-- 超时拒绝 -->
+      <div style="flex: 1; border: 2px solid #8c8c8c; border-radius: 10px; padding: 16px; background: #fafafa;">
+        <!-- Badge -->
+        <div style="display: inline-block; background: #8c8c8c; color: #fff; padding: 2px 12px; border-radius: 10px; font-size: 13px; font-weight: 600; margin-bottom: 14px;">⏰ 超时拒绝</div>
+
+        <!-- 小程序 -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">📱 小程序</div>
+          <div style="background: #fff; border-radius: 0 6px 6px 6px; padding: 10px; border: 1px solid #e8e8e8; border-left: 3px solid #8c8c8c; font-size: 12px; color: #333; line-height: 1.7;">
+            【审批结果】【CyberBot】的追加投资申请已超时自动拒绝。
+          </div>
+        </div>
+
+        <!-- 邮件 -->
+        <div style="margin-bottom: 14px;">
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">📧 邮件</div>
+          <div style="background: #fff; border: 1px solid #e8e8e8; border-radius: 6px; font-size: 12px; overflow: hidden;">
+            <div style="padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-weight: 600; color: #333;">Subject: 消息通知：审批操作超时</div>
+            <div style="padding: 8px 12px; color: #666; line-height: 1.7;">...申请因未在规定时间内处理，已自动失效并终止...</div>
+          </div>
+        </div>
+
+        <!-- 站内 -->
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: #666; margin-bottom: 6px;">🔔 站内</div>
+          <div style="background: #f5f5f5; border-left: 3px solid #8c8c8c; padding: 10px 12px; border-radius: 4px; font-size: 12px; color: #333; line-height: 1.7;">
+            【CyberBot】的追加投资申请已超时自动拒绝。
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.three columns -->
+
+    <!-- Footer -->
+    <hr style="border: none; border-top: 1px solid var(--border); margin: 32px 0;">
+    <p style="color: #999; font-size: 14px; text-align: center; margin: 0;">— 流程结束 —</p>
+
+  </section>
+
 </body>
 </html>
