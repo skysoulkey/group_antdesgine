@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Card, Row, Col, Input, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message } from 'antd';
+import { Card, ConfigProvider, Row, Col, Input, Radio, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message } from 'antd';
 import { SearchOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import TableToolbar from '../../../components/TableToolbar';
@@ -125,8 +125,17 @@ export default function FinanceAllocate() {
               style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
           </Col>
           <Col>
-            <Select placeholder="状态" value={statusFilter} onChange={setStatusFilter} allowClear style={{ width: 130 }}
-              options={[{ label: '已到账', value: 'success' }, { label: '失败', value: 'failed' }]} />
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group
+                value={statusFilter ?? 'all'}
+                onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="all">全部</Radio.Button>
+                <Radio.Button value="success">已到账</Radio.Button>
+                <Radio.Button value="failed">失败</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
           </Col>
           <Col><RangePicker style={{ width: 280 }} /></Col>
         </Row>

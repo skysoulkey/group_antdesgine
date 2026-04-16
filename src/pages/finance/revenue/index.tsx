@@ -105,16 +105,14 @@ const FinanceRevenuePage: React.FC = () => {
       {/* 账单列表 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Space style={{ marginBottom: 16 }} wrap align="center">
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
             <Radio.Group
-              buttonStyle="outline"
+              buttonStyle="solid"
               value={statusFilter ?? '全部'}
               onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
             >
               {(['全部', '未出账单', '已出账单'] as const).map((v) => (
-                <Radio.Button key={v} value={v} style={(statusFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
-                  {v}
-                </Radio.Button>
+                <Radio.Button key={v} value={v}>{v}</Radio.Button>
               ))}
             </Radio.Group>
           </ConfigProvider>

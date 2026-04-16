@@ -99,24 +99,22 @@ export default function EnterpriseTax() {
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
             <Radio.Group
-              buttonStyle="outline"
+              buttonStyle="solid"
               value={taxTypeFilter ?? '全部'}
               onChange={(e) => setTaxTypeFilter(e.target.value === '全部' ? undefined : e.target.value)}
             >
               {(['全部', ...TAX_TYPES] as const).map((v) => (
-                <Radio.Button key={v} value={v} style={(taxTypeFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
-                  {v}
-                </Radio.Button>
+                <Radio.Button key={v} value={v}>{v}</Radio.Button>
               ))}
             </Radio.Group>
           </ConfigProvider>
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
             <Radio.Group
-              buttonStyle="outline"
+              buttonStyle="solid"
               value={statusFilter ?? 'all'}
               onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
             >
@@ -126,9 +124,7 @@ export default function EnterpriseTax() {
                 { v: 'pending', label: '待结算' },
                 { v: 'cancelled', label: '已取消' },
               ]).map(({ v, label }) => (
-                <Radio.Button key={v} value={v} style={(statusFilter ?? 'all') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
-                  {label}
-                </Radio.Button>
+                <Radio.Button key={v} value={v}>{label}</Radio.Button>
               ))}
             </Radio.Group>
           </ConfigProvider>

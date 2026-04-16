@@ -438,3 +438,38 @@ npx --yes sharp-cli -i input.svg -o output.png resize 256 256
 
 **如何检查**
 导出后在 Finder 中预览 PNG，透明区域应显示为棋盘格而非白色。
+
+---
+
+## 14. Radio.Button 筛选 — 必须用填充风格 + 查速查表
+
+**遇到的问题**
+1. 不同页面的 Radio.Button 筛选样式不统一（有的 outline 描边，有的 solid 填充）
+2. 本应用 Radio.Button 平铺的固定枚举字段（≤6 项），错误地使用了 Select 下拉（如集团钱包的订单类型/状态、资金下拨/调回的状态、企业收益的收益类别/货币单位）
+
+**根本原因**
+- 没有统一的筛选按钮样式规范
+- 规范中只有「≤6 项用 Radio.Button」的规则，但没有按页面逐字段列出的速查表，开发时容易遗漏
+
+**解决方案**
+1. 全站统一使用 `buttonStyle="solid"` 填充风格，主题配置：
+```tsx
+const radioTheme = {
+  components: {
+    Radio: {
+      buttonSolidCheckedBg: '#1677ff',
+      buttonSolidCheckedHoverBg: '#4096ff',
+      buttonSolidCheckedActiveBg: '#0958d9',
+      buttonSolidCheckedColor: '#fff',
+      colorPrimary: '#1677ff',
+    },
+  },
+};
+```
+2. 不需要在 Radio.Button 上加手动 inline style，主题会自动控制选中态
+3. 新增/修改筛选字段前，必须查阅 `src/styles/design-spec.md` 9.5 节速查表
+
+**如何检查**
+- 全局搜索 `buttonStyle="outline"` → 应该为 0 个结果
+- 全局搜索 Radio.Button 的 inline `style={` → 不应有基于选中态的条件样式
+- 新增筛选字段时，确认已在 design-spec 9.5 速查表中登记

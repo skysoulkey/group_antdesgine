@@ -1,5 +1,47 @@
 # 变更记录
 
+## 2026-04-15 — 全站筛选按钮统一填充风格 + 速查表
+
+### 样式统一
+- 所有 Radio.Button 筛选从 `buttonStyle="outline"`（描边）统一为 `buttonStyle="solid"`（填充），选中态为蓝底白字（`#1677ff`）
+- 移除所有 Radio.Button 手动 inline style（`color`/`borderColor`），改由主题统一控制
+- 涉及文件：finance/revenue、company/transfer-group、company/tax、system/logs、system/notifications、finance/approvals
+
+### Select → Radio.Button 转换
+- **集团钱包**（finance/wallet）：订单类型（3 项）、订单状态（4 项）从 Select 改为 Radio.Button
+- **资金下拨**（finance/allocate）：到账状态（3 项）从 Select 改为 Radio.Button
+- **资金调回**（finance/recall）：到账状态（3 项）从 Select 改为 Radio.Button
+- **企业收益**（company/revenue）：收益类别（6 项）、货币单位（3 项）从 Select 改为 Radio.Button，新增 detailCategory/detailCurrency 状态和筛选逻辑
+
+### 规范更新
+- `src/styles/design-spec.md` 9.1 节：示例代码从 outline 更新为 solid 填充风格
+- 新增 9.5 节「全站筛选字段速查表」：按模块列出所有 Radio.Button 平铺字段（28 项）和 Select 下拉字段（13 项），防止遗漏
+
+---
+
+## 2026-04-15 — 通知管理：渠道重命名 + 审批操作 + 三渠道模版
+
+### 渠道重命名
+- 全局「APP」→「小程序」（类型定义、筛选项、表头、弹窗标题、提示文案）
+
+### 小程序审批操作按钮
+- 「持股企业追加投资」「持股企业释放股份」两类通知在小程序渠道附带 Inline Keyboard（✅ 同意 / ❌ 拒绝），参考 Telegram Bot
+- 新增 `actionStatus` 字段（待操作 / 已同意 / 已拒绝 / 已超时），表格增加「操作状态」列
+- 详情弹窗：审批类通知显示操作指令状态 + 小程序消息预览
+
+### 新增通知类型
+- 新增「审批操作结果」类型：小程序审批操作完成 / 超时后自动向所有通知对象发送结果通知（三渠道）
+- 通知类型总数从 9 种扩充为 10 种
+
+### 站内通知模版
+- 所有 10 种通知类型补充站内通知模版内容（需求文档）
+
+### 需求文档
+- 新增/更新《消息通知需求文档》：`docs/requirements/notification/message_notification.md`
+- 涵盖三渠道（小程序 / 邮件 / 站内）、10 种通知类型模版、小程序操作指令交互流程
+
+---
+
 ## 2026-04-15 — 柱状图/条形图值轴 0 点修复 + 规范补充
 
 ### Bug 修复

@@ -10,7 +10,7 @@ import {
   type LoginLogEntry, type LoginAction, type OperationLogEntry,
 } from '../../../utils/operationLog';
 
-const radioTheme = { components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } };
+const radioTheme = { components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } };
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
@@ -280,10 +280,10 @@ const SystemLogsPage: React.FC = () => {
               <Radio.Group
                 value={loginAction ?? '全部'}
                 onChange={(e) => setLoginAction(e.target.value === '全部' ? undefined : e.target.value)}
-                buttonStyle="outline"
+                buttonStyle="solid"
               >
                 {['全部', '登录', '登出', '登录失败'].map((v) => (
-                  <Radio.Button key={v} value={v} style={(loginAction ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v === '全部' ? '全部类型' : v}</Radio.Button>
+                  <Radio.Button key={v} value={v}>{v === '全部' ? '全部类型' : v}</Radio.Button>
                 ))}
               </Radio.Group>
             </ConfigProvider>
@@ -342,9 +342,9 @@ const SystemLogsPage: React.FC = () => {
               options={MODULE_OPTIONS}
             />
             <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+              <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
                 {['全部', '成功', '失败'].map((v) => (
-                  <Radio.Button key={v} value={v} style={(opResult ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v === '全部' ? '全部结果' : v}</Radio.Button>
+                  <Radio.Button key={v} value={v}>{v === '全部' ? '全部结果' : v}</Radio.Button>
                 ))}
               </Radio.Group>
             </ConfigProvider>

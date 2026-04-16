@@ -13,7 +13,7 @@ const { RangePicker } = DatePicker;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
 const CARD_RADIUS = 12;
-const radioTheme = { components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } };
+const radioTheme = { components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } };
 
 // ── 审批状态 ──────────────────────────────────────────────────────
 type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'auto_approved' | 'timeout_rejected';
@@ -269,10 +269,10 @@ const ApprovalListTab: React.FC = () => {
             <Radio.Group
               value={eventFilter ?? '全部'}
               onChange={(e) => setEventFilter(e.target.value === '全部' ? undefined : e.target.value)}
-              buttonStyle="outline"
+              buttonStyle="solid"
             >
               {[{ value: '全部', label: '全部类型' }, ...Object.entries(EVENT_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
-                <Radio.Button key={item.value} value={item.value} style={(eventFilter ?? '全部') === item.value ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
+                <Radio.Button key={item.value} value={item.value}>
                   {item.label}
                 </Radio.Button>
               ))}
@@ -282,10 +282,10 @@ const ApprovalListTab: React.FC = () => {
             <Radio.Group
               value={statusFilter ?? '全部'}
               onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
-              buttonStyle="outline"
+              buttonStyle="solid"
             >
               {[{ value: '全部', label: '全部状态' }, ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
-                <Radio.Button key={item.value} value={item.value} style={(statusFilter ?? '全部') === item.value ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
+                <Radio.Button key={item.value} value={item.value}>
                   {item.label}
                 </Radio.Button>
               ))}

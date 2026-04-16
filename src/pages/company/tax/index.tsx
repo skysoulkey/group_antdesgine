@@ -103,9 +103,9 @@ export default function CompanyTax() {
             style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
             <Radio.Group
-              buttonStyle="outline"
+              buttonStyle="solid"
               value={statusFilter ?? 'all'}
               onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
             >
@@ -115,9 +115,7 @@ export default function CompanyTax() {
                 { v: 'pending', label: '待结算' },
                 { v: 'cancelled', label: '已取消' },
               ]).map(({ v, label }) => (
-                <Radio.Button key={v} value={v} style={(statusFilter ?? 'all') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
-                  {label}
-                </Radio.Button>
+                <Radio.Button key={v} value={v}>{label}</Radio.Button>
               ))}
             </Radio.Group>
           </ConfigProvider>

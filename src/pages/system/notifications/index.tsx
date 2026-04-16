@@ -256,12 +256,12 @@ const NotificationsPage: React.FC = () => {
       children: (
         <div ref={recordsContainerRef}>
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
             <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
               <Space size={24} wrap align="center">
-                <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="outline">
+                <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
                   {['全部', '小程序', '邮件', '站内'].map((v) => (
-                    <Radio.Button key={v} value={v} style={(methodFilter ?? '全部') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>{v}</Radio.Button>
+                    <Radio.Button key={v} value={v}>{v}</Radio.Button>
                   ))}
                 </Radio.Group>
                 <Select

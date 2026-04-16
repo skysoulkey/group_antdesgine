@@ -1,7 +1,7 @@
 import {
-  Button, Card, DatePicker, Descriptions,
+  Button, Card, ConfigProvider, DatePicker, Descriptions,
   Form, Input, InputNumber, message, Modal,
-  Select, Space, Table, Tag, Typography, type InputRef,
+  Radio, Select, Space, Table, Tag, Typography, type InputRef,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
@@ -175,27 +175,29 @@ const WalletPage: React.FC = () => {
         style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
       >
         <Space style={{ marginBottom: 16 }} wrap>
-          <Select
-            value={typeFilter}
-            onChange={setTypeFilter}
-            style={{ width: 110 }}
-            options={[
-              { value: '全部', label: '全部类型' },
-              { value: '充值', label: '充值' },
-              { value: '转出', label: '转出' },
-            ]}
-          />
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ width: 110 }}
-            options={[
-              { value: '全部', label: '全部状态' },
-              { value: '待审批', label: '待审批' },
-              { value: '成功',   label: '成功' },
-              { value: '失败',   label: '失败' },
-            ]}
-          />
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+            <Radio.Group
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              buttonStyle="solid"
+            >
+              <Radio.Button value="全部">全部类型</Radio.Button>
+              <Radio.Button value="充值">充值</Radio.Button>
+              <Radio.Button value="转出">转出</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+            <Radio.Group
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              buttonStyle="solid"
+            >
+              <Radio.Button value="全部">全部状态</Radio.Button>
+              <Radio.Button value="待审批">待审批</Radio.Button>
+              <Radio.Button value="成功">成功</Radio.Button>
+              <Radio.Button value="失败">失败</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
           <DatePicker.RangePicker
             style={{ width: 240 }}
             placeholder={['开始时间', '结束时间']}

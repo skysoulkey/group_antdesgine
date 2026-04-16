@@ -307,49 +307,74 @@ const MainLayout: React.FC = () => {
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
+        trigger={null}
         theme="dark"
         width={220}
         style={{
-          overflow: 'auto',
           height: '100vh',
           position: 'fixed',
           left: 0, top: 0, bottom: 0,
           zIndex: 100,
+          overflow: 'hidden',
         }}
       >
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        {/* 顶部 logo + 折叠按钮 */}
         <div style={{
           height: 64,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          padding: collapsed ? '0' : '0 20px',
+          justifyContent: 'space-between',
+          padding: collapsed ? '0 12px' : '0 12px 0 20px',
           background: 'rgba(255,255,255,0.05)',
-          overflow: 'hidden',
+          flexShrink: 0,
         }}>
-          <img src={logoImg} alt="logo" style={{ width: 28, height: 28, flexShrink: 0 }} />
-          {!collapsed && (
-            <Text strong style={{ color: '#fff', fontSize: 14, marginLeft: 10, whiteSpace: 'nowrap' }}>
-              商户管理平台
-            </Text>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', minWidth: 0, overflow: 'hidden' }}>
+            <img src={logoImg} alt="logo" style={{ width: 28, height: 28, flexShrink: 0 }} />
+            {!collapsed && (
+              <Text strong style={{ color: '#fff', fontSize: 14, marginLeft: 10, whiteSpace: 'nowrap' }}>
+                商户管理平台
+              </Text>
+            )}
+          </div>
+          <div
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.65)',
+              fontSize: 16,
+              width: 28,
+              height: 28,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 4,
+              flexShrink: 0,
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            {collapsed ? '»' : '«'}
+          </div>
         </div>
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          defaultOpenKeys={getDefaultOpenKeys(location.pathname)}
-          items={menuItems}
-          onClick={({ key }) => navigate(key)}
-          style={{ borderRight: 0, paddingBottom: 64 }}
-        />
+        {/* 菜单区域（可滚动） */}
+        <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            defaultOpenKeys={getDefaultOpenKeys(location.pathname)}
+            items={menuItems}
+            onClick={({ key }) => navigate(key)}
+            style={{ borderRight: 0 }}
+          />
+        </div>
 
         {/* 底部用户信息 */}
         <div style={{
-          position: 'absolute',
-          bottom: 48,
-          left: 0,
-          right: 0,
+          flexShrink: 0,
           padding: collapsed ? '12px 0' : '12px 20px',
           borderTop: '1px solid rgba(255,255,255,0.1)',
           display: 'flex',
@@ -374,6 +399,7 @@ const MainLayout: React.FC = () => {
               />
             </>
           )}
+        </div>
         </div>
       </Sider>
 

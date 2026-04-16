@@ -95,27 +95,21 @@ export default function CompanyTransferIn() {
             value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
-            <Radio.Group buttonStyle="outline" value={directionFilter ?? 'all'}
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+            <Radio.Group buttonStyle="solid" value={directionFilter ?? 'all'}
               onChange={e => setDirectionFilter(e.target.value === 'all' ? undefined : e.target.value)}>
               {[{ v: 'all', label: '全部' }, { v: 'in', label: '划入' }, { v: 'out', label: '划出' }].map(({ v, label }) => (
-                <Radio.Button key={v} value={v}
-                  style={(directionFilter ?? 'all') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
-                  {label}
-                </Radio.Button>
+                <Radio.Button key={v} value={v}>{label}</Radio.Button>
               ))}
             </Radio.Group>
           </ConfigProvider>
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { colorPrimary: '#1677ff', buttonSolidCheckedBg: '#ffffff', buttonSolidCheckedColor: '#1677ff', buttonCheckedBg: '#ffffff' } } }}>
-            <Radio.Group buttonStyle="outline" value={statusFilter ?? 'all'}
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+            <Radio.Group buttonStyle="solid" value={statusFilter ?? 'all'}
               onChange={e => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}>
               {[{ v: 'all', label: '全部' }, { v: 'success', label: '成功' }, { v: 'pending', label: '处理中' }, { v: 'failed', label: '失败' }].map(({ v, label }) => (
-                <Radio.Button key={v} value={v}
-                  style={(statusFilter ?? 'all') === v ? { color: '#1677ff', borderColor: '#1677ff' } : {}}>
-                  {label}
-                </Radio.Button>
+                <Radio.Button key={v} value={v}>{label}</Radio.Button>
               ))}
             </Radio.Group>
           </ConfigProvider>

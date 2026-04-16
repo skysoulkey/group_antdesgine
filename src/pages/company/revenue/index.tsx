@@ -1,5 +1,5 @@
 import { DownloadOutlined, FundOutlined } from '@ant-design/icons';
-import { Button, Card, Col, DatePicker, Descriptions, message, Row, Select, Space, Table, Tabs, Typography } from 'antd';
+import { Button, Card, Col, ConfigProvider, DatePicker, Descriptions, message, Radio, Row, Select, Space, Table, Tabs, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useRef, useState } from 'react';
 
@@ -117,10 +117,16 @@ const CompanyRevenuePage: React.FC = () => {
   const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
   const [selectedPeriod, setSelectedPeriod] = useState<string>('2026-06');
   const [detailPeriod, setDetailPeriod] = useState<string | undefined>();
+  const [detailCategory, setDetailCategory] = useState<string | undefined>();
+  const [detailCurrency, setDetailCurrency] = useState<string | undefined>();
 
   const current = mockMonthly.find((r) => r.period === selectedPeriod) ?? mockMonthly[0];
 
-  const detailFiltered = mockDetail.filter((r) => !detailPeriod || r.period === detailPeriod);
+  const detailFiltered = mockDetail.filter((r) =>
+    (!detailPeriod || r.period === detailPeriod) &&
+    (!detailCategory || r.category === detailCategory) &&
+    (!detailCurrency || r.currency === detailCurrency),
+  );
 
   const detailColumns: ColumnsType<DetailRow> = [
     { title: '汇算周期', dataIndex: 'period', width: 110 },
@@ -262,18 +268,28 @@ const CompanyRevenuePage: React.FC = () => {
               options={[...new Set(mockMonthly.map((r) => r.companyName))].map((n) => ({ value: n, label: n }))}
             />
             <DatePicker picker="month" placeholder="汇算周期" onChange={(_, v) => setDetailPeriod(v as string)} style={{ width: 140 }} />
-            <Select
-              placeholder="收益类别"
-              allowClear
-              style={{ width: 130 }}
-              options={['彩票收益', '股份收益', '返佣收益', '股份释放', '税费支出'].map((c) => ({ value: c, label: c }))}
-            />
-            <Select
-              placeholder="货币单位"
-              allowClear
-              style={{ width: 110 }}
-              options={[{ value: 'USDT', label: 'USDT' }, { value: 'PEA', label: 'PEA' }]}
-            />
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group
+                value={detailCategory ?? '全部'}
+                onChange={(e) => setDetailCategory(e.target.value === '全部' ? undefined : e.target.value)}
+                buttonStyle="solid"
+              >
+                {['全部', '彩票收益', '股份收益', '返佣收益', '股份释放', '税费支出'].map((c) => (
+                  <Radio.Button key={c} value={c}>{c}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group
+                value={detailCurrency ?? '全部'}
+                onChange={(e) => setDetailCurrency(e.target.value === '全部' ? undefined : e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="USDT">USDT</Radio.Button>
+                <Radio.Button value="PEA">PEA</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
           </Space>
           <Table
             columns={detailColumns}
