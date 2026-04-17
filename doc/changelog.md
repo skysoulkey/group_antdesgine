@@ -1,5 +1,15 @@
 # 变更记录
 
+## 2026-04-17 — 邀请企业模块增强
+
+- **列名修改**：列表"邀请时间"改为"创建时间"
+- **详情弹窗**：表格新增"操作"列 → 点击"详情"弹出 Modal，展示企业 ID、企业名称、企业主 ID、企业主用户名、邀请成功时间（未接受记录显示"—"）
+- **永久有效**：生成邀请码弹窗新增有效期类型切换（永久有效 / 自定义时间），选"永久有效"时隐藏 DatePicker，列表和复制文案对应显示"永久有效"
+- **数据结构**：`InviteRecord` 新增 `enterpriseId`、`enterpriseName`、`ownerId`、`ownerUsername`、`acceptedTime` 字段
+- 涉及文件：`src/pages/enterprise/invite/index.tsx`
+
+---
+
 ## 2026-04-16 — 审批流程可视化汇报页面
 
 - 新增 `docs/flowcharts/approval-workflow.html`，独立 HTML 长页面
