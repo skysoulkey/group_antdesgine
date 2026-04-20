@@ -49,6 +49,7 @@
 | `/finance/recall` | 资金调回 | 财务 | Mock |
 | `/finance/revenue` | 收益明细 | 财务 | Mock |
 | `/finance/revenue/detail/:month` | 月度收益详情 | 财务 | Mock |
+| `/finance/all-wallet` | 全公司钱包（余额钱包+应用钱包余额展示，双向划转，统一流水记录表+详情弹窗） | 设置中心 | Mock |
 
 ## 公司订单
 
