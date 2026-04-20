@@ -42,10 +42,10 @@ export const ROLE_ROUTES: Record<Role, string[]> = {
     '/dashboard/company', '/company/shareholding', '/company/revenue',
     '/enterprise/list', '/enterprise/invite', '/enterprise/detail',
     '/orders/lottery', '/commission',
-    '/finance/my-wallet', '/finance/approvals', '/system/notifications', '/system/users', '/system/logs',
+    '/finance/my-wallet', '/finance/all-wallet', '/finance/approvals', '/system/notifications', '/system/users', '/system/logs',
   ],
   company_promo:   ['/enterprise/list', '/enterprise/invite', '/enterprise/detail'],
-  company_finance: ['/company/revenue', '/finance/my-wallet'],
+  company_finance: ['/company/revenue', '/finance/my-wallet', '/finance/all-wallet'],
   company_ops:     ['/dashboard/company', '/company/shareholding', '/orders/lottery', '/commission', '/system/notifications', '/finance/approvals'],
   company_audit:   ['/system/logs'],
 };

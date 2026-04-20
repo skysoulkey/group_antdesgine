@@ -37,6 +37,7 @@ export default defineConfig({
 
     // 设置中心
     { path: '/finance/my-wallet',       component: 'finance/my-wallet/index' },
+    { path: '/finance/all-wallet',      component: 'finance/all-wallet/index' },
     { path: '/finance/wallet',          component: 'finance/wallet/index' },
     { path: '/finance/wallet/bind-account', component: 'finance/wallet/bind-account' },
     { path: '/system/profile',          component: 'system/profile/index' },
