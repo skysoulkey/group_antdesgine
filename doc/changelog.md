@@ -1,5 +1,37 @@
 # 变更记录
 
+## 2026-04-21 — 投资审批改造为订单模块
+
+- 审批列表 → 订单列表：新增历史总投资、企业总资产、交易总金额、股份比例、订单状态字段
+- 订单类型重命名：持股企业追加投资 → 追加投资，持股企业释放股份 → 增持股份
+- 历史总投资、交易总金额列表头增加 Tooltip 字段描述
+- 审批规则改造：支持企业专属规则新增/删除 + 全局兜底规则（PEA/USDT 分别配置）
+- 全局兜底规则不可删除、默认停用，企业专属规则优先级更高
+- 规则展示去掉 ≤ 符号
+- 隐私化：企业和公司名称改为虚构名称
+
+---
+
+## 2026-04-21 — 筛选区与表格区 Card 分离（全局统一）
+
+- **规范更新**：`design-spec.md` 9.2 节新增筛选区必须独立 Card 的强制规则，附正确/错误代码示例
+- **enterprise/list**：筛选行从表格 Card 中拆出为独立筛选 Card
+- **company/list**：Segmented + 搜索框 + 创建按钮从表格 Card 中拆出为独立筛选 Card
+- **system/users**：状态筛选 + 角色 Select + 搜索框 + 创建按钮从表格 Card 中拆出为独立筛选 Card
+- **finance/wallet**：订单类型 + 状态筛选 + 日期选择从表格 Card 中拆出为独立筛选 Card
+- **company/tax**：状态筛选 + 公司 Select + 搜索框 + 日期选择从表格 Card 中拆出为独立筛选 Card
+- **finance/allocate**：状态筛选 + 公司 Select + 搜索框 + 日期选择 + 操作按钮从表格 Card 中拆出
+- **finance/recall**：同 allocate，筛选区拆出为独立 Card
+- **company/detail**：集团转账、持股估值两个 Tab 的筛选区拆出
+- **system/logs**：登录日志、操作日志两个 Tab 的筛选区拆出
+- **enterprise/detail**：成员清单、股东清单、投资分红、股份交易、开通应用、应用红包、东方彩票、佣金订单共 8 个 Tab 的筛选区拆出
+- **company/shareholding**：股份交易、投资分红两个 Tab 的筛选区拆出
+- **enterprise/invite**：邀请记录筛选区拆出
+- **system/notifications**：通知记录 Tab 的筛选区拆出
+- 参考模板：内部划转 `src/pages/company/transfer/index.tsx`
+
+---
+
 ## 2026-04-21 — 东方彩票图表统一 + 佣金订单图表折叠
 
 - **东方彩票**：公司流水TOP5 从水平柱状图改为竖向柱状图（与佣金订单样式统一）
