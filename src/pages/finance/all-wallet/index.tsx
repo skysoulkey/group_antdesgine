@@ -1,4 +1,4 @@
-import { SwapOutlined } from '@ant-design/icons';
+import { SwapOutlined, ColumnHeightOutlined, ColumnWidthOutlined } from '@ant-design/icons';
 import {
   Button, Card, Col, ConfigProvider, DatePicker, Descriptions,
   Form, Input, InputNumber, message, Modal,
@@ -200,10 +200,20 @@ const AllWalletPage: React.FC = () => {
   const [transferForm] = Form.useForm();
   const transferMfaRef = useRef<InputRef>(null);
 
+  const [transferLayout, setTransferLayout] = useState<'vertical' | 'horizontal'>('vertical');
+  const [fromWallet, setFromWallet] = useState<WalletType>('balance');
+  const toWallet: WalletType = fromWallet === 'balance' ? 'app' : 'balance';
+
   const openTransfer = () => {
     setTransferStep(1);
+    setFromWallet('balance');
     transferForm.resetFields();
+    transferForm.setFieldsValue({ currency: 'USDT' });
     setTransferOpen(true);
+  };
+
+  const swapDirection = () => {
+    setFromWallet((prev) => (prev === 'balance' ? 'app' : 'balance'));
   };
 
   const getBalanceForForm = (walletType: WalletType, currency: 'USDT' | 'PEA'): number => {
@@ -219,8 +229,6 @@ const AllWalletPage: React.FC = () => {
       return;
     }
 
-    const fromWallet: WalletType = transferForm.getFieldValue('fromWallet');
-    const toWallet: WalletType = fromWallet === 'balance' ? 'app' : 'balance';
     const currency: 'USDT' | 'PEA' = transferForm.getFieldValue('currency');
     const amount: number = transferForm.getFieldValue('amount');
     const remark: string = transferForm.getFieldValue('remark') ?? '';
@@ -238,12 +246,12 @@ const AllWalletPage: React.FC = () => {
       flowId: `FL${String(ts).slice(-7)}`,
       createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
       walletType: fromWallet,
-      orderType: 'transfer',
+      orderType: 'transfer' as const,
       amount,
       currency,
-      status: 'success',
-      fromWallet,
-      toWallet,
+      status: 'success' as const,
+      fromWallet: fromWallet,
+      toWallet: toWallet,
       remark,
     };
     setFlowData((prev) => [newFlow, ...prev]);
@@ -289,13 +297,6 @@ const AllWalletPage: React.FC = () => {
 
   return (
     <div ref={containerRef}>
-      {/* ── 页面标题 + 划转按钮 ───────────────────────────────────────── */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
-        <Button type="primary" icon={<SwapOutlined />} onClick={openTransfer}>
-          划转
-        </Button>
-      </div>
-
       {/* ── 余额卡片区 ────────────────────────────────────────────────── */}
       <Row gutter={16} style={{ marginBottom: 16 }}>
         {balances.map((wallet) => (
@@ -326,33 +327,38 @@ const AllWalletPage: React.FC = () => {
 
       {/* ── 流水记录 ──────────────────────────────────────────────────── */}
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-        <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={walletFilter}
-              onChange={(e) => setWalletFilter(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="全部">全部钱包</Radio.Button>
-              <Radio.Button value="余额钱包">余额钱包</Radio.Button>
-              <Radio.Button value="应用钱包">应用钱包</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={orderTypeFilter}
-              onChange={(e) => setOrderTypeFilter(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="全部">全部类型</Radio.Button>
-              <Radio.Button value="划转">划转</Radio.Button>
-              <Radio.Button value="追加投资">追加投资</Radio.Button>
-              <Radio.Button value="释放股份">释放股份</Radio.Button>
-              <Radio.Button value="转单扣款">转单扣款</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <RangePicker onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)} />
-        </Space>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+          <Space size={16} wrap align="center">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={walletFilter}
+                onChange={(e) => setWalletFilter(e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="全部">全部钱包</Radio.Button>
+                <Radio.Button value="余额钱包">余额钱包</Radio.Button>
+                <Radio.Button value="应用钱包">应用钱包</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={orderTypeFilter}
+                onChange={(e) => setOrderTypeFilter(e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="全部">全部类型</Radio.Button>
+                <Radio.Button value="划转">划转</Radio.Button>
+                <Radio.Button value="追加投资">追加投资</Radio.Button>
+                <Radio.Button value="释放股份">释放股份</Radio.Button>
+                <Radio.Button value="转单扣款">转单扣款</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+            <RangePicker onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)} />
+          </Space>
+          <Button type="primary" icon={<SwapOutlined />} onClick={openTransfer}>
+            划转
+          </Button>
+        </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ fontSize: 14, fontWeight: 600 }}>流水记录</Text>
@@ -446,38 +452,91 @@ const AllWalletPage: React.FC = () => {
         open={transferOpen}
         onCancel={() => { setTransferOpen(false); setTransferStep(1); }}
         footer={null}
-        width={480}
+        width={520}
         destroyOnClose
       >
         {transferStep === 1 ? (
           <Form form={transferForm} layout="vertical" style={{ marginTop: 16 }}
-            initialValues={{ fromWallet: 'balance', currency: 'USDT' }}>
-            <Form.Item label="转出钱包" name="fromWallet" rules={[{ required: true }]}>
-              <Radio.Group>
-                <Radio value="balance">余额钱包</Radio>
-                <Radio value="app">应用钱包</Radio>
-              </Radio.Group>
-            </Form.Item>
+            initialValues={{ currency: 'USDT' }}>
 
-            <Form.Item noStyle shouldUpdate={(prev, cur) => prev.fromWallet !== cur.fromWallet || prev.currency !== cur.currency}>
+            {/* 布局切换（仅供对比，正式上线后删除） */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+              <Space size={4}>
+                <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>布局：</Text>
+                <Button
+                  size="small"
+                  type={transferLayout === 'vertical' ? 'primary' : 'default'}
+                  icon={<ColumnHeightOutlined />}
+                  onClick={() => setTransferLayout('vertical')}
+                >
+                  上下
+                </Button>
+                <Button
+                  size="small"
+                  type={transferLayout === 'horizontal' ? 'primary' : 'default'}
+                  icon={<ColumnWidthOutlined />}
+                  onClick={() => setTransferLayout('horizontal')}
+                >
+                  左右
+                </Button>
+              </Space>
+            </div>
+
+            {/* 钱包方向选择器 */}
+            <Form.Item noStyle shouldUpdate={(prev, cur) => prev.currency !== cur.currency}>
               {({ getFieldValue }) => {
-                const from: WalletType = getFieldValue('fromWallet') ?? 'balance';
-                const to: WalletType = from === 'balance' ? 'app' : 'balance';
                 const currency: 'USDT' | 'PEA' = getFieldValue('currency') ?? 'USDT';
+                const fromBal = getBalanceForForm(fromWallet, currency);
+                const toBal = getBalanceForForm(toWallet, currency);
+
+                const walletCard = (type: 'from' | 'to', wt: WalletType, bal: number) => (
+                  <div style={{
+                    flex: 1,
+                    background: type === 'from' ? '#fff7e6' : '#e6f7ff',
+                    border: `1px solid ${type === 'from' ? '#ffd591' : '#91caff'}`,
+                    borderRadius: 8,
+                    padding: '12px 16px',
+                  }}>
+                    <Text style={{ fontSize: 12, color: type === 'from' ? '#d46b08' : '#0958d9', fontWeight: 600 }}>
+                      {type === 'from' ? '转出' : '转入'}
+                    </Text>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#141414', marginTop: 4 }}>
+                      {WALLET_TYPE_LABELS[wt]}
+                    </div>
+                    <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>
+                      {currency} 余额：{bal.toLocaleString('en', { minimumFractionDigits: 2 })}
+                    </Text>
+                  </div>
+                );
+
+                if (transferLayout === 'vertical') {
+                  return (
+                    <div style={{ marginBottom: 20 }}>
+                      {walletCard('from', fromWallet, fromBal)}
+                      <div style={{ display: 'flex', justifyContent: 'center', margin: '-8px 0' }}>
+                        <Button
+                          shape="circle"
+                          icon={<SwapOutlined style={{ transform: 'rotate(90deg)' }} />}
+                          onClick={swapDirection}
+                          style={{ zIndex: 1, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                        />
+                      </div>
+                      {walletCard('to', toWallet, toBal)}
+                    </div>
+                  );
+                }
+
+                // 左右布局
                 return (
-                  <div style={{ background: '#fafafa', border: '1px solid #f0f0f0', borderRadius: 8, padding: '12px 16px', marginBottom: 24 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                      <Text style={{ fontSize: 13 }}>转出：{WALLET_TYPE_LABELS[from]}</Text>
-                      <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-                        {currency} 余额：{getBalanceForForm(from, currency).toLocaleString('en', { minimumFractionDigits: 2 })}
-                      </Text>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Text style={{ fontSize: 13 }}>转入：{WALLET_TYPE_LABELS[to]}</Text>
-                      <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
-                        {currency} 余额：{getBalanceForForm(to, currency).toLocaleString('en', { minimumFractionDigits: 2 })}
-                      </Text>
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+                    {walletCard('from', fromWallet, fromBal)}
+                    <Button
+                      shape="circle"
+                      icon={<SwapOutlined />}
+                      onClick={swapDirection}
+                      style={{ flexShrink: 0, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
+                    />
+                    {walletCard('to', toWallet, toBal)}
                   </div>
                 );
               }}
@@ -510,8 +569,8 @@ const AllWalletPage: React.FC = () => {
         ) : (
           <div style={{ marginTop: 16 }}>
             <Descriptions bordered column={1} size="small" style={{ marginBottom: 16 }}>
-              <Descriptions.Item label="转出钱包">{WALLET_TYPE_LABELS[transferForm.getFieldValue('fromWallet')]}</Descriptions.Item>
-              <Descriptions.Item label="转入钱包">{WALLET_TYPE_LABELS[transferForm.getFieldValue('fromWallet') === 'balance' ? 'app' : 'balance']}</Descriptions.Item>
+              <Descriptions.Item label="转出钱包">{WALLET_TYPE_LABELS[fromWallet]}</Descriptions.Item>
+              <Descriptions.Item label="转入钱包">{WALLET_TYPE_LABELS[toWallet]}</Descriptions.Item>
               <Descriptions.Item label="币种">{transferForm.getFieldValue('currency')}</Descriptions.Item>
               <Descriptions.Item label="划转金额">
                 {Number(transferForm.getFieldValue('amount') ?? 0).toLocaleString('en', { minimumFractionDigits: 2 })}
