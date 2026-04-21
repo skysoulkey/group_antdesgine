@@ -1,4 +1,4 @@
-import { SwapOutlined, ColumnHeightOutlined, ColumnWidthOutlined } from '@ant-design/icons';
+import { SwapOutlined } from '@ant-design/icons';
 import {
   Button, Card, Col, ConfigProvider, DatePicker, Descriptions,
   Form, Input, InputNumber, message, Modal,
@@ -200,7 +200,6 @@ const AllWalletPage: React.FC = () => {
   const [transferForm] = Form.useForm();
   const transferMfaRef = useRef<InputRef>(null);
 
-  const [transferLayout, setTransferLayout] = useState<'vertical' | 'horizontal'>('vertical');
   const [fromWallet, setFromWallet] = useState<WalletType>('balance');
   const toWallet: WalletType = fromWallet === 'balance' ? 'app' : 'balance';
 
@@ -459,30 +458,7 @@ const AllWalletPage: React.FC = () => {
           <Form form={transferForm} layout="vertical" style={{ marginTop: 16 }}
             initialValues={{ currency: 'USDT' }}>
 
-            {/* 布局切换（仅供对比，正式上线后删除） */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-              <Space size={4}>
-                <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>布局：</Text>
-                <Button
-                  size="small"
-                  type={transferLayout === 'vertical' ? 'primary' : 'default'}
-                  icon={<ColumnHeightOutlined />}
-                  onClick={() => setTransferLayout('vertical')}
-                >
-                  上下
-                </Button>
-                <Button
-                  size="small"
-                  type={transferLayout === 'horizontal' ? 'primary' : 'default'}
-                  icon={<ColumnWidthOutlined />}
-                  onClick={() => setTransferLayout('horizontal')}
-                >
-                  左右
-                </Button>
-              </Space>
-            </div>
-
-            {/* 钱包方向选择器 */}
+            {/* 钱包方向选择器（左右布局） */}
             <Form.Item noStyle shouldUpdate={(prev, cur) => prev.currency !== cur.currency}>
               {({ getFieldValue }) => {
                 const currency: 'USDT' | 'PEA' = getFieldValue('currency') ?? 'USDT';
@@ -509,24 +485,6 @@ const AllWalletPage: React.FC = () => {
                   </div>
                 );
 
-                if (transferLayout === 'vertical') {
-                  return (
-                    <div style={{ marginBottom: 20 }}>
-                      {walletCard('from', fromWallet, fromBal)}
-                      <div style={{ display: 'flex', justifyContent: 'center', margin: '-8px 0' }}>
-                        <Button
-                          shape="circle"
-                          icon={<SwapOutlined style={{ transform: 'rotate(90deg)' }} />}
-                          onClick={swapDirection}
-                          style={{ zIndex: 1, background: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.12)' }}
-                        />
-                      </div>
-                      {walletCard('to', toWallet, toBal)}
-                    </div>
-                  );
-                }
-
-                // 左右布局
                 return (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
                     {walletCard('from', fromWallet, fromBal)}
