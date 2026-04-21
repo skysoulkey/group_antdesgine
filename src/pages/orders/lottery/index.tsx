@@ -299,18 +299,19 @@ const LotteryPage: React.FC = () => {
                   </Tag>
                 )}
               </div>
-              <Text type="secondary" style={{ fontSize: 11 }}>点击柱条快速筛选表格</Text>
               <Bar
                 data={top5FlowData}
-                xField="value"
-                yField="company"
+                xField="company"
+                yField="value"
                 colorField="company"
                 height={220}
                 style={{ marginTop: 8, cursor: 'pointer' }}
-                axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
-                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] } }}
+                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, y: { domainMin: 0 }, x: { paddingInner: 0.4 } }}
+                axis={{ y: false, x: { labelFontSize: 11 } }}
+                legend={false}
                 tooltip={{
-                  items: [(d: any) => ({ name: `${d.company}流水`, value: d.value })],
+                  title: false,
+                  items: [(d: any) => ({ name: d.company, value: `${d.value}USDT` })],
                 }}
                 onReady={(chart: any) => {
                   chart.on('interval:click', (e: any) => {
@@ -339,7 +340,6 @@ const LotteryPage: React.FC = () => {
                   </Tag>
                 )}
               </div>
-              <Text type="secondary" style={{ fontSize: 11 }}>点击扇区快速筛选表格</Text>
               <Pie
                 data={sourceDistData}
                 angleField="value"
@@ -365,7 +365,7 @@ const LotteryPage: React.FC = () => {
           <Col xs={24} lg={8}>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                <Text style={{ fontSize: 13, fontWeight: 600 }}>公司盈亏排序</Text>
+                <Text style={{ fontSize: 13, fontWeight: 600 }}>公司盈亏排序TOP5</Text>
                 {enterprise && (
                   <Tag
                     color="blue"
@@ -378,7 +378,6 @@ const LotteryPage: React.FC = () => {
                   </Tag>
                 )}
               </div>
-              <Text type="secondary" style={{ fontSize: 11 }}>点击柱条快速筛选表格</Text>
               <Column
                 data={pnlRankData}
                 xField="enterprise"
@@ -386,9 +385,13 @@ const LotteryPage: React.FC = () => {
                 colorField="enterprise"
                 height={220}
                 style={{ marginTop: 8, cursor: 'pointer' }}
-                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 }, y: { domainMin: 0 } }}
-                axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
-                tooltip={{ items: [{ channel: 'y', name: '盈亏', valueFormatter: (v: number) => `${v.toLocaleString()}.00  USDT` }] }}
+                scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, y: { domainMin: 0 }, x: { paddingInner: 0.4 } }}
+                axis={{ y: false, x: { labelFontSize: 11 } }}
+                legend={false}
+                tooltip={{
+                  title: false,
+                  items: [(d: any) => ({ name: d.enterprise, value: `${d.value.toLocaleString()}.00 USDT` })],
+                }}
                 onReady={(chart: any) => {
                   chart.on('interval:click', (e: any) => {
                     const d = e.data?.data;

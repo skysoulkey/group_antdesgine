@@ -1,5 +1,7 @@
-import { Bar, Column } from '@ant-design/plots';
+import { Bar } from '@ant-design/plots';
 import {
+  CaretDownOutlined,
+  CaretRightOutlined,
   CloseCircleFilled,
   SearchOutlined,
 } from '@ant-design/icons';
@@ -111,6 +113,7 @@ const CommissionOrderTab: React.FC = () => {
   const [game, setGame] = useState<string | undefined>();
   const [enterprise, setEnterprise] = useState<string | undefined>();
   const [search, setSearch] = useState('');
+  const [statExpanded, setStatExpanded] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const [selected, setSelected] = useState<CommissionOrder | null>(null);
 
@@ -124,10 +127,6 @@ const CommissionOrderTab: React.FC = () => {
       (!kw || r.orderId.includes(kw))
     );
   });
-
-  const handleEnterpriseClick = (name: string) => {
-    setEnterprise((prev) => (prev === name ? undefined : name));
-  };
 
   const columns: ColumnsType<CommissionOrder> = [
     { title: '订单时间', dataIndex: 'createdAt', width: 160 },
@@ -220,7 +219,11 @@ const CommissionOrderTab: React.FC = () => {
 
       {/* 汇总统计栏 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', userSelect: 'none' }}
+          onClick={() => setStatExpanded(!statExpanded)}
+        >
+          {statExpanded ? <CaretDownOutlined style={{ color: '#8c8c8c' }} /> : <CaretRightOutlined style={{ color: '#8c8c8c' }} />}
           <Text type="secondary" style={{ fontSize: 13 }}>
             佣金支出（USDT）：<Text style={{ color: '#141414' }}>{totalUsdt.toLocaleString('en', { minimumFractionDigits: 2 })}</Text>
           </Text>
@@ -232,42 +235,25 @@ const CommissionOrderTab: React.FC = () => {
       </Card>
 
       {/* 图表区 */}
+      {statExpanded && (
       <Row gutter={[12, 12]} style={{ marginBottom: 12 }}>
         {/* 企业佣金支出 */}
         <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text style={{ fontSize: 13, fontWeight: 600 }}>企业佣金支出</Text>
-              {enterprise && (
-                <Tag
-                  color="blue"
-                  closable
-                  closeIcon={<CloseCircleFilled />}
-                  onClose={() => setEnterprise(undefined)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {enterprise}
-                </Tag>
-              )}
-            </div>
-            <Text type="secondary" style={{ fontSize: 11 }}>点击柱条快速筛选表格</Text>
+            <Text style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, display: 'block' }}>企业佣金支出</Text>
             <Bar
               data={top5CommissionData}
-              xField="value"
-              yField="enterprise"
+              xField="enterprise"
+              yField="value"
               colorField="enterprise"
               height={220}
-              style={{ marginTop: 8, cursor: 'pointer' }}
-              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { domainMin: 0 }, y: { paddingInner: 0.4 } }}
-              axis={{ x: { labelFontSize: 11 }, y: { labelFontSize: 11 } }}
+              style={{ marginTop: 8 }}
+              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, y: { domainMin: 0 }, x: { paddingInner: 0.4 } }}
+              axis={{ y: false, x: { labelFontSize: 11 } }}
+              legend={false}
               tooltip={{
-                items: [(d: any) => ({ name: `${d.enterprise}佣金`, value: d.value })],
-              }}
-              onReady={(chart: any) => {
-                chart.on('interval:click', (e: any) => {
-                  const d = e.data?.data;
-                  if (d?.enterprise) handleEnterpriseClick(d.enterprise);
-                });
+                title: false,
+                items: [(d: any) => ({ name: d.enterprise, value: `${d.value}USDT` })],
               }}
             />
           </Card>
@@ -276,41 +262,26 @@ const CommissionOrderTab: React.FC = () => {
         {/* 佣金订单数量 */}
         <Col xs={24} lg={12}>
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text style={{ fontSize: 13, fontWeight: 600 }}>佣金订单数量</Text>
-              {enterprise && (
-                <Tag
-                  color="blue"
-                  closable
-                  closeIcon={<CloseCircleFilled />}
-                  onClose={() => setEnterprise(undefined)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {enterprise}
-                </Tag>
-              )}
-            </div>
-            <Text type="secondary" style={{ fontSize: 11 }}>点击柱条快速筛选表格</Text>
-            <Column
+            <Text style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, display: 'block' }}>佣金订单数量</Text>
+            <Bar
               data={orderCountData}
               xField="enterprise"
               yField="value"
               colorField="enterprise"
               height={220}
-              style={{ marginTop: 8, cursor: 'pointer' }}
-              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, x: { paddingInner: 0.4 }, y: { domainMin: 0 } }}
-              axis={{ x: { labelFontSize: 10 }, y: { labelFontSize: 11 } }}
-              tooltip={{ items: [{ channel: 'y', name: '订单数', valueFormatter: (v: number) => `${v}单` }] }}
-              onReady={(chart: any) => {
-                chart.on('interval:click', (e: any) => {
-                  const d = e.data?.data;
-                  if (d?.enterprise) handleEnterpriseClick(d.enterprise);
-                });
+              style={{ marginTop: 8 }}
+              scale={{ color: { range: ['#1677ff', '#36cfc9', '#597ef7', '#faad14', '#52c41a'] }, y: { domainMin: 0 }, x: { paddingInner: 0.4 } }}
+              axis={{ y: false, x: { labelFontSize: 11 } }}
+              legend={false}
+              tooltip={{
+                title: false,
+                items: [(d: any) => ({ name: d.enterprise, value: `${d.value}单` })],
               }}
             />
           </Card>
         </Col>
       </Row>
+      )}
 
       {/* 订单表格 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
