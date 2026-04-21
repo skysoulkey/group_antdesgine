@@ -1,7 +1,8 @@
 import {
   Button, Card, ConfigProvider, DatePicker, Descriptions, Modal,
-  Radio, Select, Space, Table, Tabs, Tag, Typography, message,
+  Radio, Select, Space, Table, Tabs, Tag, Tooltip, Typography, message,
 } from 'antd';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'umi';
@@ -34,6 +35,20 @@ const STATUS_COLORS: Record<ApprovalStatus, string> = {
   timeout_rejected: 'default',
 };
 
+type OrderStatus = 'success' | 'failed' | 'pending';
+
+const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  success: '成功',
+  failed: '失败',
+  pending: '待执行',
+};
+
+const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+  success: 'success',
+  failed: 'error',
+  pending: 'default',
+};
+
 // ── 事件类型 ──────────────────────────────────────────────────────
 type EventType = 'additional_investment' | 'share_release';
 
@@ -48,6 +63,7 @@ interface ApprovalRecord {
   orderId: string;
   eventType: EventType;
   status: ApprovalStatus;
+  orderStatus: OrderStatus;
 
   sourceCompanyId: string;
   sourceCompanyName: string;
@@ -55,15 +71,12 @@ interface ApprovalRecord {
   sourceOwnerUsername: string;
   sourceOwnerNickname: string;
 
-  totalInvestAmount?: number;
-  shareRatio?: number;
-  investCurrency?: string;
-  investAmount?: number;
-
-  releaseRatio?: number;
-  totalShareValue?: number;
-  releaseCurrency?: string;
-  releaseAmount?: number;
+  currency: string;
+  amount: number;
+  totalTransactionAmount: number;
+  shareRatio: number;
+  historicalTotalInvest: number;
+  enterpriseTotalAssets: number;
 
   createdAt: string;
   deadline: string;
@@ -93,11 +106,23 @@ const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
   const hasApprover = status === 'approved' || status === 'rejected';
   const day = String(20 - i).padStart(2, '0');
 
+  const orderStatus: OrderStatus = status === 'approved'
+    ? (i % 3 === 0 ? 'failed' : 'success')
+    : 'pending';
+
+  const currency = i % 3 === 0 ? 'PEA' : 'USDT';
+  const totalTransactionAmount = isInvest ? 100000 + i * 5000 : 200000 + i * 10000;
+  const shareRatio = isInvest ? 15 + (i % 20) : 5 + (i % 15);
+  const amount = Math.round(totalTransactionAmount * shareRatio / 100);
+  const historicalTotalInvest = 500000 + i * 20000;
+  const enterpriseTotalAssets = 2000000 + i * 50000;
+
   return {
     id: `APR${String(i + 1).padStart(5, '0')}`,
     orderId: `ORD${String(20000 + i).padStart(8, '0')}`,
     eventType: isInvest ? 'additional_investment' : 'share_release',
     status,
+    orderStatus,
 
     sourceCompanyId: ent.id,
     sourceCompanyName: ent.name,
@@ -105,9 +130,12 @@ const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
     sourceOwnerUsername: ent.ownerUsername,
     sourceOwnerNickname: ent.ownerNickname,
 
-    ...(isInvest
-      ? { totalInvestAmount: 100000 + i * 5000, shareRatio: 15 + (i % 20), investCurrency: 'USDT', investAmount: 15000 + i * 750 }
-      : { releaseRatio: 5 + (i % 15), totalShareValue: 200000 + i * 10000, releaseCurrency: 'USDT', releaseAmount: 10000 + i * 500 }),
+    currency,
+    amount,
+    totalTransactionAmount,
+    shareRatio,
+    historicalTotalInvest,
+    enterpriseTotalAssets,
 
     createdAt: `2026-04-${day} ${String(9 + (i % 10)).padStart(2, '0')}:${String(i * 3 % 60).padStart(2, '0')}:00`,
     deadline: `2026-04-${String(Math.min(28, 20 - i + 3)).padStart(2, '0')} 18:00:00`,
@@ -124,32 +152,45 @@ const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
 
 // ── 所有列定义（含 key 标记） ─────────────────────────────────────
 const ALL_COLUMN_DEFS: { key: string; title: string; defaultVisible: boolean }[] = [
-  { key: 'orderId', title: '订单ID', defaultVisible: false },
   { key: 'createdAt', title: '订单时间', defaultVisible: true },
-  { key: 'deadline', title: '审批截止', defaultVisible: false },
   { key: 'eventType', title: '订单类型', defaultVisible: true },
   { key: 'sourceCompanyName', title: '企业名称', defaultVisible: true },
   { key: 'sourceCompanyId', title: '企业ID', defaultVisible: true },
+  { key: 'currency', title: '货币单位', defaultVisible: true },
+  { key: 'amount', title: '金额', defaultVisible: true },
+  { key: 'historicalTotalInvest', title: '历史总投资', defaultVisible: true },
+  { key: 'enterpriseTotalAssets', title: '企业总资产', defaultVisible: true },
+  { key: 'totalTransactionAmount', title: '交易总金额', defaultVisible: true },
+  { key: 'shareRatio', title: '股份比例', defaultVisible: true },
+  { key: 'status', title: '审批状态', defaultVisible: true },
+  { key: 'orderStatus', title: '订单状态', defaultVisible: true },
+  { key: 'orderId', title: '订单ID', defaultVisible: false },
+  { key: 'deadline', title: '审批截止', defaultVisible: false },
+  { key: 'companyName', title: '归属公司', defaultVisible: false },
+  { key: 'companyId', title: '归属公司ID', defaultVisible: false },
   { key: 'sourceOwnerNickname', title: '企业主昵称', defaultVisible: false },
   { key: 'sourceOwnerId', title: '企业主ID', defaultVisible: false },
   { key: 'sourceOwnerUsername', title: '企业主用户名', defaultVisible: false },
-  { key: 'amount', title: '金额', defaultVisible: true },
-  { key: 'currency', title: '货币单位', defaultVisible: true },
-  { key: 'companyName', title: '归属公司', defaultVisible: true },
-  { key: 'companyId', title: '归属公司ID', defaultVisible: true },
-  { key: 'status', title: '审批状态', defaultVisible: true },
-  { key: 'approvedByNickname', title: '审批人昵称', defaultVisible: true },
+  { key: 'approvedByNickname', title: '审批人昵称', defaultVisible: false },
   { key: 'approvedById', title: '审批人ID', defaultVisible: false },
-  { key: 'approvedAt', title: '审批时间', defaultVisible: true },
+  { key: 'approvedAt', title: '审批时间', defaultVisible: false },
   { key: 'remark', title: '备注', defaultVisible: false },
 ];
 
 const DEFAULT_VISIBLE_KEYS = ALL_COLUMN_DEFS.filter((c) => c.defaultVisible).map((c) => c.key);
 
+const titleWithTip = (title: string, tip: string) => (
+  <span>
+    {title}{' '}
+    <Tooltip title={tip}><QuestionCircleOutlined style={{ color: '#bfbfbf', fontSize: 12 }} /></Tooltip>
+  </span>
+);
+
 // ── 审批列表 Tab ──────────────────────────────────────────────────
 const ApprovalListTab: React.FC = () => {
   const [eventFilter, setEventFilter] = useState<string | undefined>();
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [orderStatusFilter, setOrderStatusFilter] = useState<string | undefined>();
   const [companyFilter, setCompanyFilter] = useState<string | undefined>();
   const [dateRange, setDateRange] = useState<[any, any] | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -168,6 +209,7 @@ const ApprovalListTab: React.FC = () => {
     return MOCK_APPROVALS.filter((r) => {
       if (eventFilter && r.eventType !== eventFilter) return false;
       if (statusFilter && r.status !== statusFilter) return false;
+      if (orderStatusFilter && r.orderStatus !== orderStatusFilter) return false;
       if (companyFilter && r.sourceCompanyId !== companyFilter) return false;
       if (dateRange && dateRange[0] && dateRange[1]) {
         const start = dateRange[0].format('YYYY-MM-DD');
@@ -177,7 +219,7 @@ const ApprovalListTab: React.FC = () => {
       }
       return true;
     });
-  }, [eventFilter, statusFilter, companyFilter, dateRange, refreshKey]);
+  }, [eventFilter, statusFilter, orderStatusFilter, companyFilter, dateRange, refreshKey]);
 
   const handleApprove = (record: ApprovalRecord) => {
     Modal.confirm({
@@ -205,31 +247,46 @@ const ApprovalListTab: React.FC = () => {
     setDetailOpen(true);
   };
 
-  const getAmount = (r: ApprovalRecord): string => {
-    if (r.eventType === 'additional_investment') return r.investAmount?.toLocaleString() ?? '-';
-    return r.releaseAmount?.toLocaleString() ?? '-';
-  };
-
-  const getCurrency = (r: ApprovalRecord): string => {
-    if (r.eventType === 'additional_investment') return r.investCurrency ?? '-';
-    return r.releaseCurrency ?? '-';
-  };
-
   const allColumnsMap: Record<string, ColumnsType<ApprovalRecord>[number]> = {
-    orderId: { title: '订单ID', dataIndex: 'orderId', width: 140 },
     createdAt: { title: '订单时间', dataIndex: 'createdAt', width: 170, sorter: (a: ApprovalRecord, b: ApprovalRecord) => a.createdAt.localeCompare(b.createdAt) },
-    deadline: { title: '审批截止', dataIndex: 'deadline', width: 170 },
-    eventType: { title: '订单类型', dataIndex: 'eventType', width: 160, render: (v: EventType) => EVENT_LABELS[v] },
+    eventType: { title: '订单类型', dataIndex: 'eventType', width: 120, render: (v: EventType) => EVENT_LABELS[v] },
     sourceCompanyName: { title: '企业名称', dataIndex: 'sourceCompanyName', width: 120 },
     sourceCompanyId: { title: '企业ID', dataIndex: 'sourceCompanyId', width: 100 },
+    currency: { title: '货币单位', dataIndex: 'currency', width: 90 },
+    amount: {
+      title: '金额', dataIndex: 'amount', width: 130,
+      render: (v: number) => <Text style={{ whiteSpace: 'nowrap' }}>{v?.toLocaleString() ?? '-'}</Text>,
+    },
+    historicalTotalInvest: {
+      title: titleWithTip('历史总投资', '对此公司历史追加投入及释放股份投入之和'),
+      dataIndex: 'historicalTotalInvest', width: 160,
+      render: (v: number) => <Text style={{ whiteSpace: 'nowrap' }}>{v?.toLocaleString() ?? '-'}</Text>,
+    },
+    enterpriseTotalAssets: {
+      title: '企业总资产', dataIndex: 'enterpriseTotalAssets', width: 150,
+      render: (v: number) => <Text style={{ whiteSpace: 'nowrap' }}>{v?.toLocaleString() ?? '-'}</Text>,
+    },
+    totalTransactionAmount: {
+      title: titleWithTip('交易总金额', '追加投资：本次追加投资总金额；增持股份：当前总股本预估金额'),
+      dataIndex: 'totalTransactionAmount', width: 170,
+      render: (v: number) => <Text style={{ whiteSpace: 'nowrap' }}>{v?.toLocaleString() ?? '-'}</Text>,
+    },
+    shareRatio: {
+      title: '股份比例', dataIndex: 'shareRatio', width: 100,
+      render: (v: number) => `${v}%`,
+    },
+    status: { title: '审批状态', dataIndex: 'status', width: 100, render: (v: ApprovalStatus) => <Tag color={STATUS_COLORS[v]}>{STATUS_LABELS[v]}</Tag> },
+    orderStatus: {
+      title: '订单状态', dataIndex: 'orderStatus', width: 100,
+      render: (v: OrderStatus) => <Tag color={ORDER_STATUS_COLORS[v]}>{ORDER_STATUS_LABELS[v]}</Tag>,
+    },
+    orderId: { title: '订单ID', dataIndex: 'orderId', width: 140 },
+    deadline: { title: '审批截止', dataIndex: 'deadline', width: 170 },
+    companyName: { title: '归属公司', dataIndex: 'companyName', width: 100 },
+    companyId: { title: '归属公司ID', dataIndex: 'companyId', width: 110 },
     sourceOwnerNickname: { title: '企业主昵称', dataIndex: 'sourceOwnerNickname', width: 100 },
     sourceOwnerId: { title: '企业主ID', dataIndex: 'sourceOwnerId', width: 90 },
     sourceOwnerUsername: { title: '企业主用户名', dataIndex: 'sourceOwnerUsername', width: 120 },
-    amount: { title: '金额', width: 130, render: (_: unknown, r: ApprovalRecord) => <Text style={{ whiteSpace: 'nowrap' }}>{getAmount(r)}</Text> },
-    currency: { title: '货币单位', width: 90, render: (_: unknown, r: ApprovalRecord) => getCurrency(r) },
-    companyName: { title: '归属公司', dataIndex: 'companyName', width: 100 },
-    companyId: { title: '归属公司ID', dataIndex: 'companyId', width: 110 },
-    status: { title: '审批状态', dataIndex: 'status', width: 100, render: (v: ApprovalStatus) => <Tag color={STATUS_COLORS[v]}>{STATUS_LABELS[v]}</Tag> },
     approvedByNickname: { title: '审批人昵称', dataIndex: 'approvedByNickname', width: 100, render: (v?: string) => v || '-' },
     approvedById: { title: '审批人ID', dataIndex: 'approvedById', width: 100, render: (v?: string) => v || '-' },
     approvedAt: { title: '审批时间', dataIndex: 'approvedAt', width: 170, render: (v?: string) => v || '-' },
@@ -291,6 +348,17 @@ const ApprovalListTab: React.FC = () => {
               ))}
             </Radio.Group>
           </ConfigProvider>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group
+              value={orderStatusFilter ?? '全部'}
+              onChange={(e) => setOrderStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
+              buttonStyle="solid"
+            >
+              {[{ value: '全部', label: '全部订单状态' }, ...Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
+                <Radio.Button key={item.value} value={item.value}>{item.label}</Radio.Button>
+              ))}
+            </Radio.Group>
+          </ConfigProvider>
           <Select
             placeholder="触发方企业"
             value={companyFilter}
@@ -336,34 +404,25 @@ const ApprovalListTab: React.FC = () => {
           <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }} labelStyle={{ whiteSpace: 'nowrap', width: 120 }}>
             <Descriptions.Item label="审批单ID">{currentRecord.id}</Descriptions.Item>
             <Descriptions.Item label="订单ID">{currentRecord.orderId}</Descriptions.Item>
-            <Descriptions.Item label="事件类型">{EVENT_LABELS[currentRecord.eventType]}</Descriptions.Item>
+            <Descriptions.Item label="订单类型">{EVENT_LABELS[currentRecord.eventType]}</Descriptions.Item>
             <Descriptions.Item label="企业名称">{currentRecord.sourceCompanyName}</Descriptions.Item>
             <Descriptions.Item label="企业ID">{currentRecord.sourceCompanyId}</Descriptions.Item>
             <Descriptions.Item label="企业主昵称">{currentRecord.sourceOwnerNickname}</Descriptions.Item>
             <Descriptions.Item label="企业主ID">{currentRecord.sourceOwnerId}</Descriptions.Item>
             <Descriptions.Item label="企业主用户名">{currentRecord.sourceOwnerUsername}</Descriptions.Item>
-
-            {currentRecord.eventType === 'additional_investment' && (
-              <>
-                <Descriptions.Item label="追加投资总金额">{currentRecord.totalInvestAmount?.toLocaleString()} {currentRecord.investCurrency}</Descriptions.Item>
-                <Descriptions.Item label="本公司占股比例">{currentRecord.shareRatio}%</Descriptions.Item>
-                <Descriptions.Item label="需投资货币单位">{currentRecord.investCurrency}</Descriptions.Item>
-                <Descriptions.Item label="需投资金额">{currentRecord.investAmount?.toLocaleString()} {currentRecord.investCurrency}</Descriptions.Item>
-              </>
-            )}
-            {currentRecord.eventType === 'share_release' && (
-              <>
-                <Descriptions.Item label="释放股份比例">{currentRecord.releaseRatio}%</Descriptions.Item>
-                <Descriptions.Item label="总股本预估金额">{currentRecord.totalShareValue?.toLocaleString()} {currentRecord.releaseCurrency}</Descriptions.Item>
-                <Descriptions.Item label="释放股份货币单位">{currentRecord.releaseCurrency}</Descriptions.Item>
-                <Descriptions.Item label="释放股份金额">{currentRecord.releaseAmount?.toLocaleString()} {currentRecord.releaseCurrency}</Descriptions.Item>
-              </>
-            )}
-
+            <Descriptions.Item label="货币单位">{currentRecord.currency}</Descriptions.Item>
+            <Descriptions.Item label="金额">{currentRecord.amount?.toLocaleString()} {currentRecord.currency}</Descriptions.Item>
+            <Descriptions.Item label="历史总投资">{currentRecord.historicalTotalInvest?.toLocaleString()} {currentRecord.currency}</Descriptions.Item>
+            <Descriptions.Item label="企业总资产">{currentRecord.enterpriseTotalAssets?.toLocaleString()} {currentRecord.currency}</Descriptions.Item>
+            <Descriptions.Item label="交易总金额">{currentRecord.totalTransactionAmount?.toLocaleString()} {currentRecord.currency}</Descriptions.Item>
+            <Descriptions.Item label="股份比例">{currentRecord.shareRatio}%</Descriptions.Item>
             <Descriptions.Item label="订单时间">{currentRecord.createdAt}</Descriptions.Item>
             <Descriptions.Item label="审批截止">{currentRecord.deadline}</Descriptions.Item>
             <Descriptions.Item label="审批状态">
               <Tag color={STATUS_COLORS[currentRecord.status]}>{STATUS_LABELS[currentRecord.status]}</Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label="订单状态">
+              <Tag color={ORDER_STATUS_COLORS[currentRecord.orderStatus]}>{ORDER_STATUS_LABELS[currentRecord.orderStatus]}</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="审批人昵称">{currentRecord.approvedByNickname || '-'}</Descriptions.Item>
             <Descriptions.Item label="审批人ID">{currentRecord.approvedById || '-'}</Descriptions.Item>
