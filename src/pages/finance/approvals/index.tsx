@@ -38,8 +38,8 @@ const STATUS_COLORS: Record<ApprovalStatus, string> = {
 type EventType = 'additional_investment' | 'share_release';
 
 const EVENT_LABELS: Record<EventType, string> = {
-  additional_investment: '持股企业追加投资',
-  share_release: '持股企业释放股份',
+  additional_investment: '追加投资',
+  share_release: '增持股份',
 };
 
 // ── 审批单数据结构 ────────────────────────────────────────────────
@@ -79,10 +79,10 @@ interface ApprovalRecord {
 
 // ── Mock 企业 ─────────────────────────────────────────────────────
 const MOCK_ENTERPRISES = [
-  { id: 'ENT001', name: 'CyberBot', ownerId: 'U101', ownerUsername: 'zhang_wei', ownerNickname: '张伟' },
-  { id: 'ENT002', name: 'StarLink', ownerId: 'U102', ownerUsername: 'li_na', ownerNickname: '李娜' },
-  { id: 'ENT003', name: 'QuantumPay', ownerId: 'U103', ownerUsername: 'wang_fang', ownerNickname: '王芳' },
-  { id: 'ENT004', name: 'NovaTech', ownerId: 'U104', ownerUsername: 'chen_jie', ownerNickname: '陈杰' },
+  { id: 'ENT001', name: '星辰科技', ownerId: 'U101', ownerUsername: 'zhang_wei', ownerNickname: '张伟' },
+  { id: 'ENT002', name: '云帆网络', ownerId: 'U102', ownerUsername: 'li_na', ownerNickname: '李娜' },
+  { id: 'ENT003', name: '山海集团', ownerId: 'U103', ownerUsername: 'wang_fang', ownerNickname: '王芳' },
+  { id: 'ENT004', name: '天元控股', ownerId: 'U104', ownerUsername: 'chen_jie', ownerNickname: '陈杰' },
 ];
 
 const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
@@ -117,7 +117,7 @@ const MOCK_APPROVALS: ApprovalRecord[] = Array.from({ length: 20 }, (_, i) => {
       : {}),
 
     companyId: 'COM001',
-    companyName: '滴滴答答',
+    companyName: '蓝鲸投资',
   };
 });
 
@@ -127,7 +127,7 @@ const ALL_COLUMN_DEFS: { key: string; title: string; defaultVisible: boolean }[]
   { key: 'orderId', title: '订单ID', defaultVisible: false },
   { key: 'createdAt', title: '订单时间', defaultVisible: true },
   { key: 'deadline', title: '审批截止', defaultVisible: false },
-  { key: 'eventType', title: '事件类型', defaultVisible: true },
+  { key: 'eventType', title: '订单类型', defaultVisible: true },
   { key: 'sourceCompanyName', title: '企业名称', defaultVisible: true },
   { key: 'sourceCompanyId', title: '企业ID', defaultVisible: true },
   { key: 'sourceOwnerNickname', title: '企业主昵称', defaultVisible: false },
@@ -219,7 +219,7 @@ const ApprovalListTab: React.FC = () => {
     orderId: { title: '订单ID', dataIndex: 'orderId', width: 140 },
     createdAt: { title: '订单时间', dataIndex: 'createdAt', width: 170, sorter: (a: ApprovalRecord, b: ApprovalRecord) => a.createdAt.localeCompare(b.createdAt) },
     deadline: { title: '审批截止', dataIndex: 'deadline', width: 170 },
-    eventType: { title: '事件类型', dataIndex: 'eventType', width: 160, render: (v: EventType) => EVENT_LABELS[v] },
+    eventType: { title: '订单类型', dataIndex: 'eventType', width: 160, render: (v: EventType) => EVENT_LABELS[v] },
     sourceCompanyName: { title: '企业名称', dataIndex: 'sourceCompanyName', width: 120 },
     sourceCompanyId: { title: '企业ID', dataIndex: 'sourceCompanyId', width: 100 },
     sourceOwnerNickname: { title: '企业主昵称', dataIndex: 'sourceOwnerNickname', width: 100 },
@@ -303,7 +303,7 @@ const ApprovalListTab: React.FC = () => {
         </Space>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, fontWeight: 600 }}>审批列表</Text>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>订单列表</Text>
           <TableToolbar
             columns={ALL_COLUMN_DEFS.map((c) => ({ key: c.key, title: c.title }))}
             visibleKeys={visibleKeys}
@@ -384,7 +384,7 @@ const ApprovalsPage: React.FC = () => {
   const activeTab = searchParams.get('tab') || 'list';
 
   const tabItems = [
-    { key: 'list', label: '审批列表', children: <ApprovalListTab /> },
+    { key: 'list', label: '订单列表', children: <ApprovalListTab /> },
     { key: 'rules', label: '审批规则', children: <ApprovalRulesTab /> },
   ];
 
