@@ -85,7 +85,7 @@ const KpiCard: React.FC<{
   title: string;
   value: string | number;
   valueColor?: string;
-  subs: Array<{ label: string; value: string | number }>;
+  subs: Array<{ label: string; value?: string | number }>;
   tooltip?: string;
 }> = ({ title, value, subs, tooltip }) => (
   <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, height: '100%' }}
@@ -349,7 +349,7 @@ const EnterpriseDetail: React.FC = () => {
               <KpiCard title="企业红包收益（USDT）" value="3,450.00"
                 subs={[{ label: '昨日收益', value: '233,322.00' }, { label: '今日收益', value: '233,322.00' }]} />
               <KpiCard title="企业股东（个）" value="6"
-                subs={[{ label: '公司已入股', value: '4' }, { label: '平台未入股', value: '2' }]} />
+                subs={[{ label: '公司已入股' }, { label: '平台未入股' }]} />
               <KpiCard title="企业认证费（PEA）" value="200.00"
                 subs={[{ label: '认证到期', value: '2025-11-23' }]} />
               <KpiCard title="成员总数（个）" value="128"
@@ -412,32 +412,36 @@ const EnterpriseDetail: React.FC = () => {
         });
 
         return (
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group
-                  value={memberStatus}
-                  onChange={(e) => setMemberStatus(e.target.value)}
-                  buttonStyle="solid"
-                >
-                  <Radio.Button value="all">全部</Radio.Button>
-                  <Radio.Button value="正常">正常</Radio.Button>
-                  <Radio.Button value="已退">已退</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <Input
-                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                placeholder="成员昵称 / 成员ID"
-                value={memberSearch}
-                onChange={(e) => setMemberSearch(e.target.value)}
-                allowClear
-                style={{ width: 200 }}
-              />
-            </Space>
-            <Table columns={memberColumns} dataSource={filteredMembers} rowKey="id" size="middle"
-              scroll={{ x: 1400 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Space size={16} wrap align="center">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group
+                    value={memberStatus}
+                    onChange={(e) => setMemberStatus(e.target.value)}
+                    buttonStyle="solid"
+                  >
+                    <Radio.Button value="all">全部</Radio.Button>
+                    <Radio.Button value="正常">正常</Radio.Button>
+                    <Radio.Button value="已退">已退</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+                <Input
+                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                  placeholder="成员昵称 / 成员ID"
+                  value={memberSearch}
+                  onChange={(e) => setMemberSearch(e.target.value)}
+                  allowClear
+                  style={{ width: 200 }}
+                />
+              </Space>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Table columns={memberColumns} dataSource={filteredMembers} rowKey="id" size="middle"
+                scroll={{ x: 1400 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },
@@ -478,23 +482,26 @@ const EnterpriseDetail: React.FC = () => {
         );
 
         return (
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group
-                value={shStatus}
-                onChange={(e) => setShStatus(e.target.value)}
-                buttonStyle="solid"
-                style={{ marginBottom: 16 }}
-              >
-                <Radio.Button value="all">全部</Radio.Button>
-                <Radio.Button value="正常">正常</Radio.Button>
-                <Radio.Button value="已退">已退</Radio.Button>
-              </Radio.Group>
-            </ConfigProvider>
-            <Table columns={shareholderColumns} dataSource={filtered} rowKey="id" size="middle"
-              scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group
+                  value={shStatus}
+                  onChange={(e) => setShStatus(e.target.value)}
+                  buttonStyle="solid"
+                >
+                  <Radio.Button value="all">全部</Radio.Button>
+                  <Radio.Button value="正常">正常</Radio.Button>
+                  <Radio.Button value="已退">已退</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Table columns={shareholderColumns} dataSource={filtered} rowKey="id" size="middle"
+                scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },
@@ -524,25 +531,29 @@ const EnterpriseDetail: React.FC = () => {
         );
 
         return (
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group
-                  value={divType}
-                  onChange={(e) => setDivType(e.target.value)}
-                  buttonStyle="solid"
-                >
-                  <Radio.Button value="all">全部</Radio.Button>
-                  <Radio.Button value="分红">分红</Radio.Button>
-                  <Radio.Button value="投资">投资</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <RangePicker onChange={(v) => setDivRange(v as [Dayjs, Dayjs] | null)} />
-            </Space>
-            <Table columns={dividendColumns} dataSource={filtered} rowKey="orderId" size="middle"
-              pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Space size={16} wrap align="center">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group
+                    value={divType}
+                    onChange={(e) => setDivType(e.target.value)}
+                    buttonStyle="solid"
+                  >
+                    <Radio.Button value="all">全部</Radio.Button>
+                    <Radio.Button value="分红">分红</Radio.Button>
+                    <Radio.Button value="投资">投资</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+                <RangePicker onChange={(v) => setDivRange(v as [Dayjs, Dayjs] | null)} />
+              </Space>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Table columns={dividendColumns} dataSource={filtered} rowKey="orderId" size="middle"
+                pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },
@@ -573,41 +584,45 @@ const EnterpriseDetail: React.FC = () => {
         });
 
         return (
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group
-                  value={stOrderType}
-                  onChange={(e) => setStOrderType(e.target.value)}
-                  buttonStyle="solid"
-                >
-                  <Radio.Button value="all">全部</Radio.Button>
-                  <Radio.Button value="购买股份">购买股份</Radio.Button>
-                  <Radio.Button value="释放股份">释放股份</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <RangePicker onChange={(v) => setStRange(v as [Dayjs, Dayjs] | null)} />
-              <Select
-                placeholder="选择股东"
-                style={{ width: 140 }}
-                allowClear
-                value={stShareholder}
-                onChange={setStShareholder}
-                options={shareholderData.map((s) => ({ value: s.id, label: `${s.nickname}(${s.id})` }))}
-              />
-              <Input
-                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                placeholder="订单编号 / 股东ID"
-                value={stSearch}
-                onChange={(e) => setStSearch(e.target.value)}
-                allowClear
-                style={{ width: 200 }}
-              />
-            </Space>
-            <Table columns={shareTradeColumns} dataSource={filtered} rowKey="orderId" size="middle"
-              scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Space size={16} wrap align="center">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group
+                    value={stOrderType}
+                    onChange={(e) => setStOrderType(e.target.value)}
+                    buttonStyle="solid"
+                  >
+                    <Radio.Button value="all">全部</Radio.Button>
+                    <Radio.Button value="购买股份">购买股份</Radio.Button>
+                    <Radio.Button value="释放股份">释放股份</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+                <RangePicker onChange={(v) => setStRange(v as [Dayjs, Dayjs] | null)} />
+                <Select
+                  placeholder="选择股东"
+                  style={{ width: 140 }}
+                  allowClear
+                  value={stShareholder}
+                  onChange={setStShareholder}
+                  options={shareholderData.map((s) => ({ value: s.id, label: `${s.nickname}(${s.id})` }))}
+                />
+                <Input
+                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                  placeholder="订单编号 / 股东ID"
+                  value={stSearch}
+                  onChange={(e) => setStSearch(e.target.value)}
+                  allowClear
+                  style={{ width: 200 }}
+                />
+              </Space>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Table columns={shareTradeColumns} dataSource={filtered} rowKey="orderId" size="middle"
+                scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },
@@ -634,17 +649,19 @@ const EnterpriseDetail: React.FC = () => {
         const filteredApps = appsData.filter((d) => inRange(d.enabledAt, appRange));
 
         return (
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <Space style={{ marginBottom: 16 }}>
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
               <RangePicker
                 placeholder={['开始时间', '结束时间']}
                 onChange={(v) => setAppRange(v as [Dayjs, Dayjs] | null)}
               />
-            </Space>
-            <Table columns={appColumns} dataSource={filteredApps} rowKey="id" size="middle"
-              pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Table columns={appColumns} dataSource={filteredApps} rowKey="id" size="middle"
+                pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },
@@ -685,26 +702,29 @@ const EnterpriseDetail: React.FC = () => {
 
         return (
           <>
-            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-              styles={{ body: { padding: '16px 24px' } }}>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group
-                  value={rpStatus}
-                  onChange={(e) => setRpStatus(e.target.value)}
-                  buttonStyle="solid"
-                  style={{ marginBottom: 16 }}
-                >
-                  <Radio.Button value="all">全部</Radio.Button>
-                  <Radio.Button value="已完成">已完成</Radio.Button>
-                  <Radio.Button value="进行中">进行中</Radio.Button>
-                  <Radio.Button value="已过期">已过期</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <Table columns={redPacketColumns} dataSource={filtered} rowKey="id" size="middle"
-                scroll={{ x: 1500 }}
-                pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-            </Card>
+            <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group
+                    value={rpStatus}
+                    onChange={(e) => setRpStatus(e.target.value)}
+                    buttonStyle="solid"
+                  >
+                    <Radio.Button value="all">全部</Radio.Button>
+                    <Radio.Button value="已完成">已完成</Radio.Button>
+                    <Radio.Button value="进行中">进行中</Radio.Button>
+                    <Radio.Button value="已过期">已过期</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+              </Card>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+                styles={{ body: { padding: '16px 24px' } }}>
+                <Table columns={redPacketColumns} dataSource={filtered} rowKey="id" size="middle"
+                  scroll={{ x: 1500 }}
+                  pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                  rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+              </Card>
+            </Space>
             <Modal title="详情" open={!!rpDetail} onCancel={() => setRpDetail(null)} footer={null} width={680}>
               {rpDetail && (
                 <>
@@ -786,26 +806,30 @@ const EnterpriseDetail: React.FC = () => {
         );
 
         return (
-          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group
-                  value={ltStatus}
-                  onChange={(e) => setLtStatus(e.target.value)}
-                  buttonStyle="solid"
-                >
-                  <Radio.Button value="all">全部</Radio.Button>
-                  <Radio.Button value="未结算">未结算</Radio.Button>
-                  <Radio.Button value="结算中">结算中</Radio.Button>
-                  <Radio.Button value="已结算">已结算</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <RangePicker onChange={(v) => setLtRange(v as [Dayjs, Dayjs] | null)} />
-            </Space>
-            <Table columns={lotteryColumns} dataSource={filtered} rowKey="id" size="middle"
-              scroll={{ x: 1400 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Space size={16} wrap align="center">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group
+                    value={ltStatus}
+                    onChange={(e) => setLtStatus(e.target.value)}
+                    buttonStyle="solid"
+                  >
+                    <Radio.Button value="all">全部</Radio.Button>
+                    <Radio.Button value="未结算">未结算</Radio.Button>
+                    <Radio.Button value="结算中">结算中</Radio.Button>
+                    <Radio.Button value="已结算">已结算</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+                <RangePicker onChange={(v) => setLtRange(v as [Dayjs, Dayjs] | null)} />
+              </Space>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Table columns={lotteryColumns} dataSource={filtered} rowKey="id" size="middle"
+                scroll={{ x: 1400 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },
@@ -840,22 +864,26 @@ const EnterpriseDetail: React.FC = () => {
 
         return (
           <>
-            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-              <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-                <RangePicker onChange={(v) => setCommRange(v as [Dayjs, Dayjs] | null)} />
-                <Input
-                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                  placeholder="订单编号 / 应用名称"
-                  value={commSearch}
-                  onChange={(e) => setCommSearch(e.target.value)}
-                  allowClear
-                  style={{ width: 210 }}
-                />
-              </Space>
-              <Table columns={commissionColumns} dataSource={filtered} rowKey="orderId" size="middle"
-                pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-            </Card>
+            <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+                <Space size={16} wrap align="center">
+                  <RangePicker onChange={(v) => setCommRange(v as [Dayjs, Dayjs] | null)} />
+                  <Input
+                    suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                    placeholder="订单编号 / 应用名称"
+                    value={commSearch}
+                    onChange={(e) => setCommSearch(e.target.value)}
+                    allowClear
+                    style={{ width: 210 }}
+                  />
+                </Space>
+              </Card>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+                <Table columns={commissionColumns} dataSource={filtered} rowKey="orderId" size="middle"
+                  pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                  rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+              </Card>
+            </Space>
             <Modal title="佣金订单详情" open={!!commDetail} onCancel={() => setCommDetail(null)} footer={null} width={520}>
               {commDetail && (
                 <Descriptions column={2} bordered size="small" style={{ marginTop: 16 }}>

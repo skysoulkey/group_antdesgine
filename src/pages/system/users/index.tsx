@@ -412,9 +412,9 @@ const UserManagePage: React.FC = () => {
             <div>4. 用户列表不显示自己；一个用户可持有多个同侧角色，权限取并集</div>
           </div>
 
-          {/* 筛选 + 操作 */}
+          {/* 筛选卡片 */}
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-            <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
+            <Space size={16} wrap align="center">
               <ConfigProvider theme={radioTheme}>
                 <Radio.Group value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} buttonStyle="solid">
                   <Radio.Button value="全部">全部</Radio.Button>
@@ -459,7 +459,10 @@ const UserManagePage: React.FC = () => {
                 创建用户
               </Button>
             </Space>
+          </Card>
 
+          {/* 表格卡片 */}
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <Table
               columns={columns}
               dataSource={filtered}

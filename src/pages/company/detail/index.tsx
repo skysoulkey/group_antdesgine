@@ -406,9 +406,9 @@ const CompanyDetail: React.FC = () => {
           );
         });
         return (
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-            <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
-              <Space size={24} wrap align="center">
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+              <Space size={16} wrap align="center">
                 <ConfigProvider theme={radioTheme}>
                   <Radio.Group
                     value={transferTypeFilter}
@@ -429,11 +429,13 @@ const CompanyDetail: React.FC = () => {
                     style={{ width: 220 }}
                   />
               </Space>
-            </Space>
-            <Table columns={groupTransferColumns} dataSource={filteredTransfer} rowKey="id"
-              size="middle" pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+              <Table columns={groupTransferColumns} dataSource={filteredTransfer} rowKey="id"
+                size="middle" pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },
@@ -448,35 +450,39 @@ const CompanyDetail: React.FC = () => {
           (!kw || r.enterpriseName.toLowerCase().includes(kw) || r.enterpriseId.includes(holdingSearch))
         );
         return (
-          <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-            <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group value={holdingCurrency} onChange={(e) => setHoldingCurrency(e.target.value)} buttonStyle="solid">
-                  <Radio.Button value="全部">全部</Radio.Button>
-                  <Radio.Button value="USDT">USDT</Radio.Button>
-                  <Radio.Button value="PEA">PEA</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group value={holdingStatus} onChange={(e) => setHoldingStatus(e.target.value)} buttonStyle="solid">
-                  <Radio.Button value="全部">全部</Radio.Button>
-                  <Radio.Button value="持股">持股</Radio.Button>
-                  <Radio.Button value="已退">已退</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <Input
-                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                  placeholder="企业名称、企业ID"
-                  value={holdingSearch}
-                  onChange={(e) => setHoldingSearch(e.target.value)}
-                  allowClear
-                  style={{ width: 200 }}
-                />
-            </Space>
-            <Table columns={holdingColumns} dataSource={filteredHolding} rowKey="id"
-              size="middle" scroll={{ x: 1100 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
-          </Card>
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+              <Space size={16} wrap align="center">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group value={holdingCurrency} onChange={(e) => setHoldingCurrency(e.target.value)} buttonStyle="solid">
+                    <Radio.Button value="全部">全部</Radio.Button>
+                    <Radio.Button value="USDT">USDT</Radio.Button>
+                    <Radio.Button value="PEA">PEA</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group value={holdingStatus} onChange={(e) => setHoldingStatus(e.target.value)} buttonStyle="solid">
+                    <Radio.Button value="全部">全部</Radio.Button>
+                    <Radio.Button value="持股">持股</Radio.Button>
+                    <Radio.Button value="已退">已退</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+                <Input
+                    suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                    placeholder="企业名称、企业ID"
+                    value={holdingSearch}
+                    onChange={(e) => setHoldingSearch(e.target.value)}
+                    allowClear
+                    style={{ width: 200 }}
+                  />
+              </Space>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+              <Table columns={holdingColumns} dataSource={filteredHolding} rowKey="id"
+                size="middle" scroll={{ x: 1100 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
         );
       })(),
     },

@@ -1,132 +1,80 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Card, ConfigProvider, Descriptions, Divider, Input, Modal, Radio, Select, Space, Switch, Table, Tabs, Tag, Typography, message } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Button, Card, ConfigProvider, Descriptions, Input, Modal, Radio, Space, Switch, Table, Tabs, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useRef, useCallback } from 'react';
+import { useSearchParams } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
+const radioTheme = { components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } };
 
 // 通知类型
-const NOTIF_TYPES = ['集团下拨', '集团调回', '持股企业追加投资', '持股企业释放股份', '企业解散', '新增订阅企业', '企业认证过期', '企业续费成功', '余额不足', '审批操作结果'];
-
-// 需要审批操作的通知类型（小程序渠道带同意/拒绝按钮）
-const APPROVAL_TYPES = ['持股企业追加投资', '持股企业释放股份'];
-
-// ── 通知用户 mock ─────────────────────────────────────────────────
-interface NotifUser {
-  id: string;
-  name: string;
-  appAccount: string;
-  email: string;
-}
-
-const initUsers: NotifUser[] = [
-  { id: 'U1', name: 'Miya', appAccount: '@miya_miya', email: 'miya@cyberbot.sg' },
-  { id: 'U2', name: 'Tom', appAccount: '@tom_admin', email: 'tom@cyberbot.sg' },
-  { id: 'U3', name: 'Alice', appAccount: '@alice_finance', email: 'alice@cyberbot.sg' },
-];
+const NOTIF_TYPES = ['集团下拨', '集团调回', '追加投资', '增持股份', '企业解散', '新增订阅企业', '企业认证过期', '企业续费成功', '余额不足', '审批操作结果'];
 
 // ── 通知记录数据 ──────────────────────────────────────────────────
 interface NotifRecord {
   id: string;
   notifTime: string;
-  method: '小程序' | '邮件' | '站内';
-  content: string;
-  target: string;
-  receipt: '已收到' | '异常' | '已读' | '未读';
+  method: '机器人' | '邮件' | '站内';
   type: string;
-  /** 小程序审批类通知的操作状态 */
-  actionStatus?: '待操作' | '已同意' | '已拒绝' | '已超时';
+  target: string;
+  content: string;
 }
 
-const METHODS: Array<NotifRecord['method']> = ['小程序', '邮件', '站内'];
+const METHODS: Array<NotifRecord['method']> = ['机器人', '邮件', '站内'];
 
 const mockRecords: NotifRecord[] = Array.from({ length: 30 }, (_, i) => {
   const method = METHODS[i % 3];
-  const isInApp = method === '站内';
   const type = NOTIF_TYPES[i % NOTIF_TYPES.length];
-  const isApproval = APPROVAL_TYPES.includes(type) && method === '小程序';
+  const targets: Record<string, string[]> = {
+    '机器人': ['审批通知群', '资金变动群', '系统告警群'],
+    '邮件': ['tom@bluewhale.com', 'alice@bluewhale.com', 'bob@bluewhale.com'],
+    '站内': ['Tom', 'Alice', 'Bob'],
+  };
   return {
     id: `NF${String(i + 1).padStart(7, '0')}`,
-    notifTime: `2025-10-${String((i % 28) + 1).padStart(2, '0')} ${String(8 + (i % 12))}:${String(10 + (i % 50)).padStart(2, '0')}:23`,
+    notifTime: `2026-04-${String((i % 20) + 1).padStart(2, '0')} ${String(8 + (i % 12))}:${String(10 + (i % 50)).padStart(2, '0')}:23`,
     method,
-    content: `${type}通知，请相关人员及时处理。编号：${i + 1}`,
-    target: method === '邮件' ? initUsers[i % 3].email : initUsers[i % 3].appAccount,
-    receipt: isInApp
-      ? (i % 5 === 0 ? '未读' : '已读')
-      : (i % 7 === 0 ? '异常' : '已收到'),
     type,
-    actionStatus: isApproval ? (['待操作', '已同意', '已拒绝', '已超时'] as const)[i % 4] : undefined,
+    target: targets[method][i % 3],
+    content: `${type}通知，请相关人员及时处理。编号：${i + 1}`,
   };
 });
 
-// ── 偏好数据（每用户一行）─────────────────────────────────────────
-interface PrefRow {
-  key: string;
-  userId: string;
-  userName: string;
-  inApp: boolean;
-  app: boolean;
-  email: boolean;
+// ── 通知配置数据 ──────────────────────────────────────────────────
+interface NotifTarget {
+  id: string;
+  channel: '机器人' | '邮件';
+  address: string;
+  enabled: boolean;
+  updatedAt: string;
 }
 
-const buildInitPrefs = (users: NotifUser[]): PrefRow[] =>
-  users.map((u, i) => ({
-    key: u.id,
-    userId: u.id,
-    userName: u.name,
-    inApp: true,
-    app: i !== 1,
-    email: true,
-  }));
-
-// ── 方式 Tag 颜色 ────────────────────────────────────────────────
-const methodColor = (v: string) => {
-  if (v === '小程序') return 'blue';
-  if (v === '站内') return 'green';
-  return 'geekblue';
-};
-
-const receiptColor = (v: string) => {
-  if (v === '已收到' || v === '已读') return 'success';
-  if (v === '未读') return 'warning';
-  return 'error';
-};
-
-const actionStatusColor = (v: string) => {
-  if (v === '已同意') return 'success';
-  if (v === '已拒绝') return 'error';
-  if (v === '已超时') return 'default';
-  return 'processing';
-};
+const initialTargets: NotifTarget[] = [
+  { id: 'NT001', channel: '机器人', address: 'tom_admin', enabled: true, updatedAt: '2026-04-10 14:30:00' },
+  { id: 'NT002', channel: '机器人', address: 'alice_wang', enabled: true, updatedAt: '2026-04-10 14:30:00' },
+  { id: 'NT003', channel: '邮件', address: 'tom@bluewhale.com', enabled: true, updatedAt: '2026-04-08 09:00:00' },
+  { id: 'NT004', channel: '邮件', address: 'alice@bluewhale.com', enabled: false, updatedAt: '2026-04-08 09:00:00' },
+];
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const NotificationsPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'records';
+
   const recordsContainerRef = useRef<HTMLDivElement>(null);
   const configContainerRef = useRef<HTMLDivElement>(null);
   const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
 
-  // 通知记录
+  // ── 通知记录 ────────────────────────────────────────────────────
   const [methodFilter, setMethodFilter] = useState<string | undefined>();
   const [typeFilter, setTypeFilter] = useState<string | undefined>();
   const [searchKw, setSearchKw] = useState('');
   const [detailOpen, setDetailOpen] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<NotifRecord | null>(null);
 
-  // 通知配置
-  const [users, setUsers] = useState<NotifUser[]>(initUsers);
-  const [prefRows, setPrefRows] = useState<PrefRow[]>(() => buildInitPrefs(initUsers));
-
-  // 编辑通知对象弹窗
-  const [userModalOpen, setUserModalOpen] = useState(false);
-  const [editUsers, setEditUsers] = useState<NotifUser[]>([]);
-  const [newUserName, setNewUserName] = useState('');
-  const [newUserApp, setNewUserApp] = useState('');
-  const [newUserEmail, setNewUserEmail] = useState('');
-
-  // ── 通知记录 ────────────────────────────────────────────────────
   const filtered = mockRecords.filter((r) => {
     const kw = searchKw.toLowerCase();
     return (
@@ -139,15 +87,9 @@ const NotificationsPage: React.FC = () => {
   const recordColumns: ColumnsType<NotifRecord> = [
     { title: '通知时间', dataIndex: 'notifTime', width: 170 },
     { title: '通知方式', dataIndex: 'method', width: 90 },
-    {
-      title: '消息回执', dataIndex: 'receipt', width: 90,
-      render: (v) => <Tag color={receiptColor(v)}>{v}</Tag>,
-    },
-    { title: '通知类型', dataIndex: 'type', width: 160 },
-    {
-      title: '操作状态', dataIndex: 'actionStatus', width: 100,
-      render: (v) => v ? <Tag color={actionStatusColor(v)}>{v}</Tag> : '—',
-    },
+    { title: '通知类型', dataIndex: 'type', width: 130 },
+    { title: '通知对象', dataIndex: 'target', width: 160 },
+    { title: '通知内容', dataIndex: 'content', width: 300, ellipsis: true },
     {
       title: '操作', width: 80, fixed: 'right' as const,
       render: (_, r) => (
@@ -159,94 +101,87 @@ const NotificationsPage: React.FC = () => {
     },
   ];
 
-  // ── 偏好操作（Switch 即时保存）────────────────────────────────────
-  const handlePrefToggle = (key: string, channel: 'app' | 'email', checked: boolean) => {
-    setPrefRows((prev) => prev.map((r) => {
-      if (r.key !== key) return r;
-      return { ...r, [channel]: checked };
-    }));
-    message.success('已保存');
+  // ── 通知配置 ────────────────────────────────────────────────────
+  const [targets, setTargets] = useState<NotifTarget[]>(initialTargets);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addChannel, setAddChannel] = useState<'机器人' | '邮件'>('机器人');
+  const [addAddress, setAddAddress] = useState('');
+  const [channelFilter, setChannelFilter] = useState<string | undefined>();
+
+  const filteredTargets = channelFilter
+    ? targets.filter((t) => t.channel === channelFilter)
+    : targets;
+
+  const handleToggleTarget = (record: NotifTarget) => {
+    const next = !record.enabled;
+    setTargets((prev) =>
+      prev.map((r) =>
+        r.id === record.id
+          ? { ...r, enabled: next, updatedAt: new Date().toISOString().replace('T', ' ').slice(0, 19) }
+          : r,
+      ),
+    );
+    message.success(next ? '已启用' : '已停用');
   };
 
-  const prefColumns: ColumnsType<PrefRow> = [
-    {
-      title: '小程序用户名', width: 160,
-      render: (_, r) => {
-        const u = users.find((x) => x.id === r.userId);
-        return <Text style={{ fontSize: 13 }}>{u?.appAccount ?? '—'}</Text>;
+  const handleDeleteTarget = (record: NotifTarget) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: `确认删除通知对象 ${record.address}？`,
+      okText: '确认删除',
+      okButtonProps: { danger: true },
+      cancelText: '取消',
+      onOk: () => {
+        setTargets((prev) => prev.filter((r) => r.id !== record.id));
+        message.success('已删除');
       },
+    });
+  };
+
+  const handleAddTarget = () => {
+    const addr = addAddress.trim();
+    if (!addr) {
+      message.warning('请输入地址');
+      return;
+    }
+    if (targets.some((t) => t.channel === addChannel && t.address === addr)) {
+      message.warning('该通知对象已存在');
+      return;
+    }
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    setTargets((prev) => [...prev, {
+      id: `NT${Date.now()}`,
+      channel: addChannel,
+      address: addr,
+      enabled: true,
+      updatedAt: now,
+    }]);
+    message.success('已添加');
+    setAddModalOpen(false);
+    setAddAddress('');
+  };
+
+  const targetColumns: ColumnsType<NotifTarget> = [
+    { title: '通知类型', dataIndex: 'channel', width: 100 },
+    { title: '通知地址', dataIndex: 'address', width: 200 },
+    {
+      title: '启用', dataIndex: 'enabled', width: 80, align: 'center' as const,
+      render: (_: unknown, record: NotifTarget) => (
+        <Switch size="small" checked={record.enabled} onChange={() => handleToggleTarget(record)} />
+      ),
     },
     {
-      title: '邮箱', width: 200,
-      render: (_, r) => {
-        const u = users.find((x) => x.id === r.userId);
-        return <Text style={{ fontSize: 13 }}>{u?.email ?? '—'}</Text>;
-      },
+      title: '修改时间', dataIndex: 'updatedAt', width: 170,
+      sorter: (a, b) => a.updatedAt.localeCompare(b.updatedAt),
+      render: (v: string) => v || '—',
     },
     {
-      title: '小程序通知', dataIndex: 'app', width: 100, align: 'center',
-      render: (v, r) => <Switch size="small" checked={v} onChange={(checked) => handlePrefToggle(r.key, 'app', checked)} />,
-    },
-    {
-      title: '邮件通知', dataIndex: 'email', width: 100, align: 'center',
-      render: (v, r) => <Switch size="small" checked={v} onChange={(checked) => handlePrefToggle(r.key, 'email', checked)} />,
+      title: '操作', width: 80, fixed: 'right' as const,
+      render: (_: unknown, record: NotifTarget) => (
+        <Button type="link" size="small" danger onClick={() => handleDeleteTarget(record)}>删除</Button>
+      ),
     },
   ];
-
-  // ── 编辑通知对象弹窗 ────────────────────────────────────────────
-  const openUserModal = () => {
-    setEditUsers(JSON.parse(JSON.stringify(users)));
-    setNewUserName('');
-    setNewUserApp('');
-    setNewUserEmail('');
-    setUserModalOpen(true);
-  };
-
-  const handleUserModalSave = () => {
-    // 校验重复
-    const appSet = new Set<string>();
-    const emailSet = new Set<string>();
-    for (const u of editUsers) {
-      if (appSet.has(u.appAccount)) { message.warning(`小程序用户名 "${u.appAccount}" 重复`); return; }
-      if (emailSet.has(u.email)) { message.warning(`邮箱 "${u.email}" 重复`); return; }
-      appSet.add(u.appAccount);
-      emailSet.add(u.email);
-    }
-    setUsers(editUsers);
-    // 同步偏好：保留已有偏好，新用户默认全开，已删用户移除
-    const prefMap = new Map(prefRows.map((r) => [r.userId, r]));
-    const newRows = editUsers.map((u) => {
-      const existing = prefMap.get(u.id);
-      if (existing) return { ...existing, userName: u.name };
-      return { key: u.id, userId: u.id, userName: u.name, inApp: true, app: true, email: true };
-    });
-    setPrefRows(newRows);
-    setUserModalOpen(false);
-    message.success('通知对象已更新');
-  };
-
-  const handleAddUser = () => {
-    if (!newUserName.trim() || !newUserApp.trim() || !newUserEmail.trim()) {
-      message.warning('请填写完整信息');
-      return;
-    }
-    if (editUsers.some((u) => u.appAccount === newUserApp.trim())) {
-      message.warning('小程序用户名已存在');
-      return;
-    }
-    if (editUsers.some((u) => u.email === newUserEmail.trim())) {
-      message.warning('邮箱已存在');
-      return;
-    }
-    setEditUsers([...editUsers, { id: `U${Date.now()}`, name: newUserName.trim(), appAccount: newUserApp.trim(), email: newUserEmail.trim() }]);
-    setNewUserName('');
-    setNewUserApp('');
-    setNewUserEmail('');
-  };
-
-  const handleEditUserField = (id: string, field: keyof NotifUser, value: string) => {
-    setEditUsers((prev) => prev.map((u) => u.id === id ? { ...u, [field]: value } : u));
-  };
 
   // ── Tab 内容 ────────────────────────────────────────────────────
   const tabItems = [
@@ -255,45 +190,46 @@ const NotificationsPage: React.FC = () => {
       label: '通知记录',
       children: (
         <div ref={recordsContainerRef}>
-        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-            <Space direction="vertical" size={12} style={{ display: 'flex', marginBottom: 16 }}>
-              <Space size={24} wrap align="center">
+        <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+            <ConfigProvider theme={radioTheme}>
+              <Space size={16} wrap align="center">
                 <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
-                  {['全部', '小程序', '邮件', '站内'].map((v) => (
+                  {['全部', '机器人', '邮件', '站内'].map((v) => (
                     <Radio.Button key={v} value={v}>{v}</Radio.Button>
                   ))}
                 </Radio.Group>
-                <Select
-                  value={typeFilter ?? '全部'}
-                  onChange={(v) => setTypeFilter(v === '全部' ? undefined : v)}
-                  style={{ width: 200 }}
-                  options={['全部', ...NOTIF_TYPES].map((v) => ({ label: v, value: v }))}
-                />
+                <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
+                  {['全部', ...NOTIF_TYPES].map((v) => (
+                    <Radio.Button key={v} value={v}>{v}</Radio.Button>
+                  ))}
+                </Radio.Group>
                 <Input
-                  placeholder="通知对象"
+                  placeholder="搜索通知对象"
                   value={searchKw}
                   onChange={(e) => setSearchKw(e.target.value)}
                   allowClear
                   style={{ width: 200 }}
                 />
               </Space>
-            </Space>
-          </ConfigProvider>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <Text style={{ fontSize: 14, fontWeight: 600 }}>通知记录</Text>
-            <TableToolbar onRefresh={handleRefresh} containerRef={recordsContainerRef} />
-          </div>
-          <Table
-            columns={recordColumns}
-            dataSource={filtered}
-            rowKey="id"
-            size="middle"
-            scroll={{ x: 1100 }}
-            pagination={{ pageSize: 10, showTotal: (t) => `总共 ${t} 个项目` }}
-            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-          />
-        </Card>
+            </ConfigProvider>
+          </Card>
+          <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ fontSize: 14, fontWeight: 600 }}>通知记录</Text>
+              <TableToolbar onRefresh={handleRefresh} containerRef={recordsContainerRef} />
+            </div>
+            <Table
+              columns={recordColumns}
+              dataSource={filtered}
+              rowKey="id"
+              size="middle"
+              scroll={{ x: 1100 }}
+              pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+              rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+            />
+          </Card>
+        </Space>
         </div>
       ),
     },
@@ -302,22 +238,33 @@ const NotificationsPage: React.FC = () => {
       label: '通知配置',
       children: (
         <div ref={configContainerRef}>
-        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-          styles={{ body: { padding: '16px 24px' } }}>
-          {/* 通知对象配置 */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <Text style={{ fontSize: 14, fontWeight: 600 }}>通知对象</Text>
-            <Space size={8}>
-              <Button icon={<EditOutlined />} onClick={openUserModal}>编辑</Button>
+            <Space>
+              <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setAddModalOpen(true)}>添加</Button>
               <TableToolbar onRefresh={handleRefresh} containerRef={configContainerRef} />
             </Space>
           </div>
+          <div style={{ marginBottom: 16 }}>
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={channelFilter ?? '全部'} onChange={(e) => setChannelFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid" size="small">
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="机器人">机器人</Radio.Button>
+                <Radio.Button value="邮件">邮件</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </div>
+          <div style={{ marginBottom: 16, fontSize: 12, color: '#8c8c8c' }}>
+            站内通知默认发送给所有平台用户，无需配置。
+          </div>
           <Table
-            columns={prefColumns}
-            dataSource={prefRows}
-            rowKey="key"
+            columns={targetColumns}
+            dataSource={filteredTargets}
+            rowKey="id"
             size="middle"
             pagination={false}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
           />
         </Card>
         </div>
@@ -329,6 +276,8 @@ const NotificationsPage: React.FC = () => {
     <div style={{ marginTop: -16 }}>
       <Tabs
         items={tabItems}
+        activeKey={activeTab}
+        onChange={(key) => setSearchParams({ tab: key })}
         tabBarStyle={{
           background: '#fff',
           margin: '0 -24px',
@@ -336,108 +285,52 @@ const NotificationsPage: React.FC = () => {
         }}
       />
 
-      {/* 详情弹窗 */}
+      {/* 通知详情弹窗 */}
       <Modal
-        title={currentRecord?.method === '小程序' ? '小程序通知' : currentRecord?.method === '站内' ? '站内通知' : '邮件通知'}
+        title={currentRecord?.method === '机器人' ? '机器人通知' : currentRecord?.method === '站内' ? '站内通知' : '邮件通知'}
         open={detailOpen}
         onCancel={() => setDetailOpen(false)}
         footer={null}
         width={480}
       >
         {currentRecord && (
-          <>
-            <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}
-              labelStyle={{ whiteSpace: 'nowrap', width: 90 }}>
-              <Descriptions.Item label="发送时间">{currentRecord.notifTime}</Descriptions.Item>
-              <Descriptions.Item label="通知方式">{currentRecord.method}</Descriptions.Item>
-              <Descriptions.Item label="通知类型">{currentRecord.type}</Descriptions.Item>
-              {currentRecord.method === '站内' ? (
-                <Descriptions.Item label="阅读状态">
-                  <Tag color={currentRecord.receipt === '已读' ? 'success' : 'warning'}>{currentRecord.receipt}</Tag>
-                </Descriptions.Item>
-              ) : (
-                <Descriptions.Item label="消息回执">
-                  <Tag color={receiptColor(currentRecord.receipt)}>{currentRecord.receipt}</Tag>
-                </Descriptions.Item>
-              )}
-              <Descriptions.Item label="通知内容">{currentRecord.content}</Descriptions.Item>
-              {/* 小程序审批类通知：显示操作按钮状态 */}
-              {currentRecord.method === '小程序' && APPROVAL_TYPES.includes(currentRecord.type) && (
-                <Descriptions.Item label="操作指令">
-                  {currentRecord.actionStatus === '待操作' ? (
-                    <Space size={8}>
-                      <Tag color="blue">✅ 同意</Tag>
-                      <Tag color="blue">❌ 拒绝</Tag>
-                      <Text type="secondary" style={{ fontSize: 12 }}>（Inline Keyboard 按钮）</Text>
-                    </Space>
-                  ) : (
-                    <Tag color={actionStatusColor(currentRecord.actionStatus ?? '')}>{currentRecord.actionStatus}</Tag>
-                  )}
-                </Descriptions.Item>
-              )}
-            </Descriptions>
-            {/* 小程序审批类：模拟 Telegram Bot 消息预览 */}
-            {currentRecord.method === '小程序' && APPROVAL_TYPES.includes(currentRecord.type) && (
-              <div style={{ marginTop: 16, padding: 16, background: '#f6f8ff', borderRadius: 8, border: '1px solid #d6e4ff' }}>
-                <Text strong style={{ fontSize: 13 }}>小程序消息预览</Text>
-                <div style={{ marginTop: 8, padding: 12, background: '#fff', borderRadius: 8, fontSize: 13, lineHeight: 1.8 }}>
-                  <div>【{currentRecord.type === '持股企业追加投资' ? 'nova星球' : 'boom集团'}】通知</div>
-                  <div>您管辖的企业有一条待处理事项，请10分钟内处理～</div>
-                  <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                    <Button size="small" type="primary" style={{ flex: 1 }}>✅ 同意</Button>
-                    <Button size="small" danger style={{ flex: 1 }}>❌ 拒绝</Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
+          <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}
+            labelStyle={{ whiteSpace: 'nowrap', width: 90 }}>
+            <Descriptions.Item label="发送时间">{currentRecord.notifTime}</Descriptions.Item>
+            <Descriptions.Item label="通知方式">{currentRecord.method}</Descriptions.Item>
+            <Descriptions.Item label="通知类型">{currentRecord.type}</Descriptions.Item>
+            <Descriptions.Item label="通知对象">{currentRecord.target}</Descriptions.Item>
+            <Descriptions.Item label="通知内容">{currentRecord.content}</Descriptions.Item>
+          </Descriptions>
         )}
       </Modal>
 
-      {/* 编辑弹窗 */}
+      {/* 添加通知对象弹窗 */}
       <Modal
-        title="编辑通知配置"
-        open={userModalOpen}
-        onOk={handleUserModalSave}
-        onCancel={() => setUserModalOpen(false)}
-        width={640}
-        okText="保 存"
+        title="添加通知对象"
+        open={addModalOpen}
+        onCancel={() => { setAddModalOpen(false); setAddAddress(''); }}
+        onOk={handleAddTarget}
+        width={420}
       >
         <div style={{ marginTop: 16 }}>
-          <Table
-            dataSource={editUsers}
-            rowKey="id"
-            size="small"
-            pagination={false}
-            bordered
-            columns={[
-              {
-                title: '小程序用户名', dataIndex: 'appAccount', width: 160,
-                render: (v, r) => (
-                  <Input size="small" value={v} onChange={(e) => handleEditUserField(r.id, 'appAccount', e.target.value)} />
-                ),
-              },
-              {
-                title: '邮箱', dataIndex: 'email', width: 200,
-                render: (v, r) => (
-                  <Input size="small" value={v} onChange={(e) => handleEditUserField(r.id, 'email', e.target.value)} />
-                ),
-              },
-              {
-                title: '操作', width: 60, align: 'center',
-                render: (_, r) => (
-                  <Button type="text" size="small" danger icon={<DeleteOutlined />}
-                    onClick={() => setEditUsers(editUsers.filter((u) => u.id !== r.id))} />
-                ),
-              },
-            ]}
-          />
-          <Divider style={{ margin: '12px 0' }} />
-          <Space>
-            <Input placeholder="小程序用户名" value={newUserApp} onChange={(e) => setNewUserApp(e.target.value)} style={{ width: 140 }} />
-            <Input placeholder="邮箱" value={newUserEmail} onChange={(e) => setNewUserEmail(e.target.value)} style={{ width: 180 }} />
-            <Button icon={<PlusOutlined />} onClick={handleAddUser}>添加</Button>
-          </Space>
+          <div style={{ marginBottom: 12 }}>
+            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>通知类型</Text>
+            <Radio.Group value={addChannel} onChange={(e) => { setAddChannel(e.target.value); setAddAddress(''); }}>
+              <Radio.Button value="机器人">机器人</Radio.Button>
+              <Radio.Button value="邮件">邮件</Radio.Button>
+            </Radio.Group>
+          </div>
+          <div>
+            <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+              {addChannel === '机器人' ? 'APP账号名' : '邮箱地址'}
+            </Text>
+            <Input
+              placeholder={addChannel === '机器人' ? '例：tom_admin' : '例：tom@company.com'}
+              value={addAddress}
+              onChange={(e) => setAddAddress(e.target.value)}
+            />
+          </div>
         </div>
       </Modal>
     </div>

@@ -162,69 +162,74 @@ const EnterpriseListPage: React.FC = () => {
 
   return (
     <div ref={containerRef}>
-    <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-      styles={{ body: { padding: '16px 24px' } }}>
-      {/* 筛选行 */}
-      <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-        <ConfigProvider theme={radioTheme}>
-          <Radio.Group
-            value={currencyFilter}
-            onChange={(e) => setCurrencyFilter(e.target.value)}
-            buttonStyle="solid"
-          >
-            <Radio.Button value="all">全部</Radio.Button>
-            <Radio.Button value="USDT">USDT</Radio.Button>
-            <Radio.Button value="PEA">PEA</Radio.Button>
-          </Radio.Group>
-        </ConfigProvider>
-        <ConfigProvider theme={radioTheme}>
-          <Radio.Group
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            buttonStyle="solid"
-          >
-            <Radio.Button value="all">全部</Radio.Button>
-            <Radio.Button value="正常">正常</Radio.Button>
-            <Radio.Button value="已解散">已解散</Radio.Button>
-          </Radio.Group>
-        </ConfigProvider>
-        <Input
-          suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-          placeholder="归属公司"
-          value={companySearch}
-          onChange={(e) => setCompanySearch(e.target.value)}
-          allowClear
-          style={{ width: 160 }}
-        />
-        <Input
-          suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-          placeholder="企业ID / 企业名称 / 企业主"
-          value={searchVal}
-          onChange={(e) => setSearchVal(e.target.value)}
-          allowClear
-          style={{ width: 260 }}
-        />
-      </Space>
+    <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+      {/* 筛选卡片 */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+        <Space size={16} wrap align="center">
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group
+              value={currencyFilter}
+              onChange={(e) => setCurrencyFilter(e.target.value)}
+              buttonStyle="solid"
+            >
+              <Radio.Button value="all">全部</Radio.Button>
+              <Radio.Button value="USDT">USDT</Radio.Button>
+              <Radio.Button value="PEA">PEA</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <ConfigProvider theme={radioTheme}>
+            <Radio.Group
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              buttonStyle="solid"
+            >
+              <Radio.Button value="all">全部</Radio.Button>
+              <Radio.Button value="正常">正常</Radio.Button>
+              <Radio.Button value="已解散">已解散</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="归属公司"
+            value={companySearch}
+            onChange={(e) => setCompanySearch(e.target.value)}
+            allowClear
+            style={{ width: 160 }}
+          />
+          <Input
+            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+            placeholder="企业ID / 企业名称 / 企业主"
+            value={searchVal}
+            onChange={(e) => setSearchVal(e.target.value)}
+            allowClear
+            style={{ width: 260 }}
+          />
+        </Space>
+      </Card>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <Txt style={{ fontSize: 14, fontWeight: 600 }}>企业清单</Txt>
-        <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
-      </div>
-      <Table
-        columns={columns}
-        dataSource={filtered}
-        rowKey="id"
-        scroll={{ x: 1400 }}
-        pagination={{
-          total: filtered.length,
-          pageSize: 10,
-          showTotal: (total) => `共 ${total} 条`,
-          showSizeChanger: true,
-        }}
-        size="middle"
-        rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-      />
-    </Card>
+      {/* 表格卡片 */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
+        styles={{ body: { padding: '16px 24px' } }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Txt style={{ fontSize: 14, fontWeight: 600 }}>企业清单</Txt>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+        </div>
+        <Table
+          columns={columns}
+          dataSource={filtered}
+          rowKey="id"
+          scroll={{ x: 1400 }}
+          pagination={{
+            total: filtered.length,
+            pageSize: 10,
+            showTotal: (total) => `共 ${total} 条`,
+            showSizeChanger: true,
+          }}
+          size="middle"
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+        />
+      </Card>
+    </Space>
     </div>
   );
 };

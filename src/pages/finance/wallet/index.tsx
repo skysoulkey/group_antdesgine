@@ -169,12 +169,9 @@ const WalletPage: React.FC = () => {
         </div>
       </Card>
 
-      {/* ── 订单记录 ────────────────────────────────────────────────── */}
-      <Card
-        bordered={false}
-        style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
-      >
-        <Space style={{ marginBottom: 16 }} wrap>
+      {/* ── 订单筛选 ────────────────────────────────────────────────── */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
+        <Space size={16} wrap align="center">
           <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
             <Radio.Group
               value={typeFilter}
@@ -204,6 +201,10 @@ const WalletPage: React.FC = () => {
             onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
           />
         </Space>
+      </Card>
+
+      {/* ── 订单记录 ────────────────────────────────────────────────── */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ fontSize: 14, fontWeight: 600 }}>订单记录</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />

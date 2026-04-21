@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Card, ConfigProvider, Row, Col, Input, Radio, Select, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message } from 'antd';
+import { Card, Col, ConfigProvider, Input, Radio, Row, Select, Space, Table, Tag, DatePicker, Typography, Button, Modal, Form, InputNumber, message } from 'antd';
 import { SearchOutlined, SwapOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import TableToolbar from '../../../components/TableToolbar';
@@ -109,36 +109,33 @@ export default function FinanceRecall() {
         </Col>
       </Row>
 
-      <Card bordered={false}>
-        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+      {/* 筛选卡片 */}
+      <Card bordered={false} style={{ marginBottom: 12 }}>
+        <Space size={16} wrap align="center">
+          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+            <Radio.Group
+              value={statusFilter ?? 'all'}
+              onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
+              buttonStyle="solid"
+            >
+              <Radio.Button value="all">全部</Radio.Button>
+              <Radio.Button value="success">已到账</Radio.Button>
+              <Radio.Button value="failed">失败</Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
+          <Select placeholder="来源公司" value={companyFilter} onChange={setCompanyFilter} allowClear
+            style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
+          <Input suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />} placeholder="订单编号 / 公司名称"
+            value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
+          <RangePicker style={{ width: 280 }} />
           <Button icon={<SwapOutlined />} onClick={() => setModalOpen(true)}>
             发起调回
           </Button>
-        </div>
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col>
-            <Input prefix={<SearchOutlined />} placeholder="订单编号 / 公司名称"
-              value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
-          </Col>
-          <Col>
-            <Select placeholder="来源公司" value={companyFilter} onChange={setCompanyFilter} allowClear
-              style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
-          </Col>
-          <Col>
-            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-              <Radio.Group
-                value={statusFilter ?? 'all'}
-                onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
-                buttonStyle="solid"
-              >
-                <Radio.Button value="all">全部</Radio.Button>
-                <Radio.Button value="success">已到账</Radio.Button>
-                <Radio.Button value="failed">失败</Radio.Button>
-              </Radio.Group>
-            </ConfigProvider>
-          </Col>
-          <Col><RangePicker style={{ width: 280 }} /></Col>
-        </Row>
+        </Space>
+      </Card>
+
+      {/* 表格卡片 */}
+      <Card bordered={false}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ fontSize: 14, fontWeight: 600 }}>调回记录</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />

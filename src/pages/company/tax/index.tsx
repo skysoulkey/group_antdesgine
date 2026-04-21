@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, Row, Col, ConfigProvider, Input, Radio, Select, Table, Tag, DatePicker, Typography } from 'antd';
+import { Card, ConfigProvider, Input, Radio, Select, Space, Table, Tag, DatePicker, Typography } from 'antd';
 import { SearchOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -88,21 +88,10 @@ export default function CompanyTax() {
   ];
 
   return (
-    <Card bordered={false}>
-      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-        <FileTextOutlined style={{ color: '#1677ff', fontSize: 18 }} />
-        <Text style={{ fontSize: 16, fontWeight: 600 }}>公司税单</Text>
-      </div>
-      <Row gutter={[16, 12]} style={{ marginBottom: 16 }} align="middle">
-        <Col>
-          <Input prefix={<SearchOutlined />} placeholder="订单编号 / 公司名称"
-            value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
-        </Col>
-        <Col>
-          <Select placeholder="公司筛选" value={companyFilter} onChange={setCompanyFilter} allowClear
-            style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
-        </Col>
-        <Col>
+    <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+      {/* 筛选卡片 */}
+      <Card bordered={false}>
+        <Space size={16} wrap align="center">
           <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
             <Radio.Group
               buttonStyle="solid"
@@ -119,12 +108,23 @@ export default function CompanyTax() {
               ))}
             </Radio.Group>
           </ConfigProvider>
-        </Col>
-        <Col><RangePicker style={{ width: 280 }} /></Col>
-      </Row>
-      <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1200 }}
-        rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-        pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
-    </Card>
+          <Select placeholder="公司筛选" value={companyFilter} onChange={setCompanyFilter} allowClear
+            style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
+          <Input suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />} placeholder="订单编号 / 公司名称"
+            value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
+          <RangePicker style={{ width: 280 }} />
+        </Space>
+      </Card>
+
+      {/* 表格卡片 */}
+      <Card bordered={false}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>公司税单</Text>
+        </div>
+        <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1200 }}
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          pagination={{ total: filtered.length, pageSize: 10, showTotal: t => `总共 ${t} 条记录`, showSizeChanger: true }} />
+      </Card>
+    </Space>
   );
 }

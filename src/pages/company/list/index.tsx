@@ -318,9 +318,10 @@ const CompanyListPage: React.FC = () => {
 
   return (
     <div ref={containerRef}>
-    <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)' }}>
-      <Row gutter={16} style={{ marginBottom: 16 }} align="middle">
-        <Col>
+    <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+      {/* 筛选卡片 */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)' }}>
+        <Space size={16} wrap align="center">
           <ConfigProvider theme={{ components: { Segmented: {
             trackBg: '#e6f4ff',
             itemSelectedBg: '#1677ff',
@@ -334,8 +335,6 @@ const CompanyListPage: React.FC = () => {
               style={{ fontWeight: 600 }}
             />
           </ConfigProvider>
-        </Col>
-        <Col flex="1">
           <Input
             prefix={<SearchOutlined />}
             placeholder="请输入公司名称或公司ID"
@@ -344,8 +343,6 @@ const CompanyListPage: React.FC = () => {
             allowClear
             style={{ maxWidth: 360 }}
           />
-        </Col>
-        <Col>
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -354,34 +351,36 @@ const CompanyListPage: React.FC = () => {
           >
             创建公司
           </Button>
-        </Col>
-      </Row>
+        </Space>
+      </Card>
 
-      <div style={{ marginBottom: 8 }}>
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          数据更新于 2025-11-02 12:33:02 &nbsp;|&nbsp; 总共 {filtered.length} 个项目
-        </Text>
-      </div>
+      {/* 表格卡片 */}
+      <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)' }}>
+        <div style={{ marginBottom: 8 }}>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            数据更新于 2025-11-02 12:33:02 &nbsp;|&nbsp; 总共 {filtered.length} 个项目
+          </Text>
+        </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <Text style={{ fontSize: 14, fontWeight: 600 }}>公司清单</Text>
-        <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
-      </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>公司清单</Text>
+          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+        </div>
 
-      <Table
-        columns={columns}
-        dataSource={filtered}
-        rowKey="id"
-        scroll={{ x: 1600 }}
-        pagination={{
-          total: filtered.length,
-          pageSize: 10,
-          showTotal: (total) => `总共 ${total} 个项目`,
-          showSizeChanger: true,
-        }}
-        size="middle"
-        rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-      />
+        <Table
+          columns={columns}
+          dataSource={filtered}
+          rowKey="id"
+          scroll={{ x: 1600 }}
+          pagination={{
+            total: filtered.length,
+            pageSize: 10,
+            showTotal: (total) => `总共 ${total} 个项目`,
+            showSizeChanger: true,
+          }}
+          size="middle"
+          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+        />
 
       <Modal
         title="创建公司"
@@ -570,7 +569,8 @@ const CompanyListPage: React.FC = () => {
         )}
       </Modal>
 
-    </Card>
+      </Card>
+    </Space>
     </div>
   );
 };

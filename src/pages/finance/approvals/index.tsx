@@ -8,6 +8,7 @@ import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
 import ApprovalRulesTab from './ApprovalRulesTab';
+import ApprovalPermissionsTab from './ApprovalPermissionsTab';
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -445,6 +446,7 @@ const ApprovalsPage: React.FC = () => {
   const tabItems = [
     { key: 'list', label: '订单列表', children: <ApprovalListTab /> },
     { key: 'rules', label: '审批规则', children: <ApprovalRulesTab /> },
+    { key: 'permissions', label: '审批权限', children: <ApprovalPermissionsTab /> },
   ];
 
   return (

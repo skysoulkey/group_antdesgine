@@ -1,5 +1,5 @@
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Card, ConfigProvider, DatePicker, Descriptions, Form, Input, Modal, Radio, Space, Table, Tag, Typography, message } from 'antd';
+import { Button, Card, ConfigProvider, DatePicker, Form, Input, Modal, Radio, Space, Table, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useRef, useCallback } from 'react';
 import TableToolbar from '../../../components/TableToolbar';
@@ -21,6 +21,14 @@ const radioTheme = {
   },
 };
 
+interface InviteDetail {
+  enterpriseId: string;
+  enterpriseName: string;
+  ownerId: string;
+  ownerUsername: string;
+  acceptedTime: string;
+}
+
 interface InviteRecord {
   id: string;
   inviteTime: string;
@@ -28,13 +36,7 @@ interface InviteRecord {
   codeExpiry: string;
   inviteStatus: '已接受' | '未接受';
   codeStatus: '有效' | '无效';
-  invitedCount: number;
-  // 详情字段（仅已接受时有值）
-  enterpriseId?: string;
-  enterpriseName?: string;
-  ownerId?: string;
-  ownerUsername?: string;
-  acceptedTime?: string;
+  details: InviteDetail[];
 }
 
 const MOCK_ENTERPRISE_NAMES = ['StarTech', 'GoldLink', 'CyberBot', 'UUtalk', 'hey', 'NovaPay', 'SkyNet', 'BlueWave', 'FinCore', 'TopCloud'];
@@ -42,20 +44,22 @@ const MOCK_OWNER_NAMES = ['alice', 'bob', 'charlie', 'david', 'eva', 'frank', 'g
 
 const mockData: InviteRecord[] = Array.from({ length: 18 }, (_, i) => {
   const accepted = i % 3 !== 0;
+  const detailCount = accepted ? 1 + (i % 3) : 0;
+  const details: InviteDetail[] = Array.from({ length: detailCount }, (__, j) => ({
+    enterpriseId: `ENT${String(283980 + i * 10 + j)}`,
+    enterpriseName: MOCK_ENTERPRISE_NAMES[(i + j) % MOCK_ENTERPRISE_NAMES.length],
+    ownerId: `UID${String(10000 + i * 10 + j)}`,
+    ownerUsername: MOCK_OWNER_NAMES[(i + j) % MOCK_OWNER_NAMES.length],
+    acceptedTime: `2025-1${(i % 2)}-${String(j + 2).padStart(2, '0')} 09:15:${String(30 + j).padStart(2, '0')}`,
+  }));
   return {
     id: `INV${String(i + 1).padStart(7, '0')}`,
-    inviteTime: `2025-1${(i % 2) + 0}-${String(i + 1).padStart(2, '0')} 12:23:23`,
+    inviteTime: `2025-1${(i % 2)}-${String(i + 1).padStart(2, '0')} 12:23:23`,
     authCode: String(82894 + i * 137),
     codeExpiry: i % 5 === 0 ? '永久有效' : `2025-${String(5 + (i % 7)).padStart(2, '0')}-${String(i + 1).padStart(2, '0')} 14:23:13`,
     inviteStatus: accepted ? '已接受' : '未接受',
     codeStatus: i % 4 === 3 ? '无效' : '有效',
-    invitedCount: accepted ? 1 + (i % 3) : 0,
-    // 详情字段
-    enterpriseId: accepted ? `ENT${String(283980 + i)}` : undefined,
-    enterpriseName: accepted ? MOCK_ENTERPRISE_NAMES[i % MOCK_ENTERPRISE_NAMES.length] : undefined,
-    ownerId: accepted ? `UID${String(10000 + i)}` : undefined,
-    ownerUsername: accepted ? MOCK_OWNER_NAMES[i % MOCK_OWNER_NAMES.length] : undefined,
-    acceptedTime: accepted ? `2025-1${(i % 2) + 0}-${String(i + 2).padStart(2, '0')} 09:15:${String(30 + i).padStart(2, '0')}` : undefined,
+    details,
   };
 });
 
@@ -111,7 +115,7 @@ const EnterpriseInvitePage: React.FC = () => {
         codeExpiry: expiry,
         inviteStatus: '未接受',
         codeStatus: '有效',
-        invitedCount: 0,
+        details: [],
       };
       setData([newRecord, ...data]);
       setModalOpen(false);
@@ -144,7 +148,7 @@ const EnterpriseInvitePage: React.FC = () => {
       title: '认证码状态', dataIndex: 'codeStatus', width: 100,
       render: (v) => <Tag color={v === '有效' ? 'blue' : 'default'}>{v}</Tag>,
     },
-    { title: '邀请企业数', dataIndex: 'invitedCount', width: 90, align: 'right' },
+    { title: '邀请企业数', width: 100, align: 'right', render: (_, record) => record.details.length },
     {
       title: '操作', width: 80, align: 'center',
       render: (_, record) => (
@@ -160,45 +164,49 @@ const EnterpriseInvitePage: React.FC = () => {
     <div>
       {/* 筛选 + 表格 */}
       <div ref={containerRef}>
-      <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
-        <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              buttonStyle="solid"
-              value={inviteStatus ?? '全部'}
-              onChange={(e) => setInviteStatus(e.target.value === '全部' ? undefined : e.target.value)}
-            >
-              <Radio.Button value="全部">全部</Radio.Button>
-              <Radio.Button value="已接受">已接受</Radio.Button>
-              <Radio.Button value="未接受">未接受</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="请输入企业认证码"
-            value={searchCode}
-            onChange={(e) => setSearchCode(e.target.value)}
-            allowClear
-            style={{ width: 220 }}
-          />
-          <Button type="primary" icon={<PlusOutlined />} onClick={openModal}>
-            生成邀请码
-          </Button>
-        </Space>
+      <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+          <Space size={16} wrap align="center">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                buttonStyle="solid"
+                value={inviteStatus ?? '全部'}
+                onChange={(e) => setInviteStatus(e.target.value === '全部' ? undefined : e.target.value)}
+              >
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="已接受">已接受</Radio.Button>
+                <Radio.Button value="未接受">未接受</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="请输入企业认证码"
+              value={searchCode}
+              onChange={(e) => setSearchCode(e.target.value)}
+              allowClear
+              style={{ width: 220 }}
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={openModal}>
+              生成邀请码
+            </Button>
+          </Space>
+        </Card>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, fontWeight: 600 }}>邀请记录</Text>
-          <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
-        </div>
-        <Table
-          columns={columns}
-          dataSource={filtered}
-          rowKey="id"
-          size="middle"
-          pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
-          rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-        />
-      </Card>
+        <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: 600 }}>邀请记录</Text>
+            <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
+          </div>
+          <Table
+            columns={columns}
+            dataSource={filtered}
+            rowKey="id"
+            size="middle"
+            pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+            rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+          />
+        </Card>
+      </Space>
       </div>
 
       {/* 详情弹窗 */}
@@ -207,17 +215,24 @@ const EnterpriseInvitePage: React.FC = () => {
         open={detailOpen}
         onCancel={() => { setDetailOpen(false); setDetailRecord(null); }}
         footer={<Button onClick={() => { setDetailOpen(false); setDetailRecord(null); }}>关闭</Button>}
-        width={480}
+        width={720}
       >
         {detailRecord && (
-          <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }}
-            labelStyle={{ width: 130, color: 'rgba(0,0,0,0.65)' }}>
-            <Descriptions.Item label="企业 ID">{detailRecord.enterpriseId ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="企业名称">{detailRecord.enterpriseName ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="企业主 ID">{detailRecord.ownerId ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="企业主用户名">{detailRecord.ownerUsername ?? '—'}</Descriptions.Item>
-            <Descriptions.Item label="邀请成功时间">{detailRecord.acceptedTime ?? '—'}</Descriptions.Item>
-          </Descriptions>
+          <Table<InviteDetail>
+            dataSource={detailRecord.details}
+            rowKey="enterpriseId"
+            size="small"
+            pagination={false}
+            style={{ marginTop: 16 }}
+            columns={[
+              { title: '序号', width: 60, align: 'center', render: (_, __, idx) => idx + 1 },
+              { title: '企业ID', dataIndex: 'enterpriseId', width: 120 },
+              { title: '企业名称', dataIndex: 'enterpriseName' },
+              { title: '企业主ID', dataIndex: 'ownerId', width: 110 },
+              { title: '企业主用户名', dataIndex: 'ownerUsername', width: 110 },
+              { title: '邀请成功时间', dataIndex: 'acceptedTime', width: 160 },
+            ]}
+          />
         )}
       </Modal>
 

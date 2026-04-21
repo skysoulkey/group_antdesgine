@@ -3,7 +3,7 @@ import {
   Space, Switch, Table, Typography, message,
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useMemo } from 'react';
 import TableToolbar from '../../../components/TableToolbar';
 
 const { Text } = Typography;
@@ -34,6 +34,16 @@ interface GlobalRule {
   updatedAt: string;
   items: GlobalRuleItem[];
 }
+
+// ── Mock 企业列表（模拟 API 返回） ──────────────────────────────
+const MOCK_ALL_ENTERPRISES = [
+  { id: 'ENT001', name: '星辰科技', currency: 'USDT' },
+  { id: 'ENT002', name: '云帆网络', currency: 'PEA' },
+  { id: 'ENT003', name: '山海集团', currency: 'PEA' },
+  { id: 'ENT004', name: '天元控股', currency: 'USDT' },
+  { id: 'ENT005', name: '银河数据', currency: 'USDT' },
+  { id: 'ENT006', name: '朝阳传媒', currency: 'PEA' },
+];
 
 // ── Mock 数据 ────────────────────────────────────────────────────
 const initialEnterpriseRules: EnterpriseRule[] = [
@@ -70,6 +80,13 @@ const ApprovalRulesTab: React.FC = () => {
   // 新增企业规则
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addForm] = Form.useForm();
+  const [addSelectedCurrency, setAddSelectedCurrency] = useState<string>('');
+
+  // 可选企业列表：排除已配置规则的企业
+  const availableEnterprises = useMemo(
+    () => MOCK_ALL_ENTERPRISES.filter((e) => !enterpriseRules.some((r) => r.enterpriseId === e.id)),
+    [enterpriseRules],
+  );
 
   // 编辑全局规则
   const [globalModalOpen, setGlobalModalOpen] = useState(false);
@@ -132,18 +149,37 @@ const ApprovalRulesTab: React.FC = () => {
     });
   };
 
+  const handleEnterpriseSelect = (enterpriseId: string) => {
+    const ent = MOCK_ALL_ENTERPRISES.find((e) => e.id === enterpriseId);
+    if (ent) {
+      addForm.setFieldsValue({ enterpriseId: ent.id });
+      setAddSelectedCurrency(ent.currency);
+    }
+  };
+
+  const handleEnterpriseIdInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const id = e.target.value.trim();
+    const ent = MOCK_ALL_ENTERPRISES.find((item) => item.id === id);
+    if (ent) {
+      addForm.setFieldsValue({ enterpriseName: ent.id }); // sync Select
+      setAddSelectedCurrency(ent.currency);
+    } else {
+      setAddSelectedCurrency('');
+    }
+  };
+
   const handleAdd = () => {
     addForm.validateFields().then((values) => {
       const now = new Date().toISOString().replace('T', ' ').slice(0, 19);
-      const exists = enterpriseRules.some((r) => r.enterpriseId === values.enterpriseId);
-      if (exists) {
-        message.warning('该企业已存在规则');
+      const ent = MOCK_ALL_ENTERPRISES.find((e) => e.id === values.enterpriseId);
+      if (!ent) {
+        message.warning('未找到该企业');
         return;
       }
       const newRule: EnterpriseRule = {
-        enterpriseId: values.enterpriseId,
-        enterpriseName: values.enterpriseName,
-        currency: values.currency,
+        enterpriseId: ent.id,
+        enterpriseName: ent.name,
+        currency: ent.currency,
         amountLimit: values.amountLimit,
         totalInvestLimit: values.totalInvestLimit,
         enabled: false,
@@ -153,6 +189,7 @@ const ApprovalRulesTab: React.FC = () => {
       message.success('已新增');
       setAddModalOpen(false);
       addForm.resetFields();
+      setAddSelectedCurrency('');
     });
   };
 
@@ -347,24 +384,44 @@ const ApprovalRulesTab: React.FC = () => {
       <Modal
         title="新增企业规则"
         open={addModalOpen}
-        onCancel={() => { setAddModalOpen(false); addForm.resetFields(); }}
+        onCancel={() => { setAddModalOpen(false); addForm.resetFields(); setAddSelectedCurrency(''); }}
         onOk={handleAdd}
         width={480}
       >
         <Form form={addForm} layout="vertical" style={{ marginTop: 16 }}>
-          <Form.Item name="enterpriseId" label="企业ID" rules={[{ required: true, message: '请输入企业ID' }]}>
-            <Input placeholder="例：ENT005" />
+          <Form.Item
+            name="enterpriseName"
+            label="选择企业"
+            rules={[{ required: false }]}
+            extra="下拉选择企业名称，自动填充企业ID和币种"
+          >
+            <Select
+              showSearch
+              placeholder="搜索或选择企业"
+              optionFilterProp="label"
+              options={availableEnterprises.map((e) => ({ value: e.id, label: `${e.name}（${e.id}）` }))}
+              onChange={handleEnterpriseSelect}
+              allowClear
+              onClear={() => { addForm.setFieldsValue({ enterpriseId: undefined }); setAddSelectedCurrency(''); }}
+            />
           </Form.Item>
-          <Form.Item name="enterpriseName" label="企业名称" rules={[{ required: true, message: '请输入企业名称' }]}>
-            <Input placeholder="例：新企业" />
+          <Form.Item
+            name="enterpriseId"
+            label="企业ID"
+            rules={[{ required: true, message: '请选择企业或输入企业ID' }]}
+            extra="也可直接输入企业ID，自动匹配企业名称和币种"
+          >
+            <Input placeholder="例：ENT005" onChange={handleEnterpriseIdInput} />
           </Form.Item>
-          <Form.Item name="currency" label="币种" rules={[{ required: true, message: '请选择币种' }]}>
-            <Select options={[{ value: 'PEA', label: 'PEA' }, { value: 'USDT', label: 'USDT' }]} />
-          </Form.Item>
-          <Form.Item name="amountLimit" label="单笔自动通过上限" rules={[{ required: true, message: '请输入' }]}>
+          {addSelectedCurrency && (
+            <div style={{ marginBottom: 16, padding: '8px 12px', background: '#fafafa', borderRadius: 6, fontSize: 13, color: '#595959' }}>
+              币种：{addSelectedCurrency}
+            </div>
+          )}
+          <Form.Item name="amountLimit" label={`单笔自动通过上限${addSelectedCurrency ? `（${addSelectedCurrency}）` : ''}`} rules={[{ required: true, message: '请输入' }]}>
             <InputNumber placeholder="例：10000" style={{ width: '100%' }} min={1} precision={2} />
           </Form.Item>
-          <Form.Item name="totalInvestLimit" label="总投入金额上限" rules={[{ required: true, message: '请输入' }]}>
+          <Form.Item name="totalInvestLimit" label={`总投入金额上限${addSelectedCurrency ? `（${addSelectedCurrency}）` : ''}`} rules={[{ required: true, message: '请输入' }]}>
             <InputNumber placeholder="例：500000" style={{ width: '100%' }} min={1} precision={2} />
           </Form.Item>
         </Form>
