@@ -1,5 +1,5 @@
 import {
-  Button, Card, ConfigProvider, DatePicker, Descriptions, Modal,
+  Button, Card, ConfigProvider, DatePicker, Descriptions, Input, Modal,
   Radio, Select, Space, Table, Tabs, Tag, Tooltip, Typography, message,
 } from 'antd';
 import { QuestionCircleOutlined } from '@ant-design/icons';
@@ -167,11 +167,8 @@ const ALL_COLUMN_DEFS: { key: string; title: string; defaultVisible: boolean }[]
   { key: 'orderStatus', title: '订单状态', defaultVisible: true },
   { key: 'orderId', title: '订单ID', defaultVisible: false },
   { key: 'deadline', title: '审批截止', defaultVisible: false },
-  { key: 'companyName', title: '归属公司', defaultVisible: false },
-  { key: 'companyId', title: '归属公司ID', defaultVisible: false },
   { key: 'sourceOwnerNickname', title: '企业主昵称', defaultVisible: false },
   { key: 'sourceOwnerId', title: '企业主ID', defaultVisible: false },
-  { key: 'sourceOwnerUsername', title: '企业主用户名', defaultVisible: false },
   { key: 'approvedByNickname', title: '审批人昵称', defaultVisible: false },
   { key: 'approvedById', title: '审批人ID', defaultVisible: false },
   { key: 'approvedAt', title: '审批时间', defaultVisible: false },
@@ -222,10 +219,22 @@ const ApprovalListTab: React.FC = () => {
     });
   }, [eventFilter, statusFilter, orderStatusFilter, companyFilter, dateRange, refreshKey]);
 
+  const remarkRef = useRef('');
+
   const handleApprove = (record: ApprovalRecord) => {
+    remarkRef.current = '';
     Modal.confirm({
       title: '确认通过',
-      content: `确认通过 ${record.sourceCompanyName} 的${EVENT_LABELS[record.eventType]}申请？`,
+      content: (
+        <div>
+          <p>{`确认通过 ${record.sourceCompanyName} 的${EVENT_LABELS[record.eventType]}申请？`}</p>
+          <Input.TextArea
+            placeholder="请输入备注（选填）"
+            rows={3}
+            onChange={(e) => { remarkRef.current = e.target.value; }}
+          />
+        </div>
+      ),
       okText: '确认通过',
       cancelText: '取消',
       onOk: () => { message.success('审批已通过'); },
@@ -233,9 +242,19 @@ const ApprovalListTab: React.FC = () => {
   };
 
   const handleReject = (record: ApprovalRecord) => {
+    remarkRef.current = '';
     Modal.confirm({
       title: '确认拒绝',
-      content: `确认拒绝 ${record.sourceCompanyName} 的${EVENT_LABELS[record.eventType]}申请？`,
+      content: (
+        <div>
+          <p>{`确认拒绝 ${record.sourceCompanyName} 的${EVENT_LABELS[record.eventType]}申请？`}</p>
+          <Input.TextArea
+            placeholder="请输入备注（选填）"
+            rows={3}
+            onChange={(e) => { remarkRef.current = e.target.value; }}
+          />
+        </div>
+      ),
       okText: '确认拒绝',
       okButtonProps: { danger: true },
       cancelText: '取消',
@@ -283,11 +302,8 @@ const ApprovalListTab: React.FC = () => {
     },
     orderId: { title: '订单ID', dataIndex: 'orderId', width: 140 },
     deadline: { title: '审批截止', dataIndex: 'deadline', width: 170 },
-    companyName: { title: '归属公司', dataIndex: 'companyName', width: 100 },
-    companyId: { title: '归属公司ID', dataIndex: 'companyId', width: 110 },
     sourceOwnerNickname: { title: '企业主昵称', dataIndex: 'sourceOwnerNickname', width: 100 },
     sourceOwnerId: { title: '企业主ID', dataIndex: 'sourceOwnerId', width: 90 },
-    sourceOwnerUsername: { title: '企业主用户名', dataIndex: 'sourceOwnerUsername', width: 120 },
     approvedByNickname: { title: '审批人昵称', dataIndex: 'approvedByNickname', width: 100, render: (v?: string) => v || '-' },
     approvedById: { title: '审批人ID', dataIndex: 'approvedById', width: 100, render: (v?: string) => v || '-' },
     approvedAt: { title: '审批时间', dataIndex: 'approvedAt', width: 170, render: (v?: string) => v || '-' },
@@ -410,7 +426,6 @@ const ApprovalListTab: React.FC = () => {
             <Descriptions.Item label="企业ID">{currentRecord.sourceCompanyId}</Descriptions.Item>
             <Descriptions.Item label="企业主昵称">{currentRecord.sourceOwnerNickname}</Descriptions.Item>
             <Descriptions.Item label="企业主ID">{currentRecord.sourceOwnerId}</Descriptions.Item>
-            <Descriptions.Item label="企业主用户名">{currentRecord.sourceOwnerUsername}</Descriptions.Item>
             <Descriptions.Item label="货币单位">{currentRecord.currency}</Descriptions.Item>
             <Descriptions.Item label="金额">{currentRecord.amount?.toLocaleString()} {currentRecord.currency}</Descriptions.Item>
             <Descriptions.Item label="历史总投资">{currentRecord.historicalTotalInvest?.toLocaleString()} {currentRecord.currency}</Descriptions.Item>
@@ -429,8 +444,6 @@ const ApprovalListTab: React.FC = () => {
             <Descriptions.Item label="审批人ID">{currentRecord.approvedById || '-'}</Descriptions.Item>
             <Descriptions.Item label="审批时间">{currentRecord.approvedAt || '-'}</Descriptions.Item>
             <Descriptions.Item label="备注">{currentRecord.remark || '-'}</Descriptions.Item>
-            <Descriptions.Item label="归属公司">{currentRecord.companyName}</Descriptions.Item>
-            <Descriptions.Item label="归属公司ID">{currentRecord.companyId}</Descriptions.Item>
           </Descriptions>
         )}
       </Modal>
