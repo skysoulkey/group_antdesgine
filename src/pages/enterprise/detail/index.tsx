@@ -220,21 +220,62 @@ const appsData: AppItem[] = [
 ];
 
 // ── 股份交易 ───────────────────────────────────────────────────────
+type ShareTradeType = '购买股份' | '释放股份' | '转让股份';
 interface ShareTrade {
-  orderId: string; direction: '购买股份' | '释放股份'; tradeTime: string;
-  shareholderId: string; shareholderName: string;
-  taxPaid: string; totalAssetsSnapshot: string; orderType: '转让' | '回购' | '增发';
+  orderId: string;
+  orderTime: string;
+  orderType: ShareTradeType;
+  initiator: string;      // 交易方显示名（发起者）
+  initiatorType: 'platform' | 'shareholder';
+  receiver: string;       // 受让方显示名（被动方）
+  receiverType: 'platform' | 'shareholder';
+  changeRatio: string;   // 变动比例
+  amount: string;        // 金额
+  actualTax: string;     // 实缴税费
+  assetSnapshot: string; // 企业总资产快照
 }
-const shareTradeData: ShareTrade[] = mk(8).map((i) => ({
-  orderId: `ST${String(i + 1).padStart(7, '0')}`,
-  direction: i % 2 === 0 ? '购买股份' : '释放股份',
-  tradeTime: `2026-03-${String(i + 1).padStart(2, '0')} 14:${String(i * 7).padStart(2, '0')}:00`,
-  shareholderId: `SH${20000 + i}`,
-  shareholderName: ['张三', '李四', '王五', '赵六', '孙七', '周八', '吴九', '郑十'][i],
-  taxPaid: `${(300 + i * 80).toLocaleString()}.00`,
-  totalAssetsSnapshot: `${(800000 + i * 12000).toLocaleString()}.00`,
-  orderType: (['转让', '回购', '增发'] as const)[i % 3],
-}));
+const COMPANY_NAME = '环球集团';
+const shareTradeData: ShareTrade[] = [
+  ...mk(3).map((i): ShareTrade => ({
+    orderId: `ST${String(i + 1).padStart(7, '0')}`,
+    orderTime: `2026-03-${String(i + 1).padStart(2, '0')} 14:${String(i * 7).padStart(2, '0')}:00`,
+    orderType: '购买股份',
+    initiator: `${['张三', '李四', '王五'][i]}(user_${20000 + i})`,
+    initiatorType: 'shareholder',
+    receiver: COMPANY_NAME,
+    receiverType: 'platform',
+    changeRatio: `${(2 + i * 0.5).toFixed(1)}%`,
+    amount: `${(50000 + i * 12000).toLocaleString()}.00`,
+    actualTax: `${(300 + i * 80).toLocaleString()}.00`,
+    assetSnapshot: `${(800000 + i * 12000).toLocaleString()}.00`,
+  })),
+  ...mk(3).map((i): ShareTrade => ({
+    orderId: `ST${String(i + 4).padStart(7, '0')}`,
+    orderTime: `2026-03-${String(i + 5).padStart(2, '0')} 10:${String(i * 12).padStart(2, '0')}:00`,
+    orderType: '释放股份',
+    initiator: `${['赵六', '孙七', '周八'][i]}(user_${20003 + i})`,
+    initiatorType: 'shareholder',
+    receiver: COMPANY_NAME,
+    receiverType: 'platform',
+    changeRatio: `${(1.5 + i * 0.8).toFixed(1)}%`,
+    amount: `${(30000 + i * 8000).toLocaleString()}.00`,
+    actualTax: `${(200 + i * 60).toLocaleString()}.00`,
+    assetSnapshot: `${(810000 + i * 15000).toLocaleString()}.00`,
+  })),
+  ...mk(2).map((i): ShareTrade => ({
+    orderId: `ST${String(i + 7).padStart(7, '0')}`,
+    orderTime: `2026-03-${String(i + 9).padStart(2, '0')} 16:${String(i * 20).padStart(2, '0')}:00`,
+    orderType: '转让股份',
+    initiator: `${['张三', '李四'][i]}(user_${20000 + i})`,
+    initiatorType: 'shareholder',
+    receiver: `${['孙七', '周八'][i]}(user_${20004 + i})`,
+    receiverType: 'shareholder',
+    changeRatio: `${(1.0 + i * 0.3).toFixed(1)}%`,
+    amount: `${(20000 + i * 5000).toLocaleString()}.00`,
+    actualTax: `${(150 + i * 40).toLocaleString()}.00`,
+    assetSnapshot: `${(820000 + i * 10000).toLocaleString()}.00`,
+  })),
+];
 
 // ── 佣金订单 ───────────────────────────────────────────────────────
 interface CommissionOrder {
@@ -563,24 +604,26 @@ const EnterpriseDetail: React.FC = () => {
       key: 'sharesTrade',
       label: '股份交易',
       children: (() => {
-        const initShareholder = searchParams.get('shareholder') || undefined;
         const [stOrderType, setStOrderType] = useState('all');
         const [stSearch, setStSearch] = useState('');
-        const [stShareholder, setStShareholder] = useState<string | undefined>(initShareholder);
         const [stRange, setStRange] = useState<[Dayjs, Dayjs] | null>(null);
 
         const shareTradeColumns: ColumnsType<ShareTrade> = [
-          { title: '订单时间', dataIndex: 'tradeTime', width: 170 },
-          { title: '股东ID', dataIndex: 'shareholderId', width: 100 },
-          { title: '交易方向', dataIndex: 'direction', width: 100 },
-          { title: '实缴税费', dataIndex: 'taxPaid', width: 110, align: 'right' },
+          { title: '订单时间', dataIndex: 'orderTime', width: 170 },
+          { title: '订单编号', dataIndex: 'orderId', width: 150 },
+          { title: '交易类型', dataIndex: 'orderType', width: 100 },
+          { title: <span>交易方 <Tooltip title="交易发起者"><InfoCircleOutlined style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', cursor: 'help' }} /></Tooltip></span>, dataIndex: 'initiator', width: 160 },
+          { title: '受让方', dataIndex: 'receiver', width: 160 },
+          { title: '变动比例', dataIndex: 'changeRatio', width: 100, align: 'right' },
+          { title: '金额', dataIndex: 'amount', width: 130, align: 'right' },
+          { title: '实缴税费', dataIndex: 'actualTax', width: 120, align: 'right' },
+          { title: '企业总资产快照', dataIndex: 'assetSnapshot', width: 150, align: 'right' },
         ];
 
         const filtered = shareTradeData.filter((d) => {
-          const matchType = stOrderType === 'all' || d.direction === stOrderType;
-          const matchSearch = !stSearch || d.orderId.includes(stSearch) || d.shareholderId.includes(stSearch);
-          const matchShareholder = !stShareholder || d.shareholderId === stShareholder;
-          return matchType && matchSearch && matchShareholder && inRange(d.tradeTime, stRange);
+          const matchType = stOrderType === 'all' || d.orderType === stOrderType;
+          const matchSearch = !stSearch || d.orderId.includes(stSearch) || d.initiator.includes(stSearch) || d.receiver.includes(stSearch);
+          return matchType && matchSearch && inRange(d.orderTime, stRange);
         });
 
         return (
@@ -596,30 +639,23 @@ const EnterpriseDetail: React.FC = () => {
                     <Radio.Button value="all">全部</Radio.Button>
                     <Radio.Button value="购买股份">购买股份</Radio.Button>
                     <Radio.Button value="释放股份">释放股份</Radio.Button>
+                    <Radio.Button value="转让股份">转让股份</Radio.Button>
                   </Radio.Group>
                 </ConfigProvider>
                 <RangePicker onChange={(v) => setStRange(v as [Dayjs, Dayjs] | null)} />
-                <Select
-                  placeholder="选择股东"
-                  style={{ width: 140 }}
-                  allowClear
-                  value={stShareholder}
-                  onChange={setStShareholder}
-                  options={shareholderData.map((s) => ({ value: s.id, label: `${s.nickname}(${s.id})` }))}
-                />
                 <Input
                   suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                  placeholder="订单编号 / 股东ID"
+                  placeholder="昵称 / 用户名 / 订单编号"
                   value={stSearch}
                   onChange={(e) => setStSearch(e.target.value)}
                   allowClear
-                  style={{ width: 200 }}
+                  style={{ width: 220 }}
                 />
               </Space>
             </Card>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
               <Table columns={shareTradeColumns} dataSource={filtered} rowKey="orderId" size="middle"
-                scroll={{ x: 1000 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                scroll={{ x: 1200 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
                 rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
             </Card>
           </Space>
