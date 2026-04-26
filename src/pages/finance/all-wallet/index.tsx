@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -328,31 +329,37 @@ const AllWalletPage: React.FC = () => {
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
           <Space size={16} wrap align="center">
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group
-                value={walletFilter}
-                onChange={(e) => setWalletFilter(e.target.value)}
-                buttonStyle="solid"
-              >
-                <Radio.Button value="全部">全部钱包</Radio.Button>
-                <Radio.Button value="余额钱包">余额钱包</Radio.Button>
-                <Radio.Button value="应用钱包">应用钱包</Radio.Button>
-              </Radio.Group>
-            </ConfigProvider>
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group
-                value={orderTypeFilter}
-                onChange={(e) => setOrderTypeFilter(e.target.value)}
-                buttonStyle="solid"
-              >
-                <Radio.Button value="全部">全部类型</Radio.Button>
-                <Radio.Button value="划转">划转</Radio.Button>
-                <Radio.Button value="追加投资">追加投资</Radio.Button>
-                <Radio.Button value="释放股份">释放股份</Radio.Button>
-                <Radio.Button value="转单扣款">转单扣款</Radio.Button>
-              </Radio.Group>
-            </ConfigProvider>
-            <RangePicker onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)} />
+            <FilterField label="钱包">
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group
+                  value={walletFilter}
+                  onChange={(e) => setWalletFilter(e.target.value)}
+                  buttonStyle="solid"
+                >
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="余额钱包">余额钱包</Radio.Button>
+                  <Radio.Button value="应用钱包">应用钱包</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+            </FilterField>
+            <FilterField label="订单类型">
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group
+                  value={orderTypeFilter}
+                  onChange={(e) => setOrderTypeFilter(e.target.value)}
+                  buttonStyle="solid"
+                >
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="划转">划转</Radio.Button>
+                  <Radio.Button value="追加投资">追加投资</Radio.Button>
+                  <Radio.Button value="释放股份">释放股份</Radio.Button>
+                  <Radio.Button value="转单扣款">转单扣款</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+            </FilterField>
+            <FilterField label="订单时间">
+              <RangePicker placeholder={['从', '到']} onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)} />
+            </FilterField>
           </Space>
           <Button type="primary" icon={<SwapOutlined />} onClick={openTransfer}>
             划转

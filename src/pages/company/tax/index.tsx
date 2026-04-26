@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, ConfigProvider, Input, Radio, Select, Space, Table, Tag, DatePicker, Typography } from 'antd';
 import { SearchOutlined, FileTextOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import FilterField from '../../../components/FilterField';
 
 const { RangePicker } = DatePicker;
 const { Text } = Typography;
@@ -92,27 +93,35 @@ export default function CompanyTax() {
       {/* 筛选卡片 */}
       <Card bordered={false}>
         <Space size={16} wrap align="center">
-          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-            <Radio.Group
-              buttonStyle="solid"
-              value={statusFilter ?? 'all'}
-              onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
-            >
-              {([
-                { v: 'all', label: '全部' },
-                { v: 'settled', label: '已结算' },
-                { v: 'pending', label: '待结算' },
-                { v: 'cancelled', label: '已取消' },
-              ]).map(({ v, label }) => (
-                <Radio.Button key={v} value={v}>{label}</Radio.Button>
-              ))}
-            </Radio.Group>
-          </ConfigProvider>
-          <Select placeholder="公司筛选" value={companyFilter} onChange={setCompanyFilter} allowClear
-            style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
-          <Input suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />} placeholder="订单编号 / 公司名称"
-            value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
-          <RangePicker style={{ width: 280 }} />
+          <FilterField label="状态">
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group
+                buttonStyle="solid"
+                value={statusFilter ?? 'all'}
+                onChange={(e) => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}
+              >
+                {([
+                  { v: 'all', label: '全部' },
+                  { v: 'settled', label: '已结算' },
+                  { v: 'pending', label: '待结算' },
+                  { v: 'cancelled', label: '已取消' },
+                ]).map(({ v, label }) => (
+                  <Radio.Button key={v} value={v}>{label}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="公司">
+            <Select placeholder="公司筛选" value={companyFilter} onChange={setCompanyFilter} allowClear
+              style={{ width: 150 }} options={COMPANIES.map(c => ({ label: c, value: c }))} />
+          </FilterField>
+          <FilterField label="订单编号">
+            <Input suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />} placeholder="订单编号 / 公司名称"
+              value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
+          </FilterField>
+          <FilterField label="创建时间">
+            <RangePicker style={{ width: 280 }} placeholder={['从', '到']} />
+          </FilterField>
         </Space>
       </Card>
 

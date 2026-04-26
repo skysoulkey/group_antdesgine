@@ -1,519 +1,77 @@
 # 变更记录
 
-## 2026-04-24 — 企业详情股份交易 Tab 改造
-
-- 统一三种交易类型：购买股份、释放股份、转让股份
-- 表格字段改造：出售方 + 受让方统一结构，个人股东显示「昵称（用户名）」
-- 新增列：订单编号、出售方、受让方、变动比例、金额、企业总资产快照
-- 税费 → 实缴税费
-- 移除企业ID/企业名称/币种列（企业详情上下文已确定）
-- 筛选区：交易类型 Radio.Button 平铺（含转让股份）、订单时间 RangePicker、搜索（昵称/用户名/订单编号）
-- 移除「选择股东」下拉筛选
-
----
-
-## 2026-04-23 — 投资审批详情页移除归属公司字段
-
-- 移除「归属公司」「归属公司ID」字段：列配置、列定义、详情弹窗三处
-- 移除「企业主用户名」字段：列配置、列定义、详情弹窗三处
-- 审批操作（通过/拒绝）确认弹窗增加备注输入框（TextArea，选填）
-- 原因：该模块做数据权限控制，仅展示给本公司管理员，精简不必要的字段
-
----
-
-## 2026-04-21 — 投资审批改造为订单模块
-
-- 审批列表 → 订单列表：新增历史总投资、企业总资产、交易总金额、股份比例、订单状态字段
-- 订单类型重命名：持股企业追加投资 → 追加投资，持股企业释放股份 → 增持股份
-- 历史总投资、交易总金额列表头增加 Tooltip 字段描述
-- 审批规则改造：支持企业专属规则新增/删除 + 全局兜底规则（PEA/USDT 分别配置）
-- 全局兜底规则不可删除、默认停用，企业专属规则优先级更高
-- 规则展示去掉 ≤ 符号
-- 隐私化：企业和公司名称改为虚构名称
-- 新增「审批权限」Tab：配置审批人APP账号，或签模式，默认预填公司主
-
----
-
-## 2026-04-21 — 筛选区与表格区 Card 分离（全局统一）
-
-- **规范更新**：`design-spec.md` 9.2 节新增筛选区必须独立 Card 的强制规则，附正确/错误代码示例
-- **enterprise/list**：筛选行从表格 Card 中拆出为独立筛选 Card
-- **company/list**：Segmented + 搜索框 + 创建按钮从表格 Card 中拆出为独立筛选 Card
-- **system/users**：状态筛选 + 角色 Select + 搜索框 + 创建按钮从表格 Card 中拆出为独立筛选 Card
-- **finance/wallet**：订单类型 + 状态筛选 + 日期选择从表格 Card 中拆出为独立筛选 Card
-- **company/tax**：状态筛选 + 公司 Select + 搜索框 + 日期选择从表格 Card 中拆出为独立筛选 Card
-- **finance/allocate**：状态筛选 + 公司 Select + 搜索框 + 日期选择 + 操作按钮从表格 Card 中拆出
-- **finance/recall**：同 allocate，筛选区拆出为独立 Card
-- **company/detail**：集团转账、持股估值两个 Tab 的筛选区拆出
-- **system/logs**：登录日志、操作日志两个 Tab 的筛选区拆出
-- **enterprise/detail**：成员清单、股东清单、投资分红、股份交易、开通应用、应用红包、东方彩票、佣金订单共 8 个 Tab 的筛选区拆出
-- **company/shareholding**：股份交易、投资分红两个 Tab 的筛选区拆出
-- **enterprise/invite**：邀请记录筛选区拆出
-- **system/notifications**：通知记录 Tab 的筛选区拆出
-- 参考模板：内部划转 `src/pages/company/transfer/index.tsx`
-
----
-
-## 2026-04-21 — 东方彩票图表统一 + 佣金订单图表折叠
-
-- **东方彩票**：公司流水TOP5 从水平柱状图改为竖向柱状图（与佣金订单样式统一）
-- **东方彩票**：公司盈亏排序 标题改为「公司盈亏排序TOP5」，保持垂直柱状图但隐藏Y轴、去legend
-- **东方彩票**：移除三个图表的「点击柱条/扇区快速筛选表格」提示文案
-- **佣金订单**：汇总统计栏新增 ▼/▶ 折叠三角形，点击可折叠/展开图表区
-- 涉及文件：`src/pages/orders/lottery/index.tsx`、`src/pages/commission/index.tsx`
-
----
-
-## 2026-04-20 — 全公司钱包模块
-
-- 新增「全公司钱包」页面（`/finance/all-wallet`），设置中心菜单
-- 余额钱包 + 应用钱包双卡片，USDT / PEA 双币种余额展示
-- 钱包间划转功能（两步弹窗 + MFA 验证）
-- 统一流水记录表：划转、追加投资、释放股份、转单扣款四种类型
-- 详情弹窗：共性字段 + 按类型展示特殊字段，转单扣款可跳转佣金订单
-- 权限与公司钱包一致（company_owner, company_finance）
-- 涉及文件：`src/pages/finance/all-wallet/index.tsx`、`.umirc.ts`、`src/layouts/index.tsx`、`src/utils/auth.ts`
-
----
-
-## 2026-04-20 — 公司持股/公司收益页面布局修复
-
-- **移除多余标题**：页面标题文字与面包屑重复，已移除
-- **移除浮动工具栏**：Tab 栏上方多余的 TableToolbar 操作按钮行已移除
-- **Tab 栏紧贴顶部导航**：Tabs 现在直接紧挨顶部 Header，与系统日志等页面保持一致
-- 涉及文件：`src/pages/company/shareholding/index.tsx`、`src/pages/company/revenue/index.tsx`
-
----
-
-## 2026-04-20 — 审批规则改版：全量展示 + 极简交互
-
-- **全量展示**：移除新增/删除操作，所有下辖企业始终在表格中显示，每企业一行
-- **未配置场景**：金额字段为 null 时显示"—"，Switch 点击开启时校验，未配置则提示"请先配置规则后再启用"
-- **总投入金额上限**：新增 `totalInvestLimit` 字段，控制单企业累计投入上限
-- **企业绑定币种**：每个企业有独属币种，规则自动关联
-- **启用/停用 Switch**：表格内 Switch 滑块直接控制，操作成功 message 提示
-- **列调整**：移除创建时间列；更新时间放第一列，无数据时显示"—"；移除分页（全量数据）
-- **弹窗简化**：标题显示企业名，企业选择器和启用开关均移除，仅保留两个金额输入
-- 涉及文件：`src/pages/finance/approvals/ApprovalRulesTab.tsx`
-
----
-
-## 2026-04-17 — 邀请企业模块增强
-
-- **列名修改**：列表"邀请时间"改为"创建时间"
-- **详情弹窗**：表格新增"操作"列 → 点击"详情"弹出 Modal，展示企业 ID、企业名称、企业主 ID、企业主用户名、邀请成功时间（未接受记录显示"—"）
-- **永久有效**：生成邀请码弹窗新增有效期类型切换（永久有效 / 自定义时间），选"永久有效"时隐藏 DatePicker，列表和复制文案对应显示"永久有效"
-- **数据结构**：`InviteRecord` 新增 `enterpriseId`、`enterpriseName`、`ownerId`、`ownerUsername`、`acceptedTime` 字段
-- 涉及文件：`src/pages/enterprise/invite/index.tsx`
-
----
-
-## 2026-04-16 — 审批流程可视化汇报页面
-
-- 新增 `docs/flowcharts/approval-workflow.html`，独立 HTML 长页面
-- 覆盖审批全流程 6 步：业务触发 → 生成审批单 → 规则匹配 → 三渠道通知 → 审批操作 → 结果通知
-- 蓝图风格 Mockup，关键区域高亮标注
-- 用途：老板汇报 + 公司管理员培训
-- 设计文档：`docs/superpowers/specs/2026-04-16-approval-workflow-flowchart-design.md`
-
----
-
-## 2026-04-15 — 全站筛选按钮统一填充风格 + 速查表
-
-### 样式统一
-- 所有 Radio.Button 筛选从 `buttonStyle="outline"`（描边）统一为 `buttonStyle="solid"`（填充），选中态为蓝底白字（`#1677ff`）
-- 移除所有 Radio.Button 手动 inline style（`color`/`borderColor`），改由主题统一控制
-- 涉及文件：finance/revenue、company/transfer-group、company/tax、system/logs、system/notifications、finance/approvals
-
-### Select → Radio.Button 转换
-- **集团钱包**（finance/wallet）：订单类型（3 项）、订单状态（4 项）从 Select 改为 Radio.Button
-- **资金下拨**（finance/allocate）：到账状态（3 项）从 Select 改为 Radio.Button
-- **资金调回**（finance/recall）：到账状态（3 项）从 Select 改为 Radio.Button
-- **企业收益**（company/revenue）：收益类别（6 项）、货币单位（3 项）从 Select 改为 Radio.Button，新增 detailCategory/detailCurrency 状态和筛选逻辑
-
-### 规范更新
-- `src/styles/design-spec.md` 9.1 节：示例代码从 outline 更新为 solid 填充风格
-- 新增 9.5 节「全站筛选字段速查表」：按模块列出所有 Radio.Button 平铺字段（28 项）和 Select 下拉字段（13 项），防止遗漏
-
----
-
-## 2026-04-15 — 通知管理：渠道重命名 + 审批操作 + 三渠道模版
-
-### 渠道重命名
-- 全局「APP」→「小程序」（类型定义、筛选项、表头、弹窗标题、提示文案）
-
-### 小程序审批操作按钮
-- 「持股企业追加投资」「持股企业释放股份」两类通知在小程序渠道附带 Inline Keyboard（✅ 同意 / ❌ 拒绝），参考 Telegram Bot
-- 新增 `actionStatus` 字段（待操作 / 已同意 / 已拒绝 / 已超时），表格增加「操作状态」列
-- 详情弹窗：审批类通知显示操作指令状态 + 小程序消息预览
-
-### 新增通知类型
-- 新增「审批操作结果」类型：小程序审批操作完成 / 超时后自动向所有通知对象发送结果通知（三渠道）
-- 通知类型总数从 9 种扩充为 10 种
-
-### 站内通知模版
-- 所有 10 种通知类型补充站内通知模版内容（需求文档）
-
-### 需求文档
-- 新增/更新《消息通知需求文档》：`docs/requirements/notification/message_notification.md`
-- 涵盖三渠道（小程序 / 邮件 / 站内）、10 种通知类型模版、小程序操作指令交互流程
-
----
-
-## 2026-04-15 — 柱状图/条形图值轴 0 点修复 + 规范补充
-
-### Bug 修复
-- **佣金页 Bar 图（企业佣金支出）**：`paddingInner` 从值轴（x）移至分类轴（y），值轴增加 `domainMin: 0`，修复 0 点远离 y 轴的问题
-- **佣金页 Column 图（佣金订单数量）**：值轴（y）增加 `domainMin: 0`
-- **彩票订单页 Column 图（盈亏排行）**：值轴（y）增加 `domainMin: 0`
-
-### 规范补充
-- `design-spec.md` 新增「七-B、柱状图/条形图规范」：明确 `paddingInner` 只放分类轴、`domainMin: 0` 放值轴的规则
-
----
-
-## 2026-04-14 — 新增投资审批页面
-
-### 投资审批（`/finance/approvals`，归属公司管理模块）
-- **审批列表 Tab**：筛选（事件类型 Radio + 审批状态 Radio + 企业 Select + 日期范围）、完整审批单字段表格、通过/拒绝操作（二次确认弹窗）、查看详情弹窗、业务摘要单行不换行
-- **审批规则 Tab**：每个企业最多一条规则，配置自动通过金额上限（≤ 阈值自动通过，超过人工审批），新增/编辑/启用停用/删除，已配置企业不允许重复配置
-- Tab URL 联动 `?tab=list|rules`，面包屑映射（公司管理 / 投资审批）
-- 导航位置：侧边栏「公司管理」下，与公司持股、公司收益并列
-- 权限配置：company_owner、company_ops 可访问
-- 5 种审批状态：待审批、已通过、已拒绝、自动通过、超时拒绝
-- 2 种审批事件：持股企业追加投资、持股企业释放股份
-
----
-
-## 2026-04-14 — 创建公司弹窗精简 + 密码随机同步修复
-
-### 创建公司弹窗
-- 移除手机号、邮箱、消息通知账号三个字段
-- 修复随机生成密码时，「再次输入密码」框未同步刷新的问题（用 `shouldUpdate` 确保两个密码框一起更新）
-
----
-
-## 2026-04-10 — 系统日志导航规范化 + 水印增强
-
-### 系统日志页 Tab 导航对齐规范
-- Tabs 改为 URL `?tab=` 驱动 + 面包屑联动（与企业详情/公司详情页一致）
-- layout `tabBreadcrumbMap` 新增 `/system/logs` 的 login / operation 映射
-- 登录日志「操作类型」筛选从 Select 下拉改为 Radio.Button 平铺（≤6 枚举值规范）
-
-### 全局水印增强
-- 水印内容追加日期，格式：`{用户名} {MM-DD}`
-- 水印间距从默认 100px 调整为 80px（`gap={[80, 80]}`）
-
----
-
-## 2026-04-10 — 补全四项遗漏功能
-
-### 首次登录强制改密
-- 登录页 MFA 通过后，从 localStorage 读取 `must_change_pwd_{username}` 标记
-- 标记为 `true` 时进入首次改密流程，改密完成后自动清除标记
-- 创建用户时自动标记 `must_change_pwd` = true
-
-### 用户管理权限加固
-- 页面组件顶部增加 `isOwner` 守卫，非 Owner 显示无权限提示
-- 创建/编辑用户操作自动记录操作日志
-- 创建成功弹窗增加"首次登录将被要求修改密码"提示
-
-### 个人中心多角色展示
-- 角色行从逗号拼接文本改为逐角色展示
-- 每个角色下方展示对应可访问功能模块 Tag 列表
-- 卡片宽度从 600px 调整为 680px 适配内容
-
-### 操作日志真实记录 + 权限隔离
-- 新建 `src/utils/operationLog.ts` 工具：`addOperationLog` / `addLoginLog` / `getOperationLogs` / `getLoginLogs`
-- 日志 Mock 数据重构：加 `level/group/company` 归属字段，角色名对齐新 9 角色体系
-- 权限过滤：集团用户看本集团全部日志（含下属公司），公司用户只看本公司日志
-- 日志页顶部显示当前查看范围提示
-- 登录日志 + 操作日志均新增"角色"列
-- 登录成功时自动记录登录日志
-- 用户管理（创建/编辑）时自动记录操作日志
-- 页面布局从 Tabs 改为上下两个 Card（登录日志 + 操作日志）
-
----
-
-## 2026-04-10 — 用户权限模块重构
-
-- 角色体系从 3 个（集团管理员/公司管理员/平台管理员）重构为 9 个内置角色
-  - 集团侧：集团主、集团财务、集团经营、集团审计
-  - 公司侧：公司主、公司推广、公司财务、公司经营、公司审计
-- 平台管理员角色移除
-- 用户归属集团或公司，二选一，角色不可混搭
-- 支持多角色并集，权限取并集
-- 用户管理：列表不显示自己，仅 owner（集团主/公司主）可操作
-- 角色管理：改为只读展示，移除增删改
-- 登录页：Mock 多角色存储 + 首次改密表单预留
-- MFA 强制开启（不可关闭）
-- 403 页、个人中心适配多角色
-- 创建/编辑用户时，选择角色后展示对应功能模块 Tag 列表
-- 设计文档：`docs/superpowers/specs/用户权限模块设计.md`
-
-## 2026-04-10 — 用户管理创建职责分离
-
-- 集团主在用户管理中只能创建集团侧管理员（集团财务/经营/审计），不再提供公司侧选项
-- 公司主账号统一在「公司清单 → 创建公司」时创建
-- 去掉创建用户弹窗中的"用户层级"切换和"归属公司"选项（集团主视角）
-- 更新说明文案，明确创建职责分离
-
----
-
-## 2026-04-10 — 创建公司弹窗增强
-
-- 管理员区块标题从"管理员账号"改为"公司主账号"，展示公司主角色的全部模块权限 Tag
-- 新增随机密码生成按钮，生成后明文显示方便复制
-- 创建成功后弹出二次确认弹窗，展示登录地址、公司信息、账号密码、角色及模块权限，支持一键复制
-
----
-
-## 2026-04-09 — 403 页面返回首页修复
-
-- `pages/403/index.tsx`：从 localStorage 读取当前角色（而非硬编码 MOCK_ROLE），跳转到对应仪表盘；加 `replace: true` 避免回退到 403
-
----
-
-## 2026-04-08 — 个人中心改名 + 站内通知开关移入 + MFA 去掉
-
-- `layouts/index.tsx`：菜单和面包屑"基础信息"改为"个人中心"
-- `system/profile/index.tsx`：MFA 认证开关去掉，新增站内通知 Switch（点击即保存）
-- `system/notifications/index.tsx`：站内通知开关从通知配置页移除（已移至个人中心）
-- 通知配置页 APP/邮件通知保持 Switch 滑块即时保存
-
----
-
-## 2026-04-08 — 通知配置交互优化
-
-- `system/notifications/index.tsx`：
-  - 站内通知从表格列改为顶部统一 Switch 开关（只控制自己账号）
-  - APP/邮件通知从 Checkbox + 编辑模式改为 Switch 滑块，点击即保存
-  - 去掉"编辑偏好"按钮及编辑/保存/取消流程
-  - 表格去掉 bordered，Card 增加 padding
-
----
-
-## 2026-04-08 — 通知管理-通知配置去掉"通知对象"字段
-
-- `system/notifications/index.tsx`：通知记录列表、通知配置表格、详情弹窗去掉"通知对象"列/字段；编辑弹窗去掉"通知对象"列和新增输入框；按钮"编辑通知对象"改为"编辑"，弹窗标题改为"编辑通知配置"
-- 全站去掉"下辖"：data-spec.md、layouts、notifications、revenue/detail 共 21 处
-
----
-
-## 2026-04-08 — 公司钱包公司信息右对齐
-
-- `finance/company-wallet/index.tsx`：公司名称、归属集团、公司ID 拆到右侧独立区域右对齐，左侧只保留余额；通知账号移除（非核心信息）
-
----
-
-## 2026-04-08 — 类型/角色字段去掉 Tag，改为纯文本
-
-14 处 Tag 改为纯文本，涉及 9 个文件：
-- `company/detail` — 订单类型
-- `company/transfer` — 订单类型
-- `company/shareholding` — 交易类型、订单类型（2处）
-- `company/revenue` — 方向类型
-- `enterprise/detail` — 交易方向
-- `finance/wallet` — 类型列 + 充值/转出弹窗（3处）
-- `finance/company-wallet` — 类型
-- `system/users` — 角色列 + 查看弹窗角色（2处）
-- `system/profile` — 角色、IP限制（2处）
-
-3 个文件清理了未使用的 Tag import。
-
----
-
-## 2026-04-08 — 公司钱包布局紧凑化
-
-- `finance/company-wallet/index.tsx`：余额（USDT/PEA）+ 公司信息（名称/ID/集团/通知账号）合并为一张卡片单行布局；去掉 WalletOutlined 图标和 Descriptions 表格；历史流水表格增加 scroll/Card padding/时间列 nowrap；金额列去掉 fontWeight: 600
-
----
-
-## 2026-04-08 — 集团钱包布局紧凑化
-
-- `finance/wallet/index.tsx`：余额（USDT/PEA）+ 绑定账号合并为一张卡片单行布局，去掉 WalletOutlined 图标和 Row/Col，充值/转出按钮右对齐
-
----
-
-## 2026-04-08 — 集团钱包表格宽度调整
-
-- `finance/wallet/index.tsx`：备注列增加 `width: 160`，scroll x 从 1100 调整为 1030，消除右侧空白
-
----
-
-## 2026-04-08 — 企业红包字段对齐 Axure 设计稿
-
-- `enterprise/detail/index.tsx`：
-  - 列表去掉：订单编号列、订单备注列（设计稿要求"去除订单编号，列表详情去除字段"）
-  - 弹窗去掉：订单编号字段，标题改为"红包详情"
-  - scroll x 从 1800 调整为 1500
-
----
-
-## 2026-04-08 — 企业详情-应用红包视觉规范修正
-
-- `enterprise/detail/index.tsx`：
-  - 红包状态列：彩色 Tag → 纯文本
-  - Modal 详情中红包状态：彩色 Tag → 纯文本
-  - 时间列宽度 160 → 180 + whiteSpace nowrap
-  - Card 增加 `styles={{ body: { padding: '16px 24px' } }}`
-
----
-
-## 2026-04-08 — 企业概览折线图两两并排
-
-- `enterprise/detail/index.tsx`：4 个折线图从 `span={24}` 改为 `xs={24} lg={12}` 两两并排
-
----
-
-## 2026-04-08 — 用户管理去掉锁定功能
-
-- `system/users/index.tsx`：移除 isLocked 字段、toggleLock 函数、锁定/解锁按钮、筛选栏"锁定"选项、状态列/查看弹窗的"已锁定"Tag、LockOutlined/UnlockOutlined/Popconfirm import
-
----
-
-## 2026-04-08 — 公司概览折线图改为并排
-
-- `company/detail/index.tsx`：两个折线图从 `span={24}` 改为 `xs={24} lg={12}` 并排显示
-
----
-
-## 2026-04-08 — 企业详情-开通应用搜索框暗提示优化
-
-- `enterprise/detail/index.tsx`：RangePicker placeholder 从"开通开始时间/开通结束时间"改为"开始时间/结束时间"
-
----
-
-## 2026-04-08 — 公司概览/企业概览折线图改全宽 + 30天日级数据
-
-- `company/detail/index.tsx`：折线图从一行两个（`lg={12}`）改为全宽（`span={24}`）；数据从 7 个月改为最近 30 天日级；X 轴 MM-DD 格式 + tickFilter 隔一显示
-- `enterprise/detail/index.tsx`：同上，4 个折线图全部改为全宽；数据从 7 天改为 30 天日级；X 轴统一 MM-DD + tickFilter
-
----
-
-## 2026-04-08 — 搜索框规范化
-
-- 10 个搜索框 placeholder 去掉"搜索"二字（8 个文件）
-- 企业清单搜索框宽度 230→260，确保 placeholder 完整显示
-- `design-spec.md` 新增 9.3 搜索框规范
-
----
-
-## 2026-04-08 — ID 字段统一黑色
-
-- 企业概览（`enterprise/detail`）、公司概览（`company/detail`）、集团仪表盘、公司仪表盘、邀请企业 共 5 个文件，ID/认证码的 `color: '#1677ff'` → `'#141414'`
-- `design-spec.md` 6.3 节补充 ID 类字段规则
-
----
-
-## 2026-04-08 — 企业清单表格规范化
-
-- `src/pages/enterprise/list/index.tsx`：
-  - Card 增加 `styles={{ body: { padding: '16px 24px' } }}`
-  - 企业名称列：蓝色链接 → 黑色纯文本
-  - 企业状态列：彩色 Tag → 纯文本
-  - 货币单位列：Tag → 纯文本
-  - 操作列：`<a>` → `<Button type="link">`
-- `src/styles/design-spec.md`：新增 6.3 内容样式统一规则（名称/状态/货币用纯文本，不花花绿绿）
-- `CLAUDE.md`：新增已知错误记录（表格内容样式自作主张，不看其他页面统一做法）
-
----
-
-## 2026-04-08 — 侧边栏底部用户信息 + 退出登录
-
-### 改动要点
-
-1. 侧边导航栏底部增加用户信息区：UserOutlined + 用户名（默认 Miya）+ LogoutOutlined 退出按钮
-2. 展开态显示完整用户名 + 退出图标，收起态仅显示退出图标居中
-3. 点击退出跳转 `/login`
-
-### 涉及文件
-
-| 文件 | 改动 |
-|------|------|
-| `src/layouts/index.tsx` | Sider 底部新增用户信息区，导入 LogoutOutlined / UserOutlined |
-| `src/styles/design-spec.md` | 布局规范更新 Sider 结构说明 |
-
----
-
-## 2026-04-08 — 表格统一 + favicon 替换 + 文档体系建立
-
-### 改动要点
-
-1. **表格斑马纹统一**：审计全站 30+ 个 Table，为 10 个缺少 `rowClassName` 的表格补上斑马纹
-2. **Favicon 替换**：使用 `src/assets/logo.svg` 通过 sharp 导出透明背景 PNG，替换 `public/favicon.png`
-3. **集团仪表盘**："下辖"二字全部去掉（如"下辖公司资产"→"公司资产"）
-4. **design-spec.md 表格规范**：新增 6.1 必须统一的 Table props、6.3 卡片包裹标准
-5. **文档体系建立**：创建 `doc/` 目录（tech_stack / project_context / page_map / changelog），`data-spec.md` 和 `dev-pitfalls.md` 从 `src/styles/` 移入 `doc/`
-6. **CLAUDE.md 重写**：替换为项目级记忆体（已知错误记录 + 项目专属规则）
-
-### 涉及文件
-
-| 文件 | 改动 |
-|------|------|
-| `public/favicon.png` | 替换为 logo.svg 的透明背景 PNG |
-| `src/styles/design-spec.md` | 品牌资源表更新 + 表格规范新增 6.1/6.3 |
-| `src/pages/dashboard/index.tsx` | 去掉"下辖" |
-| 10 个页面文件 | 补斑马纹 rowClassName |
-| `CLAUDE.md` | 重写为项目级记忆体 |
-| `doc/*` | 新建 6 个文档 |
-
----
-
-## 2026-04-07 — 全局视觉风格调整
-
-### 改动文件清单
-
-| 文件路径 | 改动说明 |
-|---------|---------|
-| `src/app.tsx` | colorPrimary/colorLink 从 `#722ed1` 改为 `#1677ff` |
-| `src/styles/global.less` | `.amount-text` 颜色改蓝 |
-| `src/layouts/index.tsx` | 通知圆点、余额文字颜色改蓝 |
-| `src/pages/dashboard/index.tsx` | KPI 卡片重构（无图标、flex 等高、分区标题）、Area→Line、DualCard 金额改黑 |
-| `src/pages/dashboard/company/index.tsx` | 同上，公司仪表盘同步改造 |
-| `src/pages/company/detail/index.tsx` | Area→Line、颜色改蓝 |
-| `src/pages/company/revenue/index.tsx` | 所有金额颜色改为黑色 `#141414` |
-| `src/pages/company/shareholding/index.tsx` | 顶部统计卡片颜色改为黑色 |
-| `src/pages/company/list/index.tsx` | 紫色→蓝色 |
-| `src/pages/company/transfer/index.tsx` | 紫色→蓝色（含边框、背景） |
-| `src/pages/company/transfer-group/index.tsx` | 紫色→蓝色 |
-| `src/pages/company/transfer-in/index.tsx` | 紫色→蓝色 |
-| `src/pages/company/tax/index.tsx` | 紫色→蓝色 |
-| `src/pages/enterprise/list/index.tsx` | 紫色→蓝色 |
-| `src/pages/enterprise/detail/index.tsx` | Area→Line、紫色→蓝色、Tag purple→geekblue |
-| `src/pages/enterprise/tax/index.tsx` | 紫色→蓝色 |
-| `src/pages/enterprise/invite/index.tsx` | 紫色→蓝色 |
-| `src/pages/orders/lottery/index.tsx` | 紫色→蓝色、Tag purple→blue |
-| `src/pages/commission/index.tsx` | 紫色→蓝色、Tag purple→blue |
-| `src/pages/finance/wallet/index.tsx` | 紫色→蓝色 |
-| `src/pages/finance/wallet/bind-account.tsx` | 紫色→蓝色 |
-| `src/pages/finance/company-wallet/index.tsx` | 紫色→蓝色 |
-| `src/pages/finance/my-wallet/index.tsx` | 紫色→蓝色 |
-| `src/pages/finance/allocate/index.tsx` | 紫色→蓝色 |
-| `src/pages/finance/revenue/index.tsx` | 紫色→蓝色 |
-| `src/pages/finance/revenue/detail.tsx` | 紫色→蓝色 |
-| `src/pages/finance/recall/index.tsx` | 紫色→蓝色 |
-| `src/pages/login/index.tsx` | 紫色→蓝色（含渐变 rgba） |
-| `src/pages/system/users/index.tsx` | 紫色→蓝色 |
-| `src/pages/system/notifications/index.tsx` | 紫色→蓝色、Tag purple→geekblue |
-| `src/pages/system/logs/index.tsx` | 紫色→蓝色 |
-| `src/styles/design-spec.md` | 视觉规范全面更新（蓝色系、Line 图表、简洁卡片） |
-| `src/assets/favicon-preview.svg` | 新增蓝色系 IM 管理后台 icon 设计稿 |
-
-### 改动要点
-
-1. **颜色系统**：紫色（`#722ed1` 系列）→ Ant Design 标准蓝（`#1677ff` 系列），全局 0 残留
-2. **KPI 卡片**：去掉图标色块，纯文字商务风；flex 布局保证同行等高；副指标行内展示
-3. **折线图**：Area → Line，圆形数据点 + 水平虚线网格 + 隐藏坐标轴线
-4. **金额颜色**：仪表盘 DualCard、公司收益、公司持股统一改为黑色 `#141414`
-5. **仪表盘布局**：新增分区标题（资产动态/用户动态/公司数据走势/收益贡献 TOP5），表格不顶边
-
-### TODO_Backlog
-
-- [x] `dev-pitfalls.md` 中的代码示例仍引用旧紫色 `#722ed1`，需同步更新为 `#1677ff`（已完成）
-- [ ] favicon-preview.svg 需导出为 PNG 替换 `public/favicon.png`
-- [ ] 数据阶段从 Mock 过渡到 API 对接时，需更新 page_map.md 状态列
-
-### Context 摘要
-
-商户管理平台完成紫→蓝全局换色 + 仪表盘商务风卡片重构 + 折线图 Line 化。当前 Mock 阶段，30+ 文件已改，0 紫色残留。规范文档 design-spec.md 已同步，doc/ 目录体系已建立。
+## 2026-04-26
+
+### 重大约定：筛选区控件必须带字段名前缀，时间 placeholder 统一「从/到」
+
+- **新规范** `src/styles/design-spec.md` 第 9.0 节 / 9.0.1 节
+- **作废规则**：旧 feedback「筛选控件前不加 label」（位于 `~/.claude/projects/-Users-miya/memory/feedback_no_label_before_buttons.md`），自本日起停止执行；该文件已标注作废
+- **新建组件**：`src/components/FilterField.tsx`
+- **全站改造**：本次涉及 27 个页面文件的筛选区改造（牛牛红包、应用费用、列表/详情/订单/财务/设置等所有带筛选区的页面）
+  - 每个 Radio.Group / Select / DatePicker / RangePicker / Input 用 `<FilterField label="…">` 包裹
+  - 所有 RangePicker 的 placeholder 统一为 `['从', '到']`
+  - 单 DatePicker 的 placeholder 用字段简短名
+- **保持不动**：表单 Form.Item（天然带 label）、表格列内联 filter、Modal/Drawer 表单、行内编辑控件
+- **同步**：`CLAUDE.md` 已知错误记录追加；`src/styles/design-spec.md` 第 9.0 / 9.0.1 章
+
+## 2026-04-26（同日早些时候改动）
+
+### 调整：应用费用 Tab — 创建时间 placeholder 改为「从 / 到」
+
+- 应用费用 Tab 的创建时间 RangePicker 暗提示由「创建开始 / 创建结束」改为「从 / 到」
+- 同步 `src/styles/design-spec.md` 第十五章
+
+### 新增：企业详情 → 应用费用 Tab
+
+- 位置：东方彩票 Tab 之后、佣金订单 Tab 之前
+- URL：`/enterprise/detail/:id?tab=appFee`
+- 字段（9 列，无操作列）：创建时间 / 订单编号 / 订单类型 / 企业盈利总额 / 应用费用总额 / 企业盈利明细 / 应用费用明细 / 账单日 / 账单月
+- 订单类型枚举：应用结算 / 主动分红
+- 明细字段格式：单行展示「东方彩票 X / 七星百家乐 X / 企业红包 X」
+- 金额：精确到小数点后 2 位
+- 筛选：订单类型 Radio + 创建时间 RangePicker + 账单月 + 账单日 + 订单编号搜索
+- 同步文档：`src/layouts/index.tsx`（面包屑） / `doc/page_map.md` / `doc/data-spec.md` / `src/styles/design-spec.md`
+
+### 调整：牛牛红包 — 订单状态改纯文本
+
+- 主表「订单状态」列：去掉 Tag，改为黑色纯文本（已开奖 / 未开奖）
+- 订单详情 Modal 顶部概要区的「订单状态」：同步改为纯文本
+- 同步文档：`doc/page_map.md` / `src/styles/design-spec.md`
+
+### 调整：牛牛红包 Tab 二轮调整
+
+- 字段值枚举化：
+  - 赔率：由数值改为枚举（平倍 / 高倍 / 超倍）
+  - 有效时长：由整数改为枚举（30 秒 / 60 秒），类型 `30 | 60`
+- Tab 顺序：将「牛牛红包」从「佣金订单」之后移到「应用红包」之后（位于「东方彩票」之前）
+- 返佣详情字段改名：
+  - 「返佣用户昵称」→「用户昵称」
+  - 「返佣用户ID」→「用户ID」
+- 返佣详情用户昵称展示格式：`名字（庄）` 或 `名字（闲）`，括号内为该用户在本局的角色
+- 同步文档：`doc/page_map.md` / `doc/data-spec.md`
+
+### 调整：牛牛红包 Tab 去掉「货币类型」字段
+
+- 主表去掉第 4 列「货币类型」，列数由 15 改为 14
+- 筛选区去掉「货币类型」Radio.Button 组（USDT / PEA）
+- `NiuniuOrder` 接口移除 `currency` 字段，mock 数据同步移除
+- Table `scroll x` 从 1900 调整为 1800
+- 同步文档：`doc/page_map.md` / `doc/data-spec.md` / `src/styles/design-spec.md` 全部移除货币类型相关条目
+
+### 新增：企业详情 → 牛牛红包 Tab
+
+- **位置**：`src/pages/enterprise/detail/index.tsx` 追加 type / mock 数据 / Tab 项
+- **URL**：`/enterprise/detail/:id?tab=niuniuRedpacket`
+- **面包屑**：在 `src/layouts/index.tsx` 的 `tabBreadcrumbMap['/enterprise/detail']` 中追加 `niuniuRedpacket: ['企业管理', '企业清单', '牛牛红包']`
+- **主表 15 列**：发起时间 / 订单ID / 订单状态 / 货币类型 / 底注 / 红包数量 / 玩法 / 赔率 / 有效时长 / 赔付金额 / 抽水金额 / 返佣金额 / 庄家昵称 / 庄家ID / 完成时间
+- **筛选区**：状态（已开奖/未开奖）+ 玩法（庄比/通比）+ 货币（USDT/PEA）+ 时间范围 + 庄家昵称/ID 搜索；筛选控件前不带 label
+- **订单详情 Modal**（width 1000px）：顶部概要区（玩法/赔率/状态）+ 10 列领取记录表
+- **返佣详情 Modal**（width 800px）：7 列返佣记录表
+- **数据策略**：本模块仅展示数据，金额字段直接展示后端返回值，不做前端计算
+- **返佣链路**：庄家发起红包 → 下级用户领取 → 系统按比例返佣给该下级的「上级」（推荐人）
+- **同步文档**：
+  - `doc/page_map.md` 追加表格规范
+  - `doc/data-spec.md` 追加「四、企业详情 — 牛牛红包」章节
+  - `doc/dev-pitfalls.md` 追加「返佣链路（领取者与上级是不同实体）」「排查规范文档存在性」两节
+  - `src/styles/design-spec.md` 追加「十三、详情弹窗 — 顶部概要区」「十四、企业详情 → 牛牛红包 Tab」两节
+  - `CLAUDE.md` 追加「2026-04-26 — 错误判断规范文档不存在」错误记录

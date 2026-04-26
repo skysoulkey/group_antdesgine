@@ -45,6 +45,36 @@
   2. 筛选控件选型严格按 design-spec 9.1 规则：≤6 枚举值 → Radio.Button 平铺，>6 或动态 → Select 下拉
   3. 改动前先检查 2-3 个同类页面的写法，确认一致后再动手
 
+### 2026-04-20 — Tab 页面多余标题行和工具栏，Tab 未紧贴顶部导航
+
+- **错误描述**：公司持股、公司收益页面在 Tabs 上方多出了一行页面标题文字和 TableToolbar 操作按钮，导致 Tab 栏没有紧贴顶部 Header。用户指出问题后第一次只修了标题，没有同时移除工具栏和合并 Tab。
+- **正确做法**：
+  1. Tab 页面的 Tabs 组件必须直接紧贴顶部 Header（`marginTop: -16`），中间不放任何标题行、工具栏等元素
+  2. 参考模板：系统日志（`/system/logs`）的 return 结构 — 只有 `<div style={{ marginTop: -16 }}><Tabs .../></div>`
+  3. TableToolbar 属于各 Tab 内容（放在 Card 内部），不应放在 Tabs 外面的页面级
+  4. 修问题时要完整检查参考页面的做法，一次性改到位，不要只改一个点
+
+### 2026-04-26 — 错误判断规范文档不存在，差点跳过同步检查清单
+
+- **错误描述**：实施牛牛红包模块时，用了过窄的 search 模式只在仓库根目录搜索 `data-spec.md` / `dev-pitfalls.md` / `design-spec.md`，命中 0 条，就误以为这三份规范文档不存在；实际上它们就在 `doc/` 和 `src/styles/` 目录下。差点导致改动后未同步这三份规范文档（违反规则 2 检查清单）。
+- **正确做法**：
+  1. 检查规范文档存在性必须按 CLAUDE.md 规定的固定路径直接读取：`src/styles/design-spec.md`、`doc/data-spec.md`、`doc/dev-pitfalls.md`，不要靠模糊搜索
+  2. 哪怕项目目录里没找到，也要去 CLAUDE.md 列的固定位置 stat 一次确认，不要根据"找不到"就推断"不存在"
+  3. 改动后同步检查清单的 5 项是硬性要求，不能因为"看起来文件不在"就跳过
+
+### 2026-04-26 — 「筛选控件不加 label」旧规则作废，统一改为「必须加字段名前缀」
+
+- **背景**：旧反馈 `feedback_no_label_before_buttons.md` 要求筛选区控件前不加 label 文字。2026-04-26 用户提出反向新约定：筛选区每个控件必须带字段名前缀。
+- **新约定（生效）**：见 `src/styles/design-spec.md` 第 9.0 节
+  1. 筛选/搜索区每个控件前必须有「字段名：」前缀，不允许裸放控件
+  2. 颜色 `rgba(0,0,0,0.65)`、`fontSize: 14`、中文冒号「：」、放控件左侧
+  3. 表单弹窗（Form.Item）天然带 label，不在此约定范围
+  4. 表格列内联快速筛选（antd 列头 filter）不强制
+- **新约定（生效）**：见 `src/styles/design-spec.md` 第 9.0.1 节
+  - 所有 RangePicker 的 `placeholder` 统一为 `['从', '到']`，不写「开始时间/结束时间/创建开始/创建结束/开始日期/结束日期」
+- **配套**：新建共享组件 `src/components/FilterField.tsx`，所有筛选区控件用 `<FilterField label="…">…</FilterField>` 包裹
+- **作废处理**：旧反馈文件已标注 `status: deprecated`、`deprecated_at: 2026-04-26`，保留历史追溯
+
 ---
 
 ## 项目专属规则

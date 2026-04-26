@@ -3,6 +3,7 @@ import { Button, Card, ConfigProvider, DatePicker, Form, Input, Modal, Radio, Sp
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useRef, useCallback } from 'react';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -167,25 +168,29 @@ const EnterpriseInvitePage: React.FC = () => {
       <Space direction="vertical" size={12} style={{ display: 'flex' }}>
         <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
           <Space size={16} wrap align="center">
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group
-                buttonStyle="solid"
-                value={inviteStatus ?? '全部'}
-                onChange={(e) => setInviteStatus(e.target.value === '全部' ? undefined : e.target.value)}
-              >
-                <Radio.Button value="全部">全部</Radio.Button>
-                <Radio.Button value="已接受">已接受</Radio.Button>
-                <Radio.Button value="未接受">未接受</Radio.Button>
-              </Radio.Group>
-            </ConfigProvider>
-            <Input
-              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-              placeholder="请输入企业认证码"
-              value={searchCode}
-              onChange={(e) => setSearchCode(e.target.value)}
-              allowClear
-              style={{ width: 220 }}
-            />
+            <FilterField label="邀请状态">
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group
+                  buttonStyle="solid"
+                  value={inviteStatus ?? '全部'}
+                  onChange={(e) => setInviteStatus(e.target.value === '全部' ? undefined : e.target.value)}
+                >
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="已接受">已接受</Radio.Button>
+                  <Radio.Button value="未接受">未接受</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+            </FilterField>
+            <FilterField label="企业认证码">
+              <Input
+                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                placeholder="请输入企业认证码"
+                value={searchCode}
+                onChange={(e) => setSearchCode(e.target.value)}
+                allowClear
+                style={{ width: 220 }}
+              />
+            </FilterField>
             <Button type="primary" icon={<PlusOutlined />} onClick={openModal}>
               生成邀请码
             </Button>

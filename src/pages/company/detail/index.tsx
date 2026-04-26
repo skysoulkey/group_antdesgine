@@ -26,6 +26,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'umi';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -409,25 +410,29 @@ const CompanyDetail: React.FC = () => {
           <Space direction="vertical" size={12} style={{ display: 'flex' }}>
             <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
               <Space size={16} wrap align="center">
-                <ConfigProvider theme={radioTheme}>
-                  <Radio.Group
-                    value={transferTypeFilter}
-                    onChange={(e) => setTransferTypeFilter(e.target.value)}
-                    buttonStyle="solid"
-                  >
-                    <Radio.Button value="全部">全部</Radio.Button>
-                    <Radio.Button value="集团资金下拨">集团资金下拨</Radio.Button>
-                    <Radio.Button value="集团资金调回">集团资金调回</Radio.Button>
-                  </Radio.Group>
-                </ConfigProvider>
-                <Input
-                    suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                    placeholder="订单编号、订单备注"
-                    value={transferSearch}
-                    onChange={(e) => setTransferSearch(e.target.value)}
-                    allowClear
-                    style={{ width: 220 }}
-                  />
+                <FilterField label="订单类型">
+                  <ConfigProvider theme={radioTheme}>
+                    <Radio.Group
+                      value={transferTypeFilter}
+                      onChange={(e) => setTransferTypeFilter(e.target.value)}
+                      buttonStyle="solid"
+                    >
+                      <Radio.Button value="全部">全部</Radio.Button>
+                      <Radio.Button value="集团资金下拨">集团资金下拨</Radio.Button>
+                      <Radio.Button value="集团资金调回">集团资金调回</Radio.Button>
+                    </Radio.Group>
+                  </ConfigProvider>
+                </FilterField>
+                <FilterField label="订单编号">
+                  <Input
+                      suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                      placeholder="订单编号、订单备注"
+                      value={transferSearch}
+                      onChange={(e) => setTransferSearch(e.target.value)}
+                      allowClear
+                      style={{ width: 220 }}
+                    />
+                </FilterField>
               </Space>
             </Card>
             <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
@@ -453,28 +458,34 @@ const CompanyDetail: React.FC = () => {
           <Space direction="vertical" size={12} style={{ display: 'flex' }}>
             <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
               <Space size={16} wrap align="center">
-                <ConfigProvider theme={radioTheme}>
-                  <Radio.Group value={holdingCurrency} onChange={(e) => setHoldingCurrency(e.target.value)} buttonStyle="solid">
-                    <Radio.Button value="全部">全部</Radio.Button>
-                    <Radio.Button value="USDT">USDT</Radio.Button>
-                    <Radio.Button value="PEA">PEA</Radio.Button>
-                  </Radio.Group>
-                </ConfigProvider>
-                <ConfigProvider theme={radioTheme}>
-                  <Radio.Group value={holdingStatus} onChange={(e) => setHoldingStatus(e.target.value)} buttonStyle="solid">
-                    <Radio.Button value="全部">全部</Radio.Button>
-                    <Radio.Button value="持股">持股</Radio.Button>
-                    <Radio.Button value="已退">已退</Radio.Button>
-                  </Radio.Group>
-                </ConfigProvider>
-                <Input
-                    suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                    placeholder="企业名称、企业ID"
-                    value={holdingSearch}
-                    onChange={(e) => setHoldingSearch(e.target.value)}
-                    allowClear
-                    style={{ width: 200 }}
-                  />
+                <FilterField label="货币单位">
+                  <ConfigProvider theme={radioTheme}>
+                    <Radio.Group value={holdingCurrency} onChange={(e) => setHoldingCurrency(e.target.value)} buttonStyle="solid">
+                      <Radio.Button value="全部">全部</Radio.Button>
+                      <Radio.Button value="USDT">USDT</Radio.Button>
+                      <Radio.Button value="PEA">PEA</Radio.Button>
+                    </Radio.Group>
+                  </ConfigProvider>
+                </FilterField>
+                <FilterField label="状态">
+                  <ConfigProvider theme={radioTheme}>
+                    <Radio.Group value={holdingStatus} onChange={(e) => setHoldingStatus(e.target.value)} buttonStyle="solid">
+                      <Radio.Button value="全部">全部</Radio.Button>
+                      <Radio.Button value="持股">持股</Radio.Button>
+                      <Radio.Button value="已退">已退</Radio.Button>
+                    </Radio.Group>
+                  </ConfigProvider>
+                </FilterField>
+                <FilterField label="企业">
+                  <Input
+                      suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                      placeholder="企业名称、企业ID"
+                      value={holdingSearch}
+                      onChange={(e) => setHoldingSearch(e.target.value)}
+                      allowClear
+                      style={{ width: 200 }}
+                    />
+                </FilterField>
               </Space>
             </Card>
             <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>

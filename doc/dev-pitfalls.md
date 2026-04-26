@@ -473,3 +473,123 @@ const radioTheme = {
 - 全局搜索 `buttonStyle="outline"` → 应该为 0 个结果
 - 全局搜索 Radio.Button 的 inline `style={` → 不应有基于选中态的条件样式
 - 新增筛选字段时，确认已在 design-spec 9.5 速查表中登记
+
+---
+
+## 18. Tab 页面布局 — Tabs 必须紧贴顶部导航，不插入多余元素
+
+**遇到的问题**
+公司持股、公司收益页面在 Tabs 上方插入了一行页面标题（`<Text>公司持股</Text>`）和 TableToolbar 操作按钮，导致 Tab 栏与顶部 Header 之间出现多余的间隔区域，与其他 Tab 页面（系统日志、投资审批等）风格不一致。
+
+**根本原因**
+- 页面标题文字与面包屑重复，属于多余元素
+- TableToolbar 放在了 Tabs 组件外面的页面级，而非各 Tab 内容的 Card 内部
+- 没有参考已有的 Tab 页面（如系统日志）的统一布局模式
+
+**解决方案**
+Tab 页面的 return 结构必须严格遵循以下模板，不得在 Tabs 上方添加任何元素：
+
+```tsx
+// ✅ 正确模板（参考 src/pages/system/logs/index.tsx）
+return (
+  <div style={{ marginTop: -16 }}>
+    <Tabs
+      items={tabItems}
+      activeKey={activeTab}
+      onChange={(key) => setSearchParams({ tab: key })}
+      tabBarStyle={{
+        background: '#fff',
+        margin: '0 -24px',
+        padding: '0 24px',
+      }}
+    />
+  </div>
+);
+```
+
+- `marginTop: -16`：让 Tab 栏紧贴 Header
+- 页面标题由面包屑提供，不在页面内重复
+- TableToolbar 放在各 Tab 的 children 内容中（Card 内部），不放在 Tabs 外面
+
+**如何检查**
+新建或修改 Tab 页面时，检查 return 中 `<Tabs>` 上方是否有任何 JSX 元素（Text、div、TableToolbar 等）。如果有，必须移入 Tab 内容或删除。
+
+---
+
+## 19. 筛选区必须与表格区分离为独立 Card
+
+**遇到的问题**
+全站大量页面（企业清单、公司清单、用户管理、集团钱包、公司税单、资金下拨/调回、企业详情各 Tab、公司详情各 Tab、系统日志、通知记录、邀请企业等）将筛选控件（Radio.Group、Select、Input 搜索框、DatePicker）和表格放在同一个 `<Card>` 里，筛选区用 `marginBottom: 16` 与表格隔开。这导致筛选栏和表格视觉上糊成一团，缺乏层次。
+
+**根本原因**
+早期页面没有统一筛选区布局规范，各页面各自实现，多数人图省事直接在同一 Card 内堆砌。
+
+**解决方案**
+筛选区必须放在独立 Card 中，与表格 Card 分开。两个 Card 用 `Space direction="vertical" size={12}` 或 `marginBottom: 12` 间隔。
+
+```tsx
+// ✅ 正确 — 筛选卡片 + 表格卡片分离
+<Space direction="vertical" size={12} style={{ display: 'flex' }}>
+  <Card bordered={false}>
+    <Space size={16} wrap align="center">
+      <Radio.Group ... />
+      <Select ... />
+      <Input ... />
+      <Button type="primary">操作</Button>
+    </Space>
+  </Card>
+  <Card bordered={false}>
+    <Table ... />
+  </Card>
+</Space>
+
+// ❌ 错误 — 筛选和表格挤在同一 Card
+<Card bordered={false}>
+  <Space style={{ marginBottom: 16 }}>
+    <Radio.Group ... />
+  </Space>
+  <Table ... />
+</Card>
+```
+
+**参考模板**：内部划转 `src/pages/company/transfer/index.tsx`
+
+**如何检查**
+新建或修改带筛选的页面时，检查筛选控件和 `<Table>` 是否在同一个 `<Card>` 的 children 中。如果是，必须拆分为两个 Card。
+
+---
+
+## 牛牛红包 — 返佣链路（领取者与上级是不同实体）
+
+**坑**
+返佣详情里的「返佣用户」和「上级」容易被误读为同一个人或弄反方向。错误写法常见：把"上级"理解为庄家、或把"返佣用户"理解为收到返佣的人。
+
+**正确链路**
+庄家发起红包 → 下级用户领取（= 返佣用户） → 系统按比例返佣给该下级的「上级」（= 推荐人）
+
+- **返佣用户**：实际领取红包的下级
+- **上级**：返佣用户在拉新关系上的推荐人，是返佣金额的实际接收方
+- **庄家**：发起红包的人，与返佣链路无直接关系（仅在主表展示）
+
+**如何检查**
+- 修改返佣详情字段或表头时，对照本节核对中文含义
+- 文案不得简化为"用户"或"返佣对象"，避免歧义
+- 加新字段前先看 `src/pages/enterprise/detail/index.tsx` 的牛牛红包 Tab 注释中对返佣链路的说明
+
+---
+
+## 排查规范文档存在性，必须按 CLAUDE.md 指定路径直读
+
+**坑**
+新增/修改页面后做"改动后同步检查清单"时，使用了过窄的搜索（仅在仓库根或单一目录），命中 0 条就误判为"文档不存在"，从而跳过同步步骤。
+
+**正确做法**
+项目级 CLAUDE.md 明确规定了三份规范文档的固定路径：
+- `src/styles/design-spec.md`（视觉规范）
+- `doc/data-spec.md`（数据口径规范）
+- `doc/dev-pitfalls.md`（开发避坑规范）
+
+每次同步前**直接按这些路径读取确认**，不要靠 glob 搜索结果推断"是否存在"。
+
+**如何检查**
+改完代码 → 打开本文件 / data-spec.md / design-spec.md，逐份判断是否需要追加章节，再决定是否新增条目。如果文件本身被删除或路径变更，必须先在 CLAUDE.md 同步路径，再继续。

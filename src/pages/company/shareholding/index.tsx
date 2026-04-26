@@ -19,6 +19,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState } from 'react';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -233,21 +234,25 @@ const HoldingContent: React.FC<{ onSwitchTab: (t: string, enterprise?: string) =
       </Row>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
-              <Radio.Button value="all">全部</Radio.Button>
-              <Radio.Button value="USDT">USDT</Radio.Button>
-              <Radio.Button value="PEA">PEA</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="企业名称 / 企业ID"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: 220 }}
-          />
+          <FilterField label="货币单位">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
+                <Radio.Button value="all">全部</Radio.Button>
+                <Radio.Button value="USDT">USDT</Radio.Button>
+                <Radio.Button value="PEA">PEA</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="企业">
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="企业名称 / 企业ID"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              allowClear
+              style={{ width: 220 }}
+            />
+          </FilterField>
         </div>
         <Table
           columns={columns}
@@ -317,36 +322,44 @@ const TradeContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnterpr
     <Space direction="vertical" size={12} style={{ display: 'flex' }}>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Space size={16} wrap align="center">
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
-              <Radio.Button value="all">全部</Radio.Button>
-              <Radio.Button value="购买股份">购买股份</Radio.Button>
-              <Radio.Button value="释放股份">释放股份</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
-              <Radio.Button value="all">全部</Radio.Button>
-              <Radio.Button value="USDT">USDT</Radio.Button>
-              <Radio.Button value="PEA">PEA</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <Select
-            placeholder="企业名称"
-            value={enterprise}
-            onChange={setEnterprise}
-            allowClear
-            style={{ width: 140 }}
-            options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
-          />
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="订单编号"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: 180 }}
-          />
+          <FilterField label="订单类型">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
+                <Radio.Button value="all">全部</Radio.Button>
+                <Radio.Button value="购买股份">购买股份</Radio.Button>
+                <Radio.Button value="释放股份">释放股份</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="货币单位">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
+                <Radio.Button value="all">全部</Radio.Button>
+                <Radio.Button value="USDT">USDT</Radio.Button>
+                <Radio.Button value="PEA">PEA</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="企业">
+            <Select
+              placeholder="企业名称"
+              value={enterprise}
+              onChange={setEnterprise}
+              allowClear
+              style={{ width: 140 }}
+              options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
+            />
+          </FilterField>
+          <FilterField label="订单编号">
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="订单编号"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              allowClear
+              style={{ width: 180 }}
+            />
+          </FilterField>
         </Space>
       </Card>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
@@ -425,29 +438,35 @@ const DividendContent: React.FC<{ initialEnterprise?: string }> = ({ initialEnte
       <Space direction="vertical" size={12} style={{ display: 'flex' }}>
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
           <Space size={16} wrap align="center">
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
-                <Radio.Button value="all">全部</Radio.Button>
-                <Radio.Button value="分红">分红</Radio.Button>
-                <Radio.Button value="投资">投资</Radio.Button>
-              </Radio.Group>
-            </ConfigProvider>
-            <Select
-              placeholder="企业名称"
-              value={enterprise}
-              onChange={setEnterprise}
-              allowClear
-              style={{ width: 140 }}
-              options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
-            />
-            <Input
-              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-              placeholder="订单编号"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              allowClear
-              style={{ width: 180 }}
-            />
+            <FilterField label="订单类型">
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
+                  <Radio.Button value="all">全部</Radio.Button>
+                  <Radio.Button value="分红">分红</Radio.Button>
+                  <Radio.Button value="投资">投资</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+            </FilterField>
+            <FilterField label="企业">
+              <Select
+                placeholder="企业名称"
+                value={enterprise}
+                onChange={setEnterprise}
+                allowClear
+                style={{ width: 140 }}
+                options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
+              />
+            </FilterField>
+            <FilterField label="订单编号">
+              <Input
+                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                placeholder="订单编号"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                allowClear
+                style={{ width: 180 }}
+              />
+            </FilterField>
           </Space>
         </Card>
         <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>

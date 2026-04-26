@@ -13,6 +13,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useRef, useState } from 'react';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -110,25 +111,29 @@ const MyWalletPage: React.FC = () => {
       {/* 历史流水 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="全部">全部</Radio.Button>
-              <Radio.Button value="集团下拨">集团下拨</Radio.Button>
-              <Radio.Button value="集团调回">集团调回</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="流水号 / 操作人"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: 200 }}
-          />
+          <FilterField label="类型">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="集团下拨">集团下拨</Radio.Button>
+                <Radio.Button value="集团调回">集团调回</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="搜索">
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="流水号 / 操作人"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              allowClear
+              style={{ width: 200 }}
+            />
+          </FilterField>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ fontSize: 14, fontWeight: 600 }}>流水记录</Text>

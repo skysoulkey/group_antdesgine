@@ -25,6 +25,7 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useRef, useState } from 'react';
 import { useLocation } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -417,29 +418,37 @@ const TransferPage: React.FC = () => {
       {/* 筛选 + 操作（合并一行）*/}
       <Card bordered={false}>
         <Space size={16} wrap align="center">
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
-              <Radio.Button value="全部">全部</Radio.Button>
-              <Radio.Button value="集团下拨">集团下拨</Radio.Button>
-              <Radio.Button value="集团调回">集团调回</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
-              <Radio.Button value="全部">全部</Radio.Button>
-              <Radio.Button value="USDT">USDT</Radio.Button>
-              <Radio.Button value="PEA">PEA</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <Select
-              placeholder="请选择" value={company} onChange={setCompany} allowClear style={{ width: 160 }}
-              options={companies.map((c) => ({ value: c, label: c }))}
+          <FilterField label="订单类型">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={orderType} onChange={(e) => setOrderType(e.target.value)} buttonStyle="solid">
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="集团下拨">集团下拨</Radio.Button>
+                <Radio.Button value="集团调回">集团调回</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="货币单位">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={currency} onChange={(e) => setCurrency(e.target.value)} buttonStyle="solid">
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="USDT">USDT</Radio.Button>
+                <Radio.Button value="PEA">PEA</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="公司">
+            <Select
+                placeholder="请选择" value={company} onChange={setCompany} allowClear style={{ width: 160 }}
+                options={companies.map((c) => ({ value: c, label: c }))}
+              />
+          </FilterField>
+          <FilterField label="订单编号">
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="订单编号 / 订单备注"
+              value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 220 }}
             />
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="订单编号 / 订单备注"
-            value={search} onChange={(e) => setSearch(e.target.value)} allowClear style={{ width: 220 }}
-          />
+          </FilterField>
           <Button type="primary" onClick={() => setWizardMode('recall')}>集团调回</Button>
           <Button type="primary" onClick={() => setWizardMode('allocate')}>集团下拨</Button>
         </Space>

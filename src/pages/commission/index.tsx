@@ -25,6 +25,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useRef, useState } from 'react';
 import TableToolbar from '../../components/TableToolbar';
+import FilterField from '../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -169,51 +170,61 @@ const CommissionOrderTab: React.FC = () => {
       {/* 筛选区 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
         <Space size={24} wrap align="center" style={{ marginBottom: 14 }}>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              buttonStyle="solid"
-              value={app ?? '全部'}
-              onChange={(e) => setApp(e.target.value === '全部' ? undefined : e.target.value)}
-            >
-              <Radio.Button value="全部">全部</Radio.Button>
-              {APPS.map((v) => <Radio.Button key={v} value={v}>{v}</Radio.Button>)}
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group value={currencyFilter} onChange={(e) => setCurrencyFilter(e.target.value)} buttonStyle="solid">
-              <Radio.Button value="全部">全部</Radio.Button>
-              <Radio.Button value="USDT">USDT</Radio.Button>
-              <Radio.Button value="PEA">PEA</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <Select
-            placeholder="企业名称"
-            value={enterprise}
-            onChange={setEnterprise}
-            allowClear
-            style={{ width: 160 }}
-            options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
-          />
+          <FilterField label="应用">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                buttonStyle="solid"
+                value={app ?? '全部'}
+                onChange={(e) => setApp(e.target.value === '全部' ? undefined : e.target.value)}
+              >
+                <Radio.Button value="全部">全部</Radio.Button>
+                {APPS.map((v) => <Radio.Button key={v} value={v}>{v}</Radio.Button>)}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="货币单位">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group value={currencyFilter} onChange={(e) => setCurrencyFilter(e.target.value)} buttonStyle="solid">
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="USDT">USDT</Radio.Button>
+                <Radio.Button value="PEA">PEA</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="企业名称">
+            <Select
+              placeholder="请选择"
+              value={enterprise}
+              onChange={setEnterprise}
+              allowClear
+              style={{ width: 160 }}
+              options={ENTERPRISES.map((e) => ({ value: e, label: e }))}
+            />
+          </FilterField>
         </Space>
         <Space size={24} wrap align="center">
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              buttonStyle="solid"
-              value={game ?? '全部'}
-              onChange={(e) => setGame(e.target.value === '全部' ? undefined : e.target.value)}
-            >
-              <Radio.Button value="全部">全部</Radio.Button>
-              {GAMES.map((v) => <Radio.Button key={v} value={v}>{v}</Radio.Button>)}
-            </Radio.Group>
-          </ConfigProvider>
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="订单编号"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            allowClear
-            style={{ width: 200 }}
-          />
+          <FilterField label="游戏">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                buttonStyle="solid"
+                value={game ?? '全部'}
+                onChange={(e) => setGame(e.target.value === '全部' ? undefined : e.target.value)}
+              >
+                <Radio.Button value="全部">全部</Radio.Button>
+                {GAMES.map((v) => <Radio.Button key={v} value={v}>{v}</Radio.Button>)}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="订单编号">
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="请输入"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              allowClear
+              style={{ width: 200 }}
+            />
+          </FilterField>
         </Space>
       </Card>
 

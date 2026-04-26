@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useRef, useCallback } from 'react';
 import { useSearchParams } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -194,23 +195,29 @@ const NotificationsPage: React.FC = () => {
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <ConfigProvider theme={radioTheme}>
               <Space size={16} wrap align="center">
-                <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
-                  {['全部', '机器人', '邮件', '站内'].map((v) => (
-                    <Radio.Button key={v} value={v}>{v}</Radio.Button>
-                  ))}
-                </Radio.Group>
-                <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
-                  {['全部', ...NOTIF_TYPES].map((v) => (
-                    <Radio.Button key={v} value={v}>{v}</Radio.Button>
-                  ))}
-                </Radio.Group>
-                <Input
-                  placeholder="搜索通知对象"
-                  value={searchKw}
-                  onChange={(e) => setSearchKw(e.target.value)}
-                  allowClear
-                  style={{ width: 200 }}
-                />
+                <FilterField label="通知方式">
+                  <Radio.Group value={methodFilter ?? '全部'} onChange={(e) => setMethodFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
+                    {['全部', '机器人', '邮件', '站内'].map((v) => (
+                      <Radio.Button key={v} value={v}>{v}</Radio.Button>
+                    ))}
+                  </Radio.Group>
+                </FilterField>
+                <FilterField label="通知类型">
+                  <Radio.Group value={typeFilter ?? '全部'} onChange={(e) => setTypeFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
+                    {['全部', ...NOTIF_TYPES].map((v) => (
+                      <Radio.Button key={v} value={v}>{v}</Radio.Button>
+                    ))}
+                  </Radio.Group>
+                </FilterField>
+                <FilterField label="通知对象">
+                  <Input
+                    placeholder="搜索通知对象"
+                    value={searchKw}
+                    onChange={(e) => setSearchKw(e.target.value)}
+                    allowClear
+                    style={{ width: 200 }}
+                  />
+                </FilterField>
               </Space>
             </ConfigProvider>
           </Card>
@@ -248,11 +255,13 @@ const NotificationsPage: React.FC = () => {
           </div>
           <div style={{ marginBottom: 16 }}>
             <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={channelFilter ?? '全部'} onChange={(e) => setChannelFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid" size="small">
-                <Radio.Button value="全部">全部</Radio.Button>
-                <Radio.Button value="机器人">机器人</Radio.Button>
-                <Radio.Button value="邮件">邮件</Radio.Button>
-              </Radio.Group>
+              <FilterField label="通知类型">
+                <Radio.Group value={channelFilter ?? '全部'} onChange={(e) => setChannelFilter(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid" size="small">
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="机器人">机器人</Radio.Button>
+                  <Radio.Button value="邮件">邮件</Radio.Button>
+                </Radio.Group>
+              </FilterField>
             </ConfigProvider>
           </div>
           <div style={{ marginBottom: 16, fontSize: 12, color: '#8c8c8c' }}>

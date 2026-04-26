@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 import { getMockAuth, ROLE_LABELS, ALL_ROLES, type Role } from '../../../utils/auth';
 import {
   getLoginLogs, getOperationLogs,
@@ -277,33 +278,39 @@ const SystemLogsPage: React.FC = () => {
         <Space direction="vertical" size={12} style={{ display: 'flex' }}>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
             <Space size={16} wrap align="center">
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group
-                  value={loginAction ?? '全部'}
-                  onChange={(e) => setLoginAction(e.target.value === '全部' ? undefined : e.target.value)}
-                  buttonStyle="solid"
-                >
-                  {['全部', '登录', '登出', '登录失败'].map((v) => (
-                    <Radio.Button key={v} value={v}>{v === '全部' ? '全部类型' : v}</Radio.Button>
-                  ))}
-                </Radio.Group>
-              </ConfigProvider>
-              <Select
-                placeholder="筛选角色"
-                value={loginRole}
-                onChange={setLoginRole}
-                allowClear
-                style={{ width: 140 }}
-                options={ROLE_OPTIONS}
-              />
-              <Input
-                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                placeholder="账号名 / 登录IP"
-                value={loginSearch}
-                onChange={(e) => setLoginSearch(e.target.value)}
-                allowClear
-                style={{ width: 240 }}
-              />
+              <FilterField label="操作类型">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group
+                    value={loginAction ?? '全部'}
+                    onChange={(e) => setLoginAction(e.target.value === '全部' ? undefined : e.target.value)}
+                    buttonStyle="solid"
+                  >
+                    {['全部', '登录', '登出', '登录失败'].map((v) => (
+                      <Radio.Button key={v} value={v}>{v === '全部' ? '全部类型' : v}</Radio.Button>
+                    ))}
+                  </Radio.Group>
+                </ConfigProvider>
+              </FilterField>
+              <FilterField label="角色">
+                <Select
+                  placeholder="筛选角色"
+                  value={loginRole}
+                  onChange={setLoginRole}
+                  allowClear
+                  style={{ width: 140 }}
+                  options={ROLE_OPTIONS}
+                />
+              </FilterField>
+              <FilterField label="账号">
+                <Input
+                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                  placeholder="账号名 / 登录IP"
+                  value={loginSearch}
+                  onChange={(e) => setLoginSearch(e.target.value)}
+                  allowClear
+                  style={{ width: 240 }}
+                />
+              </FilterField>
             </Space>
           </Card>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
@@ -338,29 +345,35 @@ const SystemLogsPage: React.FC = () => {
         <Space direction="vertical" size={12} style={{ display: 'flex' }}>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
             <Space size={16} wrap align="center">
-              <Select
-                placeholder="筛选模块"
-                value={opModule}
-                onChange={setOpModule}
-                allowClear
-                style={{ width: 140 }}
-                options={MODULE_OPTIONS}
-              />
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
-                  {['全部', '成功', '失败'].map((v) => (
-                    <Radio.Button key={v} value={v}>{v === '全部' ? '全部结果' : v}</Radio.Button>
-                  ))}
-                </Radio.Group>
-              </ConfigProvider>
-              <Input
-                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                placeholder="账号名 / 操作 / IP"
-                value={opSearch}
-                onChange={(e) => setOpSearch(e.target.value)}
-                allowClear
-                style={{ width: 240 }}
-              />
+              <FilterField label="模块">
+                <Select
+                  placeholder="筛选模块"
+                  value={opModule}
+                  onChange={setOpModule}
+                  allowClear
+                  style={{ width: 140 }}
+                  options={MODULE_OPTIONS}
+                />
+              </FilterField>
+              <FilterField label="结果">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group value={opResult ?? '全部'} onChange={(e) => setOpResult(e.target.value === '全部' ? undefined : e.target.value)} buttonStyle="solid">
+                    {['全部', '成功', '失败'].map((v) => (
+                      <Radio.Button key={v} value={v}>{v === '全部' ? '全部结果' : v}</Radio.Button>
+                    ))}
+                  </Radio.Group>
+                </ConfigProvider>
+              </FilterField>
+              <FilterField label="账号">
+                <Input
+                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                  placeholder="账号名 / 操作 / IP"
+                  value={opSearch}
+                  onChange={(e) => setOpSearch(e.target.value)}
+                  allowClear
+                  style={{ width: 240 }}
+                />
+              </FilterField>
             </Space>
           </Card>
           <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>

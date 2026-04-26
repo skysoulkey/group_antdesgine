@@ -1,4 +1,4 @@
-import { LockOutlined } from '@ant-design/icons';
+import { LinkOutlined, LockOutlined } from '@ant-design/icons';
 import {
   Button,
   Card,
@@ -60,6 +60,12 @@ const ProfilePage: React.FC = () => {
     createdAt: '2025-11-23 13:56:21',
   };
 
+  // UU 账号绑定
+  // TODO: 替换为真实的绑定状态
+  const [uuAccount, setUuAccount] = useState<string | null>(null);
+  const [uuBindOpen, setUuBindOpen] = useState(false);
+  const [uuForm] = Form.useForm();
+
   const [inAppEnabled, setInAppEnabled] = useState(true);
   const handleInAppToggle = (checked: boolean) => {
     setInAppEnabled(checked);
@@ -120,6 +126,32 @@ const ProfilePage: React.FC = () => {
           </Descriptions.Item>
           <Descriptions.Item label="最近登录时间">{personalInfo.lastLoginTime}</Descriptions.Item>
           <Descriptions.Item label="账号创建时间">{personalInfo.createdAt}</Descriptions.Item>
+          <Descriptions.Item label="UU 账号">
+            {uuAccount ? (
+              <Space>
+                <Text style={{ fontFamily: 'monospace' }}>{uuAccount}</Text>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0 }}
+                  onClick={() => {
+                    setUuAccount(null);
+                    message.success('已解绑 UU 账号');
+                  }}
+                >
+                  解绑
+                </Button>
+              </Space>
+            ) : (
+              <Button
+                size="small"
+                icon={<LinkOutlined />}
+                onClick={() => setUuBindOpen(true)}
+              >
+                绑定 UU 账号
+              </Button>
+            )}
+          </Descriptions.Item>
           <Descriptions.Item label="站内通知">
             <Switch checked={inAppEnabled} onChange={handleInAppToggle} />
           </Descriptions.Item>
@@ -134,6 +166,38 @@ const ProfilePage: React.FC = () => {
           </Descriptions.Item>
         </Descriptions>
       </Card>
+
+      {/* 绑定 UU 账号弹窗 */}
+      <Modal
+        title="绑定 UU 账号"
+        open={uuBindOpen}
+        onOk={() =>
+          uuForm.validateFields().then((values) => {
+            setUuAccount(values.uuUsername);
+            setUuBindOpen(false);
+            uuForm.resetFields();
+            message.success('UU 账号绑定成功');
+          })
+        }
+        onCancel={() => {
+          setUuBindOpen(false);
+          uuForm.resetFields();
+        }}
+        width={420}
+      >
+        <Form form={uuForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            label="UU 用户名"
+            name="uuUsername"
+            rules={[{ required: true, message: '请输入 UU 用户名' }]}
+          >
+            <Input placeholder="请输入您的 UU 用户名" />
+          </Form.Item>
+        </Form>
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          绑定后可接收审批通知、系统告警，并创建通知群进行团队协作。
+        </Text>
+      </Modal>
 
       {/* 修改密码弹窗 */}
       <Modal

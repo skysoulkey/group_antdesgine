@@ -42,6 +42,7 @@ import {
   type Role, type GroupRole, type CompanyRole,
 } from '../../../utils/auth';
 import { addOperationLog } from '../../../utils/operationLog';
+import FilterField from '../../../components/FilterField';
 
 const isExpired = (validPeriod: string): boolean => {
   if (validPeriod === '永久有效') return false;
@@ -415,30 +416,36 @@ const UserManagePage: React.FC = () => {
           {/* 筛选卡片 */}
           <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
             <Space size={16} wrap align="center">
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} buttonStyle="solid">
-                  <Radio.Button value="全部">全部</Radio.Button>
-                  <Radio.Button value="启用">启用</Radio.Button>
-                  <Radio.Button value="停用">停用</Radio.Button>
-                  <Radio.Button value="已过期">已过期</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-              <Select
-                placeholder="请选择角色"
-                value={roleFilter}
-                onChange={setRoleFilter}
-                allowClear
-                style={{ width: 130 }}
-                options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
-              />
-              <Input
-                suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-                placeholder="用户名、邮箱、手机号"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                allowClear
-                style={{ width: 220 }}
-              />
+              <FilterField label="状态">
+                <ConfigProvider theme={radioTheme}>
+                  <Radio.Group value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} buttonStyle="solid">
+                    <Radio.Button value="全部">全部</Radio.Button>
+                    <Radio.Button value="启用">启用</Radio.Button>
+                    <Radio.Button value="停用">停用</Radio.Button>
+                    <Radio.Button value="已过期">已过期</Radio.Button>
+                  </Radio.Group>
+                </ConfigProvider>
+              </FilterField>
+              <FilterField label="角色">
+                <Select
+                  placeholder="请选择"
+                  value={roleFilter}
+                  onChange={setRoleFilter}
+                  allowClear
+                  style={{ width: 130 }}
+                  options={Object.entries(ROLE_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+                />
+              </FilterField>
+              <FilterField label="搜索">
+                <Input
+                  suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                  placeholder="用户名、邮箱、手机号"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  allowClear
+                  style={{ width: 220 }}
+                />
+              </FilterField>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}

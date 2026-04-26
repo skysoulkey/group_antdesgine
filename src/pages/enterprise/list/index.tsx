@@ -15,6 +15,7 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 
 const { Text: Txt } = Typography;
 
@@ -166,44 +167,52 @@ const EnterpriseListPage: React.FC = () => {
       {/* 筛选卡片 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Space size={16} wrap align="center">
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={currencyFilter}
-              onChange={(e) => setCurrencyFilter(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="all">全部</Radio.Button>
-              <Radio.Button value="USDT">USDT</Radio.Button>
-              <Radio.Button value="PEA">PEA</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="all">全部</Radio.Button>
-              <Radio.Button value="正常">正常</Radio.Button>
-              <Radio.Button value="已解散">已解散</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="归属公司"
-            value={companySearch}
-            onChange={(e) => setCompanySearch(e.target.value)}
-            allowClear
-            style={{ width: 160 }}
-          />
-          <Input
-            suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
-            placeholder="企业ID / 企业名称 / 企业主"
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            allowClear
-            style={{ width: 260 }}
-          />
+          <FilterField label="货币单位">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={currencyFilter}
+                onChange={(e) => setCurrencyFilter(e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="all">全部</Radio.Button>
+                <Radio.Button value="USDT">USDT</Radio.Button>
+                <Radio.Button value="PEA">PEA</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="状态">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="all">全部</Radio.Button>
+                <Radio.Button value="正常">正常</Radio.Button>
+                <Radio.Button value="已解散">已解散</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="归属公司">
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="归属公司"
+              value={companySearch}
+              onChange={(e) => setCompanySearch(e.target.value)}
+              allowClear
+              style={{ width: 160 }}
+            />
+          </FilterField>
+          <FilterField label="企业">
+            <Input
+              suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+              placeholder="企业ID / 企业名称 / 企业主"
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              allowClear
+              style={{ width: 260 }}
+            />
+          </FilterField>
         </Space>
       </Card>
 

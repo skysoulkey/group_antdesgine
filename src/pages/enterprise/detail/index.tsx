@@ -25,6 +25,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs, { Dayjs } from 'dayjs';
 import React, { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'umi';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -337,6 +338,158 @@ const lotteryData: LotteryOrder[] = mk(8).map((i) => ({
   payoutAmt: i % 3 === 0 ? `${(400 + i * 180).toLocaleString()}.00` : '0.00',
   remark: i % 4 === 0 ? '异常订单' : '—',
 }));
+
+// ── 牛牛红包 ───────────────────────────────────────────────────────
+// 三层数据：主订单（NiuniuOrder） → 领取记录（NiuniuClaim） / 返佣记录（NiuniuRebate）
+// 返佣链路：庄家发起红包 → 下级用户领取 → 系统按比例返佣给该下级的「上级」（推荐人）
+type NiuniuPlay = '庄比' | '通比';
+type NiuniuStatus = '已开奖' | '未开奖';
+type NiuniuFace = '牛牛' | '牛一' | '牛八';
+
+interface NiuniuOrder {
+  id: string;
+  startTime: string;
+  orderId: string;
+  status: NiuniuStatus;
+  baseBet: string;
+  packetCount: number;
+  play: NiuniuPlay;
+  odds: string;
+  validDuration: 30 | 60; // 秒，仅 30 / 60
+  payoutAmt: string;
+  rakeAmt: string;
+  rebateAmt: string;
+  bankerNickname: string;
+  bankerId: string;
+  completedAt: string;
+}
+
+interface NiuniuClaim {
+  claimId: string;
+  claimTime: string;
+  claimOrderId: string;
+  userNickname: string;
+  userId: string;
+  userIp: string;
+  claimAmount: string;
+  face: NiuniuFace;
+  roundPnl: string; // 本局盈亏（原"牌面盈亏"）
+  arrival: string;  // 到账
+  rake: string;     // 抽水
+}
+
+interface NiuniuRebate {
+  rebateId: string;
+  createdAt: string;
+  rebateUserNickname: string;
+  rebateUserId: string;
+  parentNickname: string;
+  parentId: string;
+  rebateAmt: string;
+}
+
+const NIUNIU_PLAYS: NiuniuPlay[] = ['庄比', '通比'];
+const NIUNIU_FACES: NiuniuFace[] = ['牛牛', '牛一', '牛八'];
+const NIUNIU_ODDS = ['平倍', '高倍', '超倍'] as const;
+const NIUNIU_VALID_DURATIONS: (30 | 60)[] = [30, 60];
+
+const niuniuData: NiuniuOrder[] = mk(10).map((i) => ({
+  id: `NN${String(i + 1).padStart(5, '0')}`,
+  startTime: `2026-04-${String(i + 1).padStart(2, '0')} 10:${String(15 + i).padStart(2, '0')}:00`,
+  orderId: `NNO${String(2026040100 + i)}`,
+  status: i % 3 === 0 ? '未开奖' : '已开奖',
+  baseBet: `${(10 + i * 5).toLocaleString()}.00`,
+  packetCount: 5 + (i % 5),
+  play: NIUNIU_PLAYS[i % 2],
+  odds: NIUNIU_ODDS[i % 3],
+  validDuration: NIUNIU_VALID_DURATIONS[i % 2],
+  payoutAmt: `${(80 + i * 30).toLocaleString()}.00`,
+  rakeAmt: `${(5 + i * 2).toLocaleString()}.00`,
+  rebateAmt: `${(8 + i * 3).toLocaleString()}.00`,
+  bankerNickname: `庄家${i + 1}`,
+  bankerId: `MB${200000 + i}`,
+  completedAt: i % 3 === 0 ? '—' : `2026-04-${String(i + 1).padStart(2, '0')} 10:${String(15 + i + 1).padStart(2, '0')}:00`,
+}));
+
+const buildNiuniuClaims = (order: NiuniuOrder): NiuniuClaim[] =>
+  Array.from({ length: order.packetCount }, (_, i) => ({
+    claimId: `NC${order.id}-${i + 1}`,
+    claimTime: order.startTime.replace(/(\d{2}):(\d{2}):00/, (_m, h, _mm) => `${h}:${String(15 + i + 1).padStart(2, '0')}:00`),
+    claimOrderId: `NCO${order.orderId.slice(-7)}${String(i + 1).padStart(2, '0')}`,
+    userNickname: `用户${i + 10}`,
+    userId: `MB${300000 + i}`,
+    userIp: `104.${28 + i}.${200 + i}.${i + 10}`,
+    claimAmount: `${(Number(order.baseBet.replace(/,/g, '')) / order.packetCount).toFixed(2)}`,
+    face: NIUNIU_FACES[i % 3],
+    roundPnl: i % 2 === 0 ? `${(20 + i * 5).toFixed(2)}` : `-${(15 + i * 4).toFixed(2)}`,
+    arrival: `${(Number(order.baseBet.replace(/,/g, '')) / order.packetCount * 1.5).toFixed(2)}`,
+    rake: `${(0.5 + i * 0.2).toFixed(2)}`,
+  }));
+
+const buildNiuniuRebates = (order: NiuniuOrder): NiuniuRebate[] =>
+  Array.from({ length: 3 }, (_, i) => ({
+    rebateId: `NR${order.id}-${i + 1}`,
+    createdAt: order.completedAt === '—' ? order.startTime : order.completedAt,
+    rebateUserNickname: `用户${i + 10}（${i % 2 === 0 ? '庄' : '闲'}）`,
+    rebateUserId: `MB${300000 + i}`,
+    parentNickname: `上级${i + 1}`,
+    parentId: `MB${400000 + i}`,
+    rebateAmt: `${(2 + i * 1.5).toFixed(2)}`,
+  }));
+
+// ── 应用费用 ───────────────────────────────────────────────────────
+// 三项明细枚举：东方彩票、七星百家乐、企业红包
+type AppFeeOrderType = '应用结算' | '主动分红';
+interface AppFeeBreakdown {
+  lottery: number;       // 东方彩票
+  baccarat: number;      // 七星百家乐
+  redpacket: number;     // 企业红包
+}
+interface AppFeeOrder {
+  id: string;
+  createdAt: string;
+  orderId: string;
+  orderType: AppFeeOrderType;
+  enterpriseProfitTotal: number;
+  appFeeTotal: number;
+  enterpriseProfitDetail: AppFeeBreakdown;
+  appFeeDetail: AppFeeBreakdown;
+  billingDay: string;    // YYYY-MM-DD
+  billingMonth: string;  // YYYY-MM
+}
+
+const APP_FEE_TYPES: AppFeeOrderType[] = ['应用结算', '主动分红'];
+
+const appFeeData: AppFeeOrder[] = mk(12).map((i) => {
+  const day = String((i % 28) + 1).padStart(2, '0');
+  const month = i % 2 === 0 ? '03' : '04';
+  const profit: AppFeeBreakdown = {
+    lottery: 1000 + i * 80,
+    baccarat: 600 + i * 50,
+    redpacket: 200 + i * 30,
+  };
+  const fee: AppFeeBreakdown = {
+    lottery: profit.lottery * 0.05,
+    baccarat: profit.baccarat * 0.05,
+    redpacket: profit.redpacket * 0.05,
+  };
+  return {
+    id: `AF${String(i + 1).padStart(5, '0')}`,
+    createdAt: `2026-${month}-${day} 09:${String(15 + i).padStart(2, '0')}:00`,
+    orderId: `AF${String(20260301 + i)}`,
+    orderType: APP_FEE_TYPES[i % 2],
+    enterpriseProfitTotal: profit.lottery + profit.baccarat + profit.redpacket,
+    appFeeTotal: fee.lottery + fee.baccarat + fee.redpacket,
+    enterpriseProfitDetail: profit,
+    appFeeDetail: fee,
+    billingDay: `2026-${month}-${day}`,
+    billingMonth: `2026-${month}`,
+  };
+});
+
+const formatMoney = (v: number) => v.toFixed(2);
+const formatBreakdown = (b: AppFeeBreakdown) =>
+  `东方彩票 ${formatMoney(b.lottery)} / 七星百家乐 ${formatMoney(b.baccarat)} / 企业红包 ${formatMoney(b.redpacket)}`;
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const EnterpriseDetail: React.FC = () => {
@@ -688,7 +841,7 @@ const EnterpriseDetail: React.FC = () => {
           <Space direction="vertical" size={12} style={{ display: 'flex' }}>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
               <RangePicker
-                placeholder={['开始时间', '结束时间']}
+                placeholder={['从', '到']}
                 onChange={(v) => setAppRange(v as [Dayjs, Dayjs] | null)}
               />
             </Card>
@@ -805,6 +958,218 @@ const EnterpriseDetail: React.FC = () => {
       })(),
     },
 
+    // ── 牛牛红包 ─────────────────────────────────────────────────
+    {
+      key: 'niuniuRedpacket',
+      label: '牛牛红包',
+      children: (() => {
+        const [nnStatus, setNnStatus] = useState('all');
+        const [nnPlay, setNnPlay] = useState('all');
+        const [nnRange, setNnRange] = useState<[Dayjs, Dayjs] | null>(null);
+        const [nnSearch, setNnSearch] = useState('');
+        const [orderDetail, setOrderDetail] = useState<NiuniuOrder | null>(null);
+        const [rebateDetail, setRebateDetail] = useState<NiuniuOrder | null>(null);
+
+        const niuniuColumns: ColumnsType<NiuniuOrder> = [
+          { title: '发起时间', dataIndex: 'startTime', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
+          { title: '订单ID', dataIndex: 'orderId', width: 140 },
+          {
+            title: '订单状态', dataIndex: 'status', width: 90,
+            render: (v: NiuniuStatus) => <Text style={{ color: '#141414' }}>{v}</Text>,
+          },
+          { title: '底注', dataIndex: 'baseBet', width: 100, align: 'right' },
+          { title: '红包数量', dataIndex: 'packetCount', width: 90, align: 'right' },
+          { title: '玩法', dataIndex: 'play', width: 80 },
+          { title: '赔率', dataIndex: 'odds', width: 90 },
+          {
+            title: '有效时长', dataIndex: 'validDuration', width: 90, align: 'right',
+            render: (v: number) => `${v}秒`,
+          },
+          {
+            title: '赔付金额', dataIndex: 'payoutAmt', width: 110, align: 'right',
+            render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+          },
+          {
+            title: '抽水金额', dataIndex: 'rakeAmt', width: 110, align: 'right',
+            render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+          },
+          {
+            title: '返佣金额', dataIndex: 'rebateAmt', width: 110, align: 'right',
+            render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+          },
+          { title: '庄家昵称', dataIndex: 'bankerNickname', width: 110 },
+          { title: '庄家ID', dataIndex: 'bankerId', width: 100 },
+          { title: '完成时间', dataIndex: 'completedAt', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
+          {
+            title: '操作', width: 140, fixed: 'right' as const,
+            render: (_: unknown, r: NiuniuOrder) => (
+              <Space size={4}>
+                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setOrderDetail(r)}>订单详情</Button>
+                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setRebateDetail(r)}>返佣详情</Button>
+              </Space>
+            ),
+          },
+        ];
+
+        const filtered = niuniuData.filter((d) =>
+          (nnStatus === 'all' || d.status === nnStatus) &&
+          (nnPlay === 'all' || d.play === nnPlay) &&
+          inRange(d.startTime, nnRange) &&
+          (!nnSearch || d.bankerNickname.includes(nnSearch) || d.bankerId.includes(nnSearch))
+        );
+
+        return (
+          <>
+            <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+                <Space size={16} wrap align="center">
+                  <FilterField label="订单状态">
+                    <ConfigProvider theme={radioTheme}>
+                      <Radio.Group value={nnStatus} onChange={(e) => setNnStatus(e.target.value)} buttonStyle="solid">
+                        <Radio.Button value="all">全部</Radio.Button>
+                        <Radio.Button value="已开奖">已开奖</Radio.Button>
+                        <Radio.Button value="未开奖">未开奖</Radio.Button>
+                      </Radio.Group>
+                    </ConfigProvider>
+                  </FilterField>
+                  <FilterField label="玩法">
+                    <ConfigProvider theme={radioTheme}>
+                      <Radio.Group value={nnPlay} onChange={(e) => setNnPlay(e.target.value)} buttonStyle="solid">
+                        <Radio.Button value="all">全部</Radio.Button>
+                        <Radio.Button value="庄比">庄比</Radio.Button>
+                        <Radio.Button value="通比">通比</Radio.Button>
+                      </Radio.Group>
+                    </ConfigProvider>
+                  </FilterField>
+                  <FilterField label="发起时间">
+                    <RangePicker placeholder={['从', '到']} onChange={(v) => setNnRange(v as [Dayjs, Dayjs] | null)} />
+                  </FilterField>
+                  <FilterField label="庄家">
+                    <Input
+                      suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                      placeholder="庄家昵称 / 庄家ID"
+                      value={nnSearch}
+                      onChange={(e) => setNnSearch(e.target.value)}
+                      allowClear
+                      style={{ width: 220 }}
+                    />
+                  </FilterField>
+                </Space>
+              </Card>
+              <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+                <Table
+                  columns={niuniuColumns}
+                  dataSource={filtered}
+                  rowKey="id"
+                  size="middle"
+                  scroll={{ x: 1800 }}
+                  pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                  rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+                />
+              </Card>
+            </Space>
+
+            {/* 订单详情 Modal：顶部概要区 + 领取记录表 */}
+            <Modal
+              title="订单详情"
+              open={!!orderDetail}
+              onCancel={() => setOrderDetail(null)}
+              footer={null}
+              width={1000}
+            >
+              {orderDetail && (
+                <>
+                  <div style={{
+                    background: '#fafafa',
+                    borderRadius: 8,
+                    padding: '12px 16px',
+                    marginTop: 12,
+                    marginBottom: 16,
+                    display: 'flex',
+                    gap: 32,
+                    alignItems: 'center',
+                  }}>
+                    <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
+                      玩法 <span style={{ color: '#141414', marginLeft: 4 }}>{orderDetail.play}</span>
+                    </Text>
+                    <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
+                      赔率 <span style={{ color: '#141414', marginLeft: 4 }}>{orderDetail.odds}</span>
+                    </Text>
+                    <Text style={{ fontSize: 13, color: 'rgba(0,0,0,0.45)' }}>
+                      订单状态 <span style={{ color: '#141414', marginLeft: 4 }}>{orderDetail.status}</span>
+                    </Text>
+                  </div>
+                  <Table
+                    size="small"
+                    rowKey="claimId"
+                    pagination={{ pageSize: 5, showTotal: (t) => `共 ${t} 条` }}
+                    rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+                    scroll={{ x: 1100 }}
+                    columns={[
+                      { title: '领取时间', dataIndex: 'claimTime', width: 160 },
+                      { title: '领取订单号', dataIndex: 'claimOrderId', width: 150 },
+                      { title: '用户昵称', dataIndex: 'userNickname', width: 100 },
+                      { title: '用户ID', dataIndex: 'userId', width: 100 },
+                      { title: '用户IP', dataIndex: 'userIp', width: 130 },
+                      {
+                        title: '领取金额', dataIndex: 'claimAmount', width: 100, align: 'right',
+                        render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+                      },
+                      { title: '牌面', dataIndex: 'face', width: 80 },
+                      {
+                        title: '本局盈亏', dataIndex: 'roundPnl', width: 100, align: 'right',
+                        render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+                      },
+                      {
+                        title: '到账', dataIndex: 'arrival', width: 100, align: 'right',
+                        render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+                      },
+                      {
+                        title: '抽水', dataIndex: 'rake', width: 100, align: 'right',
+                        render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+                      },
+                    ]}
+                    dataSource={buildNiuniuClaims(orderDetail)}
+                  />
+                </>
+              )}
+            </Modal>
+
+            {/* 返佣详情 Modal：返佣链路 庄家 → 下级领取者 → 上级（推荐人） */}
+            <Modal
+              title="返佣详情"
+              open={!!rebateDetail}
+              onCancel={() => setRebateDetail(null)}
+              footer={null}
+              width={800}
+            >
+              {rebateDetail && (
+                <Table
+                  size="small"
+                  rowKey="rebateId"
+                  pagination={{ pageSize: 5, showTotal: (t) => `共 ${t} 条` }}
+                  rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+                  style={{ marginTop: 12 }}
+                  columns={[
+                    { title: '创建时间', dataIndex: 'createdAt', width: 160 },
+                    { title: '返佣任务ID', dataIndex: 'rebateId', width: 130 },
+                    { title: '用户昵称', dataIndex: 'rebateUserNickname', width: 130 },
+                    { title: '用户ID', dataIndex: 'rebateUserId', width: 120 },
+                    { title: '上级昵称', dataIndex: 'parentNickname', width: 100 },
+                    { title: '上级ID', dataIndex: 'parentId', width: 100 },
+                    {
+                      title: '返佣金额', dataIndex: 'rebateAmt', width: 110, align: 'right',
+                      render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+                    },
+                  ]}
+                  dataSource={buildNiuniuRebates(rebateDetail)}
+                />
+              )}
+            </Modal>
+          </>
+        );
+      })(),
+    },
     // ── 东方彩票 ─────────────────────────────────────────────────
     {
       key: 'lottery',
@@ -864,6 +1229,102 @@ const EnterpriseDetail: React.FC = () => {
               <Table columns={lotteryColumns} dataSource={filtered} rowKey="id" size="middle"
                 scroll={{ x: 1400 }} pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
                 rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')} />
+            </Card>
+          </Space>
+        );
+      })(),
+    },
+
+    // ── 应用费用 ─────────────────────────────────────────────────
+    {
+      key: 'appFee',
+      label: '应用费用',
+      children: (() => {
+        const [afType, setAfType] = useState('all');
+        const [afCreatedRange, setAfCreatedRange] = useState<[Dayjs, Dayjs] | null>(null);
+        const [afBillingMonth, setAfBillingMonth] = useState<Dayjs | null>(null);
+        const [afBillingDay, setAfBillingDay] = useState<Dayjs | null>(null);
+        const [afSearch, setAfSearch] = useState('');
+
+        const appFeeColumns: ColumnsType<AppFeeOrder> = [
+          { title: '创建时间', dataIndex: 'createdAt', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
+          { title: '订单编号', dataIndex: 'orderId', width: 140 },
+          { title: '订单类型', dataIndex: 'orderType', width: 100 },
+          {
+            title: '企业盈利总额', dataIndex: 'enterpriseProfitTotal', width: 130, align: 'right',
+            render: (v: number) => <Text style={{ color: '#141414' }}>{formatMoney(v)}</Text>,
+          },
+          {
+            title: '应用费用总额', dataIndex: 'appFeeTotal', width: 130, align: 'right',
+            render: (v: number) => <Text style={{ color: '#141414' }}>{formatMoney(v)}</Text>,
+          },
+          {
+            title: '企业盈利明细', dataIndex: 'enterpriseProfitDetail', width: 360,
+            render: (b: AppFeeBreakdown) => <span style={{ whiteSpace: 'nowrap' }}>{formatBreakdown(b)}</span>,
+          },
+          {
+            title: '应用费用明细', dataIndex: 'appFeeDetail', width: 360,
+            render: (b: AppFeeBreakdown) => <span style={{ whiteSpace: 'nowrap' }}>{formatBreakdown(b)}</span>,
+          },
+          { title: '账单日', dataIndex: 'billingDay', width: 110 },
+          { title: '账单月', dataIndex: 'billingMonth', width: 90 },
+        ];
+
+        const filtered = appFeeData.filter((d) =>
+          (afType === 'all' || d.orderType === afType) &&
+          inRange(d.createdAt, afCreatedRange) &&
+          (!afBillingMonth || d.billingMonth === afBillingMonth.format('YYYY-MM')) &&
+          (!afBillingDay || d.billingDay === afBillingDay.format('YYYY-MM-DD')) &&
+          (!afSearch || d.orderId.includes(afSearch))
+        );
+
+        return (
+          <Space direction="vertical" size={12} style={{ display: 'flex' }}>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Space size={16} wrap align="center">
+                <FilterField label="订单类型">
+                  <ConfigProvider theme={radioTheme}>
+                    <Radio.Group value={afType} onChange={(e) => setAfType(e.target.value)} buttonStyle="solid">
+                      <Radio.Button value="all">全部</Radio.Button>
+                      <Radio.Button value="应用结算">应用结算</Radio.Button>
+                      <Radio.Button value="主动分红">主动分红</Radio.Button>
+                    </Radio.Group>
+                  </ConfigProvider>
+                </FilterField>
+                <FilterField label="创建时间">
+                  <RangePicker
+                    placeholder={['从', '到']}
+                    onChange={(v) => setAfCreatedRange(v as [Dayjs, Dayjs] | null)}
+                  />
+                </FilterField>
+                <FilterField label="账单月">
+                  <DatePicker picker="month" placeholder="账单月" value={afBillingMonth} onChange={setAfBillingMonth} />
+                </FilterField>
+                <FilterField label="账单日">
+                  <DatePicker placeholder="账单日" value={afBillingDay} onChange={setAfBillingDay} />
+                </FilterField>
+                <FilterField label="订单编号">
+                  <Input
+                    suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                    placeholder="订单编号"
+                    value={afSearch}
+                    onChange={(e) => setAfSearch(e.target.value)}
+                    allowClear
+                    style={{ width: 200 }}
+                  />
+                </FilterField>
+              </Space>
+            </Card>
+            <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
+              <Table
+                columns={appFeeColumns}
+                dataSource={filtered}
+                rowKey="id"
+                size="middle"
+                scroll={{ x: 1700 }}
+                pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
+                rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
+              />
             </Card>
           </Space>
         );

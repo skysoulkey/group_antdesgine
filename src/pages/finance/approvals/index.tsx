@@ -7,6 +7,7 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 import ApprovalRulesTab from './ApprovalRulesTab';
 import ApprovalPermissionsTab from './ApprovalPermissionsTab';
 
@@ -339,52 +340,62 @@ const ApprovalListTab: React.FC = () => {
     <div ref={containerRef}>
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <Space size={16} wrap align="center" style={{ marginBottom: 16 }}>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={eventFilter ?? '全部'}
-              onChange={(e) => setEventFilter(e.target.value === '全部' ? undefined : e.target.value)}
-              buttonStyle="solid"
-            >
-              {[{ value: '全部', label: '全部类型' }, ...Object.entries(EVENT_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
-                <Radio.Button key={item.value} value={item.value}>
-                  {item.label}
-                </Radio.Button>
-              ))}
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={statusFilter ?? '全部'}
-              onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
-              buttonStyle="solid"
-            >
-              {[{ value: '全部', label: '全部状态' }, ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
-                <Radio.Button key={item.value} value={item.value}>
-                  {item.label}
-                </Radio.Button>
-              ))}
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={radioTheme}>
-            <Radio.Group
-              value={orderStatusFilter ?? '全部'}
-              onChange={(e) => setOrderStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
-              buttonStyle="solid"
-            >
-              {[{ value: '全部', label: '全部订单状态' }, ...Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
-                <Radio.Button key={item.value} value={item.value}>{item.label}</Radio.Button>
-              ))}
-            </Radio.Group>
-          </ConfigProvider>
-          <Select
-            placeholder="触发方企业"
-            value={companyFilter}
-            onChange={setCompanyFilter}
-            allowClear
-            style={{ width: 160 }}
-            options={companyOptions}
-          />
-          <RangePicker onChange={(dates) => setDateRange(dates as [any, any] | null)} />
+          <FilterField label="订单类型">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={eventFilter ?? '全部'}
+                onChange={(e) => setEventFilter(e.target.value === '全部' ? undefined : e.target.value)}
+                buttonStyle="solid"
+              >
+                {[{ value: '全部', label: '全部' }, ...Object.entries(EVENT_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
+                  <Radio.Button key={item.value} value={item.value}>
+                    {item.label}
+                  </Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="审批状态">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={statusFilter ?? '全部'}
+                onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
+                buttonStyle="solid"
+              >
+                {[{ value: '全部', label: '全部' }, ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
+                  <Radio.Button key={item.value} value={item.value}>
+                    {item.label}
+                  </Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="订单状态">
+            <ConfigProvider theme={radioTheme}>
+              <Radio.Group
+                value={orderStatusFilter ?? '全部'}
+                onChange={(e) => setOrderStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
+                buttonStyle="solid"
+              >
+                {[{ value: '全部', label: '全部' }, ...Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({ value, label }))].map((item) => (
+                  <Radio.Button key={item.value} value={item.value}>{item.label}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="触发方企业">
+            <Select
+              placeholder="请选择"
+              value={companyFilter}
+              onChange={setCompanyFilter}
+              allowClear
+              style={{ width: 160 }}
+              options={companyOptions}
+            />
+          </FilterField>
+          <FilterField label="订单时间">
+            <RangePicker placeholder={['从', '到']} onChange={(dates) => setDateRange(dates as [any, any] | null)} />
+          </FilterField>
         </Space>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>

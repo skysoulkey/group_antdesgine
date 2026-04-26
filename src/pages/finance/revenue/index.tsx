@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 
 const { Text } = Typography;
 
@@ -105,18 +106,22 @@ const FinanceRevenuePage: React.FC = () => {
       {/* 账单列表 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Space style={{ marginBottom: 16 }} wrap align="center">
-          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-            <Radio.Group
-              buttonStyle="solid"
-              value={statusFilter ?? '全部'}
-              onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
-            >
-              {(['全部', '未出账单', '已出账单'] as const).map((v) => (
-                <Radio.Button key={v} value={v}>{v}</Radio.Button>
-              ))}
-            </Radio.Group>
-          </ConfigProvider>
-          <DatePicker picker="month" placeholder="汇算月份" onChange={(_, v) => setMonth(v as string)} style={{ width: 150 }} />
+          <FilterField label="账单状态">
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group
+                buttonStyle="solid"
+                value={statusFilter ?? '全部'}
+                onChange={(e) => setStatusFilter(e.target.value === '全部' ? undefined : e.target.value)}
+              >
+                {(['全部', '未出账单', '已出账单'] as const).map((v) => (
+                  <Radio.Button key={v} value={v}>{v}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="汇算月份">
+            <DatePicker picker="month" placeholder="账单月" onChange={(_, v) => setMonth(v as string)} style={{ width: 150 }} />
+          </FilterField>
         </Space>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <Text style={{ fontSize: 14, fontWeight: 600 }}>账单列表</Text>

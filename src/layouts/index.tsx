@@ -3,7 +3,9 @@ import {
   BankOutlined,
   BellOutlined,
   BarChartOutlined,
+  CloseOutlined,
   FileTextOutlined,
+  LinkOutlined,
   LogoutOutlined,
   SettingOutlined,
   StockOutlined,
@@ -150,6 +152,8 @@ const tabBreadcrumbMap: Record<string, Record<string, string[]>> = {
     redpacket:     ['企业管理', '企业清单', '应用红包'],
     lottery:       ['企业管理', '企业清单', '东方彩票'],
     commission:    ['企业管理', '企业清单', '佣金订单'],
+    niuniuRedpacket: ['企业管理', '企业清单', '牛牛红包'],
+    appFee:        ['企业管理', '企业清单', '应用费用'],
   },
   '/system/logs': {
     login:     ['设置中心', '系统日志', '登录日志'],
@@ -227,6 +231,12 @@ const MainLayout: React.FC = () => {
     setAuth(newAuth);
     navigate(defaultRoute(newAuth.roles));
   };
+
+  // UU 账号绑定引导
+  // TODO: 替换为真实的 UU 账号绑定状态判断
+  const hasUUAccount = false;
+  const [uuBannerDismissed, setUuBannerDismissed] = useState(false);
+  const showUUBanner = !hasUUAccount && !uuBannerDismissed;
 
   // 站内通知状态
   const [inbox, setInbox] = useState<InboxItem[]>(initInbox);
@@ -420,6 +430,36 @@ const MainLayout: React.FC = () => {
           borderBottom: '1px solid #f0f0f0',
         }}>
           <Breadcrumb items={breadcrumbs.map((b) => ({ title: b }))} />
+
+          {showUUBanner && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '0 12px',
+                height: 28,
+                borderRadius: 14,
+                background: '#e6f4ff',
+                border: '1px solid #bae0ff',
+                fontSize: 12,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <LinkOutlined style={{ fontSize: 12, color: '#1677ff' }} />
+              <Text style={{ fontSize: 12, color: '#141414' }}>请绑定 UU 账号以接收通知</Text>
+              <a
+                style={{ fontSize: 12, color: '#1677ff', fontWeight: 500 }}
+                onClick={() => navigate('/system/profile')}
+              >
+                前往绑定
+              </a>
+              <CloseOutlined
+                style={{ fontSize: 10, color: 'rgba(0,0,0,0.25)', cursor: 'pointer', marginLeft: 2 }}
+                onClick={() => setUuBannerDismissed(true)}
+              />
+            </div>
+          )}
 
           <Space size={16}>
             <Select

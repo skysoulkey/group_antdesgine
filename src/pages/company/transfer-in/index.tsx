@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, Row, Col, Input, Table, Tag, DatePicker, Typography, ConfigProvider, Radio } from 'antd';
 import { SearchOutlined, SwapOutlined, ArrowDownOutlined, ArrowUpOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import FilterField from '../../../components/FilterField';
 
 const { RangePicker } = DatePicker;
 const { Text } = Typography;
@@ -91,30 +92,40 @@ export default function CompanyTransferIn() {
       </div>
       <Row gutter={16} style={{ marginBottom: 16 }}>
         <Col>
-          <Input prefix={<SearchOutlined />} placeholder="划转单号 / 公司名称"
-            value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
+          <FilterField label="划转单号">
+            <Input prefix={<SearchOutlined />} placeholder="划转单号 / 公司名称"
+              value={search} onChange={e => setSearch(e.target.value)} allowClear style={{ width: 280 }} />
+          </FilterField>
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-            <Radio.Group buttonStyle="solid" value={directionFilter ?? 'all'}
-              onChange={e => setDirectionFilter(e.target.value === 'all' ? undefined : e.target.value)}>
-              {[{ v: 'all', label: '全部' }, { v: 'in', label: '划入' }, { v: 'out', label: '划出' }].map(({ v, label }) => (
-                <Radio.Button key={v} value={v}>{label}</Radio.Button>
-              ))}
-            </Radio.Group>
-          </ConfigProvider>
+          <FilterField label="方向">
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group buttonStyle="solid" value={directionFilter ?? 'all'}
+                onChange={e => setDirectionFilter(e.target.value === 'all' ? undefined : e.target.value)}>
+                {[{ v: 'all', label: '全部' }, { v: 'in', label: '划入' }, { v: 'out', label: '划出' }].map(({ v, label }) => (
+                  <Radio.Button key={v} value={v}>{label}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
         </Col>
         <Col>
-          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-            <Radio.Group buttonStyle="solid" value={statusFilter ?? 'all'}
-              onChange={e => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}>
-              {[{ v: 'all', label: '全部' }, { v: 'success', label: '成功' }, { v: 'pending', label: '处理中' }, { v: 'failed', label: '失败' }].map(({ v, label }) => (
-                <Radio.Button key={v} value={v}>{label}</Radio.Button>
-              ))}
-            </Radio.Group>
-          </ConfigProvider>
+          <FilterField label="状态">
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group buttonStyle="solid" value={statusFilter ?? 'all'}
+                onChange={e => setStatusFilter(e.target.value === 'all' ? undefined : e.target.value)}>
+                {[{ v: 'all', label: '全部' }, { v: 'success', label: '成功' }, { v: 'pending', label: '处理中' }, { v: 'failed', label: '失败' }].map(({ v, label }) => (
+                  <Radio.Button key={v} value={v}>{label}</Radio.Button>
+                ))}
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
         </Col>
-        <Col><RangePicker style={{ width: 280 }} /></Col>
+        <Col>
+          <FilterField label="创建时间">
+            <RangePicker style={{ width: 280 }} placeholder={['从', '到']} />
+          </FilterField>
+        </Col>
       </Row>
       <Table dataSource={filtered} columns={columns} rowKey="id" size="middle" scroll={{ x: 1300 }}
         rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}

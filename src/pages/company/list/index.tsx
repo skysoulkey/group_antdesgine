@@ -24,6 +24,7 @@ import type { ColumnsType } from 'antd/es/table';
 import React, { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 import { ROLE_ROUTES } from '../../../utils/auth';
 
 const { Text } = Typography;
@@ -322,27 +323,31 @@ const CompanyListPage: React.FC = () => {
       {/* 筛选卡片 */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)' }}>
         <Space size={16} wrap align="center">
-          <ConfigProvider theme={{ components: { Segmented: {
-            trackBg: '#e6f4ff',
-            itemSelectedBg: '#1677ff',
-            itemSelectedColor: '#ffffff',
-            itemColor: '#1677ff',
-          } } }}>
-            <Segmented
-              options={['USDT', 'PEA']}
-              value={currency}
-              onChange={(v) => setCurrency(v as string)}
-              style={{ fontWeight: 600 }}
+          <FilterField label="货币单位">
+            <ConfigProvider theme={{ components: { Segmented: {
+              trackBg: '#e6f4ff',
+              itemSelectedBg: '#1677ff',
+              itemSelectedColor: '#ffffff',
+              itemColor: '#1677ff',
+            } } }}>
+              <Segmented
+                options={['USDT', 'PEA']}
+                value={currency}
+                onChange={(v) => setCurrency(v as string)}
+                style={{ fontWeight: 600 }}
+              />
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="公司">
+            <Input
+              prefix={<SearchOutlined />}
+              placeholder="请输入公司名称或公司ID"
+              value={searchVal}
+              onChange={(e) => setSearchVal(e.target.value)}
+              allowClear
+              style={{ maxWidth: 360 }}
             />
-          </ConfigProvider>
-          <Input
-            prefix={<SearchOutlined />}
-            placeholder="请输入公司名称或公司ID"
-            value={searchVal}
-            onChange={(e) => setSearchVal(e.target.value)}
-            allowClear
-            style={{ maxWidth: 360 }}
-          />
+          </FilterField>
           <Button
             type="primary"
             icon={<PlusOutlined />}

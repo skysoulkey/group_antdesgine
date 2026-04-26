@@ -7,6 +7,7 @@ import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useCallback, useRef, useState } from 'react';
 import TableToolbar from '../../../components/TableToolbar';
+import FilterField from '../../../components/FilterField';
 import { useNavigate } from 'umi';
 import { CARD_SHADOW } from './constants';
 
@@ -172,34 +173,40 @@ const WalletPage: React.FC = () => {
       {/* ── 订单筛选 ────────────────────────────────────────────────── */}
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW, marginBottom: 12 }}>
         <Space size={16} wrap align="center">
-          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-            <Radio.Group
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="全部">全部类型</Radio.Button>
-              <Radio.Button value="充值">充值</Radio.Button>
-              <Radio.Button value="转出">转出</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
-            <Radio.Group
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              buttonStyle="solid"
-            >
-              <Radio.Button value="全部">全部状态</Radio.Button>
-              <Radio.Button value="待审批">待审批</Radio.Button>
-              <Radio.Button value="成功">成功</Radio.Button>
-              <Radio.Button value="失败">失败</Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
-          <DatePicker.RangePicker
-            style={{ width: 240 }}
-            placeholder={['开始时间', '结束时间']}
-            onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
-          />
+          <FilterField label="类型">
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="充值">充值</Radio.Button>
+                <Radio.Button value="转出">转出</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="状态">
+            <ConfigProvider theme={{ components: { Radio: { buttonSolidCheckedBg: '#1677ff', buttonSolidCheckedHoverBg: '#4096ff', buttonSolidCheckedActiveBg: '#0958d9', buttonSolidCheckedColor: '#fff', colorPrimary: '#1677ff' } } }}>
+              <Radio.Group
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                buttonStyle="solid"
+              >
+                <Radio.Button value="全部">全部</Radio.Button>
+                <Radio.Button value="待审批">待审批</Radio.Button>
+                <Radio.Button value="成功">成功</Radio.Button>
+                <Radio.Button value="失败">失败</Radio.Button>
+              </Radio.Group>
+            </ConfigProvider>
+          </FilterField>
+          <FilterField label="发起时间">
+            <DatePicker.RangePicker
+              style={{ width: 240 }}
+              placeholder={['从', '到']}
+              onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)}
+            />
+          </FilterField>
         </Space>
       </Card>
 
