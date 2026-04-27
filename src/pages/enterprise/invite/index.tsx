@@ -1,5 +1,5 @@
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
-import { Button, Card, ConfigProvider, DatePicker, Form, Input, Modal, Radio, Space, Table, Tag, Typography, message } from 'antd';
+import { Button, Card, ConfigProvider, DatePicker, Form, Input, Modal, Radio, Space, Table, Tag, Tooltip, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import React, { useState, useRef, useCallback } from 'react';
 import TableToolbar from '../../../components/TableToolbar';
@@ -37,11 +37,14 @@ interface InviteRecord {
   codeExpiry: string;
   inviteStatus: '已接受' | '未接受';
   codeStatus: '有效' | '无效';
+  remark: string;  // 备注（选填，最大 50 字）
   details: InviteDetail[];
 }
 
 const MOCK_ENTERPRISE_NAMES = ['StarTech', 'GoldLink', 'CyberBot', 'UUtalk', 'hey', 'NovaPay', 'SkyNet', 'BlueWave', 'FinCore', 'TopCloud'];
 const MOCK_OWNER_NAMES = ['alice', 'bob', 'charlie', 'david', 'eva', 'frank', 'grace', 'henry', 'ivy', 'jack'];
+
+const MOCK_REMARKS = ['Q4 重点合作伙伴', '老朋友介绍', '展会接洽', '官方运营拓展', '试用申请', ''];
 
 const mockData: InviteRecord[] = Array.from({ length: 18 }, (_, i) => {
   const accepted = i % 3 !== 0;
@@ -60,6 +63,7 @@ const mockData: InviteRecord[] = Array.from({ length: 18 }, (_, i) => {
     codeExpiry: i % 5 === 0 ? '永久有效' : `2025-${String(5 + (i % 7)).padStart(2, '0')}-${String(i + 1).padStart(2, '0')} 14:23:13`,
     inviteStatus: accepted ? '已接受' : '未接受',
     codeStatus: i % 4 === 3 ? '无效' : '有效',
+    remark: MOCK_REMARKS[i % MOCK_REMARKS.length],
     details,
   };
 });
@@ -116,6 +120,7 @@ const EnterpriseInvitePage: React.FC = () => {
         codeExpiry: expiry,
         inviteStatus: '未接受',
         codeStatus: '有效',
+        remark: (values.remark ?? '').trim(),
         details: [],
       };
       setData([newRecord, ...data]);
@@ -150,6 +155,13 @@ const EnterpriseInvitePage: React.FC = () => {
       render: (v) => <Tag color={v === '有效' ? 'blue' : 'default'}>{v}</Tag>,
     },
     { title: '邀请企业数', width: 100, align: 'right', render: (_, record) => record.details.length },
+    {
+      title: '备注', dataIndex: 'remark', width: 200, ellipsis: { showTitle: false },
+      render: (v: string) =>
+        v
+          ? <Tooltip title={v} placement="topLeft"><span>{v}</span></Tooltip>
+          : <span style={{ color: 'rgba(0,0,0,0.25)' }}>—</span>,
+    },
     {
       title: '操作', width: 80, align: 'center',
       render: (_, record) => (
@@ -288,6 +300,18 @@ const EnterpriseInvitePage: React.FC = () => {
               />
             </Form.Item>
           )}
+          <Form.Item
+            label="备注"
+            name="remark"
+            rules={[{ max: 50, message: '备注不超过 50 字' }]}
+          >
+            <Input.TextArea
+              placeholder="选填，最多 50 字"
+              maxLength={50}
+              showCount
+              autoSize={{ minRows: 2, maxRows: 4 }}
+            />
+          </Form.Item>
         </Form>
       </Modal>
     </div>
