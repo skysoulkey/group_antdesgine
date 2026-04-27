@@ -30,6 +30,7 @@ export default defineConfig({
     { path: '/enterprise/list',       component: 'enterprise/list/index' },
     { path: '/enterprise/invite',     component: 'enterprise/invite/index' },
     { path: '/enterprise/detail/:id', component: 'enterprise/detail/index' },
+    { path: '/enterprise/tax',        component: 'enterprise/tax/index' },
 
     // 公司订单
     { path: '/orders/lottery', component: 'orders/lottery/index' },

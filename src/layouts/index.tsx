@@ -10,6 +10,7 @@ import {
   SettingOutlined,
   StockOutlined,
   UserOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
 import logoImg from '../assets/logo.svg';
 import { Badge, Breadcrumb, Button, Divider, Layout, List, Menu, Popover, Select, Space, Typography, Watermark } from 'antd';
@@ -61,6 +62,17 @@ const allMenuItems: MenuItem[] = [
     ],
   },
   {
+    key: 'finance',
+    icon: <WalletOutlined />,
+    label: '公司财务',
+    roles: ['company_owner', 'company_finance'],
+    children: [
+      { key: '/enterprise/tax',     label: '企业税收', roles: ['company_owner', 'company_finance'] },
+      { key: '/finance/my-wallet',  label: '公司钱包', roles: ['company_owner', 'company_finance'] },
+      { key: '/finance/all-wallet', label: '全公司钱包', roles: ['company_owner', 'company_finance'] },
+    ],
+  },
+  {
     key: 'enterprise',
     icon: <ApartmentOutlined />,
     label: '企业管理',
@@ -85,8 +97,6 @@ const allMenuItems: MenuItem[] = [
     icon: <SettingOutlined />,
     label: '设置中心',
     children: [
-      { key: '/finance/my-wallet',      label: '公司钱包',  roles: ['company_owner', 'company_finance'] },
-      { key: '/finance/all-wallet',     label: '全公司钱包', roles: ['company_owner', 'company_finance'] },
       { key: '/finance/wallet',         label: '集团钱包',  roles: ['group_owner', 'group_finance'] },
       { key: '/system/profile',         label: '个人中心' },
       { key: '/system/users',           label: '用户管理',  roles: ['group_owner', 'company_owner'] },
@@ -121,10 +131,11 @@ const breadcrumbMap: Record<string, string[]> = {
   '/company/transfer':       ['集团管理', '内部划转'],
   '/enterprise/list':        ['企业管理', '企业清单'],
   '/enterprise/invite':      ['企业管理', '邀请企业'],
+  '/enterprise/tax':         ['公司财务', '企业税收'],
   '/orders/lottery':         ['公司订单', '东方彩票'],
   '/commission':             ['公司订单', '佣金订单'],
-  '/finance/my-wallet':      ['设置中心', '公司钱包'],
-  '/finance/all-wallet':       ['设置中心', '全公司钱包'],
+  '/finance/my-wallet':      ['公司财务', '公司钱包'],
+  '/finance/all-wallet':     ['公司财务', '全公司钱包'],
   '/finance/wallet':             ['设置中心', '集团钱包'],
   '/finance/wallet/bind-account': ['设置中心', '集团钱包', '修改绑定账号'],
   '/system/profile':         ['设置中心', '个人中心'],

@@ -2,6 +2,26 @@
 
 ## 2026-04-26
 
+### 新增一级菜单：公司财务
+
+- **菜单结构**：新增一级菜单「公司财务」（icon `WalletOutlined`），位于「公司管理」之后、「企业管理」之前
+- **子菜单（3 项）**：
+  - 企业税收 `/enterprise/tax`（**重新启用**，之前路由/菜单都被隐藏了；页面源码本就在 `src/pages/enterprise/tax/index.tsx`）
+  - 公司钱包 `/finance/my-wallet`（从「设置中心」迁出）
+  - 全公司钱包 `/finance/all-wallet`（从「设置中心」迁出）
+- **可见角色**：`company_owner` + `company_finance`（公司主 + 公司财务）
+- **路由**：`.umirc.ts` 增加 `/enterprise/tax` 注册
+- **权限**（`src/utils/auth.ts` ROLE_ROUTES）：
+  - `company_owner` 加入 `/enterprise/tax`
+  - `company_finance` 加入 `/enterprise/tax`
+- **面包屑**：
+  - `/enterprise/tax → ['公司财务', '企业税收']`
+  - `/finance/my-wallet → ['公司财务', '公司钱包']`（原"设置中心"）
+  - `/finance/all-wallet → ['公司财务', '全公司钱包']`（原"设置中心"）
+- **设置中心** 移除「公司钱包」「全公司钱包」两项
+
+## 2026-04-26（同日早些时候）
+
 ### 重大约定：筛选区控件必须带字段名前缀，时间 placeholder 统一「从/到」
 
 - **新规范** `src/styles/design-spec.md` 第 9.0 节 / 9.0.1 节
