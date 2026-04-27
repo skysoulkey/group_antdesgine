@@ -291,7 +291,7 @@ const commissionData: CommissionOrder[] = mk(8).map((i) => ({
   commission: `${(200 + i * 80).toLocaleString()}.00`,
 }));
 
-// ── 应用红包 ───────────────────────────────────────────────────────
+// ── 踩雷红包 ───────────────────────────────────────────────────────
 interface RedPacket {
   id: string; startTime: string; orderId: string; senderId: string; senderNickname: string;
   groupId: string; groupName: string; amount: string; quantity: number; mineCount: number;
@@ -856,10 +856,10 @@ const EnterpriseDetail: React.FC = () => {
       })(),
     },
 
-    // ── 应用红包 ─────────────────────────────────────────────────
+    // ── 踩雷红包 ─────────────────────────────────────────────────
     {
       key: 'redpacket',
-      label: '应用红包',
+      label: '踩雷红包',
       children: (() => {
         const [rpStatus, setRpStatus] = useState('all');
         const [rpRange, setRpRange] = useState<[Dayjs, Dayjs] | null>(null);

@@ -160,7 +160,7 @@ const tabBreadcrumbMap: Record<string, Record<string, string[]>> = {
     dividend:      ['企业管理', '企业清单', '投资分红'],
     sharesTrade:   ['企业管理', '企业清单', '股份交易'],
     apps:          ['企业管理', '企业清单', '开通应用'],
-    redpacket:     ['企业管理', '企业清单', '应用红包'],
+    redpacket:     ['企业管理', '企业清单', '踩雷红包'],
     lottery:       ['企业管理', '企业清单', '东方彩票'],
     commission:    ['企业管理', '企业清单', '佣金订单'],
     niuniuRedpacket: ['企业管理', '企业清单', '牛牛红包'],
