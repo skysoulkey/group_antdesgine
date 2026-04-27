@@ -450,12 +450,11 @@ interface AppFeeOrder {
   createdAt: string;
   orderId: string;
   orderType: AppFeeOrderType;
-  enterpriseProfitTotal: number;
   appFeeTotal: number;
   enterpriseProfitDetail: AppFeeBreakdown;
   appFeeDetail: AppFeeBreakdown;
-  billingDay: string;    // YYYY-MM-DD
-  billingMonth: string;  // YYYY-MM
+  billingPeriodStart: string; // YYYY-MM-DD HH:mm:ss
+  billingPeriodEnd: string;   // YYYY-MM-DD HH:mm:ss
 }
 
 const APP_FEE_TYPES: AppFeeOrderType[] = ['应用结算', '主动分红'];
@@ -463,6 +462,9 @@ const APP_FEE_TYPES: AppFeeOrderType[] = ['应用结算', '主动分红'];
 const appFeeData: AppFeeOrder[] = mk(12).map((i) => {
   const day = String((i % 28) + 1).padStart(2, '0');
   const month = i % 2 === 0 ? '03' : '04';
+  // 上一日的 00:00:00 ~ 当日的 00:00:00（自然日账单周期）
+  const prevDay = String(((i % 28) + 1) === 1 ? 28 : (i % 28)).padStart(2, '0');
+  const prevMonth = ((i % 28) + 1) === 1 ? (i % 2 === 0 ? '02' : '03') : month;
   const profit: AppFeeBreakdown = {
     lottery: 1000 + i * 80,
     baccarat: 600 + i * 50,
@@ -478,12 +480,11 @@ const appFeeData: AppFeeOrder[] = mk(12).map((i) => {
     createdAt: `2026-${month}-${day} 09:${String(15 + i).padStart(2, '0')}:00`,
     orderId: `AF${String(20260301 + i)}`,
     orderType: APP_FEE_TYPES[i % 2],
-    enterpriseProfitTotal: profit.lottery + profit.baccarat + profit.redpacket,
     appFeeTotal: fee.lottery + fee.baccarat + fee.redpacket,
     enterpriseProfitDetail: profit,
     appFeeDetail: fee,
-    billingDay: `2026-${month}-${day}`,
-    billingMonth: `2026-${month}`,
+    billingPeriodStart: `2026-${prevMonth}-${prevDay} 00:00:00`,
+    billingPeriodEnd: `2026-${month}-${day} 00:00:00`,
   };
 });
 
@@ -1242,18 +1243,13 @@ const EnterpriseDetail: React.FC = () => {
       children: (() => {
         const [afType, setAfType] = useState('all');
         const [afCreatedRange, setAfCreatedRange] = useState<[Dayjs, Dayjs] | null>(null);
-        const [afBillingMonth, setAfBillingMonth] = useState<Dayjs | null>(null);
-        const [afBillingDay, setAfBillingDay] = useState<Dayjs | null>(null);
+        const [afBillingRange, setAfBillingRange] = useState<[Dayjs, Dayjs] | null>(null);
         const [afSearch, setAfSearch] = useState('');
 
         const appFeeColumns: ColumnsType<AppFeeOrder> = [
           { title: '创建时间', dataIndex: 'createdAt', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
           { title: '订单编号', dataIndex: 'orderId', width: 140 },
           { title: '订单类型', dataIndex: 'orderType', width: 100 },
-          {
-            title: '企业盈利总额', dataIndex: 'enterpriseProfitTotal', width: 130, align: 'right',
-            render: (v: number) => <Text style={{ color: '#141414' }}>{formatMoney(v)}</Text>,
-          },
           {
             title: '应用费用总额', dataIndex: 'appFeeTotal', width: 130, align: 'right',
             render: (v: number) => <Text style={{ color: '#141414' }}>{formatMoney(v)}</Text>,
@@ -1266,17 +1262,30 @@ const EnterpriseDetail: React.FC = () => {
             title: '应用费用明细', dataIndex: 'appFeeDetail', width: 360,
             render: (b: AppFeeBreakdown) => <span style={{ whiteSpace: 'nowrap' }}>{formatBreakdown(b)}</span>,
           },
-          { title: '账单日', dataIndex: 'billingDay', width: 110 },
-          { title: '账单月', dataIndex: 'billingMonth', width: 90 },
+          {
+            title: '账单周期', width: 320,
+            render: (_: unknown, r: AppFeeOrder) => (
+              <span style={{ whiteSpace: 'nowrap' }}>{r.billingPeriodStart} ~ {r.billingPeriodEnd}</span>
+            ),
+          },
         ];
 
-        const filtered = appFeeData.filter((d) =>
-          (afType === 'all' || d.orderType === afType) &&
-          inRange(d.createdAt, afCreatedRange) &&
-          (!afBillingMonth || d.billingMonth === afBillingMonth.format('YYYY-MM')) &&
-          (!afBillingDay || d.billingDay === afBillingDay.format('YYYY-MM-DD')) &&
-          (!afSearch || d.orderId.includes(afSearch))
-        );
+        const filtered = appFeeData.filter((d) => {
+          // 账单周期与筛选范围是否有重叠
+          let billingHit = true;
+          if (afBillingRange) {
+            const [from, to] = afBillingRange;
+            const start = dayjs(d.billingPeriodStart);
+            const end = dayjs(d.billingPeriodEnd);
+            billingHit = !start.isAfter(to.endOf('day')) && !end.isBefore(from.startOf('day'));
+          }
+          return (
+            (afType === 'all' || d.orderType === afType) &&
+            inRange(d.createdAt, afCreatedRange) &&
+            billingHit &&
+            (!afSearch || d.orderId.includes(afSearch))
+          );
+        });
 
         return (
           <Space direction="vertical" size={12} style={{ display: 'flex' }}>
@@ -1297,11 +1306,11 @@ const EnterpriseDetail: React.FC = () => {
                     onChange={(v) => setAfCreatedRange(v as [Dayjs, Dayjs] | null)}
                   />
                 </FilterField>
-                <FilterField label="账单月">
-                  <DatePicker picker="month" placeholder="账单月" value={afBillingMonth} onChange={setAfBillingMonth} />
-                </FilterField>
-                <FilterField label="账单日">
-                  <DatePicker placeholder="账单日" value={afBillingDay} onChange={setAfBillingDay} />
+                <FilterField label="账单周期">
+                  <RangePicker
+                    placeholder={['从', '到']}
+                    onChange={(v) => setAfBillingRange(v as [Dayjs, Dayjs] | null)}
+                  />
                 </FilterField>
                 <FilterField label="订单编号">
                   <Input
