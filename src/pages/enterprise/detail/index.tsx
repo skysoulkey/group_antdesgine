@@ -862,6 +862,8 @@ const EnterpriseDetail: React.FC = () => {
       label: '应用红包',
       children: (() => {
         const [rpStatus, setRpStatus] = useState('all');
+        const [rpRange, setRpRange] = useState<[Dayjs, Dayjs] | null>(null);
+        const [rpSearch, setRpSearch] = useState('');
         const [rpDetail, setRpDetail] = useState<RedPacket | null>(null);
 
         const redPacketColumns: ColumnsType<RedPacket> = [
@@ -886,26 +888,57 @@ const EnterpriseDetail: React.FC = () => {
           },
         ];
 
-        const filtered = redPacketData.filter((d) =>
-          rpStatus === 'all' || d.status === rpStatus
-        );
+        const filtered = redPacketData.filter((d) => {
+          const kw = rpSearch.trim();
+          const hitKw =
+            !kw ||
+            d.senderId.includes(kw) ||
+            d.senderNickname.includes(kw) ||
+            d.groupId.includes(kw) ||
+            d.groupName.includes(kw);
+          return (
+            (rpStatus === 'all' || d.status === rpStatus) &&
+            inRange(d.startTime, rpRange) &&
+            hitKw
+          );
+        });
 
         return (
           <>
             <Space direction="vertical" size={12} style={{ display: 'flex' }}>
               <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-                <ConfigProvider theme={radioTheme}>
-                  <Radio.Group
-                    value={rpStatus}
-                    onChange={(e) => setRpStatus(e.target.value)}
-                    buttonStyle="solid"
-                  >
-                    <Radio.Button value="all">全部</Radio.Button>
-                    <Radio.Button value="已完成">已完成</Radio.Button>
-                    <Radio.Button value="进行中">进行中</Radio.Button>
-                    <Radio.Button value="已过期">已过期</Radio.Button>
-                  </Radio.Group>
-                </ConfigProvider>
+                <Space size={16} wrap align="center">
+                  <FilterField label="状态">
+                    <ConfigProvider theme={radioTheme}>
+                      <Radio.Group
+                        value={rpStatus}
+                        onChange={(e) => setRpStatus(e.target.value)}
+                        buttonStyle="solid"
+                      >
+                        <Radio.Button value="all">全部</Radio.Button>
+                        <Radio.Button value="已完成">已完成</Radio.Button>
+                        <Radio.Button value="进行中">进行中</Radio.Button>
+                        <Radio.Button value="已过期">已过期</Radio.Button>
+                      </Radio.Group>
+                    </ConfigProvider>
+                  </FilterField>
+                  <FilterField label="发起时间">
+                    <RangePicker
+                      placeholder={['从', '到']}
+                      onChange={(v) => setRpRange(v as [Dayjs, Dayjs] | null)}
+                    />
+                  </FilterField>
+                  <FilterField label="发包人/群组">
+                    <Input
+                      suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                      placeholder="发包人ID/昵称 或 群组ID/名称"
+                      value={rpSearch}
+                      onChange={(e) => setRpSearch(e.target.value)}
+                      allowClear
+                      style={{ width: 260 }}
+                    />
+                  </FilterField>
+                </Space>
               </Card>
               <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}
                 styles={{ body: { padding: '16px 24px' } }}>
@@ -931,7 +964,7 @@ const EnterpriseDetail: React.FC = () => {
                     rowKey="claimId"
                     rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
                     columns={[
-                      { title: '领取时间', dataIndex: 'claimTime', width: 150 },
+                      { title: '领取时间', dataIndex: 'claimTime', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
                       { title: '领包人ID', dataIndex: 'claimerId', width: 90 },
                       { title: '领包人昵称', dataIndex: 'claimerName', width: 100 },
                       { title: '领包金额', dataIndex: 'claimAmount', width: 110, align: 'right' },
