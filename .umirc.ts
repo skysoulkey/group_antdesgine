@@ -38,7 +38,9 @@ export default defineConfig({
 
     // 公司清账（公司端） / 应用费用（集团端）
     { path: '/finance/settlement', component: 'finance/settlement/index' },
+    { path: '/finance/settlement/preview/:billId', component: 'finance/settlement/preview' },
     { path: '/enterprise/app-fee', component: 'enterprise/app-fee/index' },
+    { path: '/enterprise/app-fee/preview/:billId', component: 'enterprise/app-fee/preview' },
 
     // 设置中心
     { path: '/finance/my-wallet',       component: 'finance/my-wallet/index' },

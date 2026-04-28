@@ -13,7 +13,7 @@
  * - GET /api/finance/settlement — 列表（待对接）
  */
 import { useState } from 'react';
-import { Button, Card, ConfigProvider, DatePicker, Radio, Space, Table, Tooltip, Typography } from 'antd';
+import { Button, Card, ConfigProvider, DatePicker, Radio, Space, Table, Typography } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -144,15 +144,13 @@ const Settlement = () => {
       title: '操作', width: 100, fixed: 'right' as const,
       render: (_: unknown, r: SettlementBill) =>
         isDownloadable(r.period) ? (
-          <Tooltip title="PDF 模板设计中，预计 V0.5 上线" placement="top">
-            <Button
-              type="link" size="small" style={{ padding: 0 }}
-              icon={<DownloadOutlined />}
-              onClick={(e) => e.preventDefault()}
-            >
-              下载
-            </Button>
-          </Tooltip>
+          <Button
+            type="link" size="small" style={{ padding: 0 }}
+            icon={<DownloadOutlined />}
+            onClick={() => window.open(`/finance/settlement/preview/${r.orderId}`, '_blank')}
+          >
+            下载
+          </Button>
         ) : null,
     },
   ];
