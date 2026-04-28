@@ -36,6 +36,10 @@ export default defineConfig({
     { path: '/orders/lottery', component: 'orders/lottery/index' },
     { path: '/commission',     component: 'commission/index' },
 
+    // 公司清账（公司端） / 应用费用（集团端）
+    { path: '/finance/settlement', component: 'finance/settlement/index' },
+    { path: '/enterprise/app-fee', component: 'enterprise/app-fee/index' },
+
     // 设置中心
     { path: '/finance/my-wallet',       component: 'finance/my-wallet/index' },
     { path: '/finance/all-wallet',      component: 'finance/all-wallet/index' },

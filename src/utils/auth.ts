@@ -31,23 +31,25 @@ export const ROLE_ROUTES: Record<Role, string[]> = {
   group_owner: [
     '/dashboard', '/company/list', '/company/detail', '/company/transfer',
     '/finance/revenue', '/finance/wallet', '/finance/wallet/bind-account',
+    '/enterprise/app-fee',
     '/system/users', '/system/logs', '/system/notifications',
   ],
-  group_finance: ['/finance/revenue', '/finance/wallet', '/finance/wallet/bind-account'],
+  group_finance: ['/finance/revenue', '/finance/wallet', '/finance/wallet/bind-account', '/enterprise/app-fee'],
   group_ops:     ['/dashboard', '/company/list', '/company/detail', '/company/transfer'],
-  group_audit:   ['/system/logs'],
+  group_audit:   ['/system/logs', '/enterprise/app-fee'],
 
   // 公司侧
   company_owner: [
     '/dashboard/company', '/company/shareholding', '/company/revenue',
     '/enterprise/list', '/enterprise/invite', '/enterprise/detail', '/enterprise/tax',
     '/orders/lottery', '/commission',
-    '/finance/my-wallet', '/finance/all-wallet', '/finance/approvals', '/system/notifications', '/system/users', '/system/logs',
+    '/finance/my-wallet', '/finance/all-wallet', '/finance/approvals', '/finance/settlement',
+    '/system/notifications', '/system/users', '/system/logs',
   ],
   company_promo:   ['/enterprise/list', '/enterprise/invite', '/enterprise/detail'],
-  company_finance: ['/company/revenue', '/enterprise/tax', '/finance/my-wallet', '/finance/all-wallet'],
+  company_finance: ['/company/revenue', '/enterprise/tax', '/finance/my-wallet', '/finance/all-wallet', '/finance/settlement'],
   company_ops:     ['/dashboard/company', '/company/shareholding', '/orders/lottery', '/commission', '/system/notifications', '/finance/approvals'],
-  company_audit:   ['/system/logs'],
+  company_audit:   ['/system/logs', '/finance/settlement'],
 };
 
 // 公共路由 — 所有角色都可访问

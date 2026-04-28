@@ -43,11 +43,12 @@ const allMenuItems: MenuItem[] = [
     key: 'group',
     icon: <BankOutlined />,
     label: '集团管理',
-    roles: ['group_owner', 'group_ops', 'group_finance'],
+    roles: ['group_owner', 'group_ops', 'group_finance', 'group_audit'],
     children: [
       { key: '/company/list',      label: '公司清单',  roles: ['group_owner', 'group_ops'] },
       { key: '/company/transfer',  label: '内部划转',  roles: ['group_owner', 'group_ops'] },
       { key: '/finance/revenue',   label: '集团收益',  roles: ['group_owner', 'group_finance'] },
+      { key: '/enterprise/app-fee', label: '应用费用', roles: ['group_owner', 'group_finance', 'group_audit'] },
     ],
   },
   {
@@ -65,11 +66,12 @@ const allMenuItems: MenuItem[] = [
     key: 'finance',
     icon: <WalletOutlined />,
     label: '公司财务',
-    roles: ['company_owner', 'company_finance'],
+    roles: ['company_owner', 'company_finance', 'company_audit'],
     children: [
-      { key: '/enterprise/tax',     label: '企业税收', roles: ['company_owner', 'company_finance'] },
-      { key: '/finance/my-wallet',  label: '公司钱包', roles: ['company_owner', 'company_finance'] },
-      { key: '/finance/all-wallet', label: '全公司钱包', roles: ['company_owner', 'company_finance'] },
+      { key: '/enterprise/tax',      label: '企业税收', roles: ['company_owner', 'company_finance'] },
+      { key: '/finance/my-wallet',   label: '公司钱包', roles: ['company_owner', 'company_finance'] },
+      { key: '/finance/all-wallet',  label: '全公司钱包', roles: ['company_owner', 'company_finance'] },
+      { key: '/finance/settlement',  label: '公司清账', roles: ['company_owner', 'company_finance', 'company_audit'] },
     ],
   },
   {
@@ -136,6 +138,8 @@ const breadcrumbMap: Record<string, string[]> = {
   '/commission':             ['公司订单', '佣金订单'],
   '/finance/my-wallet':      ['公司财务', '公司钱包'],
   '/finance/all-wallet':     ['公司财务', '全公司钱包'],
+  '/finance/settlement':     ['公司财务', '公司清账'],
+  '/enterprise/app-fee':     ['集团管理', '应用费用'],
   '/finance/wallet':             ['设置中心', '集团钱包'],
   '/finance/wallet/bind-account': ['设置中心', '集团钱包', '修改绑定账号'],
   '/system/profile':         ['设置中心', '个人中心'],
@@ -198,8 +202,10 @@ function getBreadcrumb(pathname: string, tab?: string): string[] {
 function getDefaultOpenKeys(pathname: string): string[] {
   if (pathname.startsWith('/dashboard')) return ['dashboard'];
   if (pathname.startsWith('/company/list') || pathname.startsWith('/company/transfer') ||
-      pathname.startsWith('/finance/revenue')) return ['group'];
+      pathname.startsWith('/finance/revenue') || pathname === '/enterprise/app-fee') return ['group'];
   if (pathname.startsWith('/finance/approvals')) return ['company'];
+  if (pathname.startsWith('/finance/my-wallet') || pathname.startsWith('/finance/all-wallet') ||
+      pathname.startsWith('/finance/settlement') || pathname.startsWith('/enterprise/tax')) return ['finance'];
   if (pathname.startsWith('/company/')) return ['company'];
   if (pathname.startsWith('/enterprise')) return ['enterprise'];
   if (pathname.startsWith('/orders') || pathname.startsWith('/commission')) return ['orders'];
