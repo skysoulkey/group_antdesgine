@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登录页设计 V6 — 亮色蓝系</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #08090c; color: #e2e8f0; font-family: 'Inter', -apple-system, 'PingFang SC', sans-serif; }
+
+  .page-header { text-align: center; padding: 48px 20px 24px; }
+  .page-header h1 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .page-header p { font-size: 13px; color: rgba(255,255,255,0.35); }
+
+  .schemes { display: flex; flex-direction: column; gap: 48px; padding: 12px 32px 80px; max-width: 1200px; margin: 0 auto; }
+
+  .scheme {
+    border-radius: 16px; overflow: hidden; cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s;
+    border: 2px solid rgba(255,255,255,0.06);
+    position: relative;
+  }
+  .scheme:hover { transform: translateY(-3px); box-shadow: 0 12px 48px rgba(0,0,0,0.5); border-color: rgba(255,255,255,0.12); }
+  .scheme.selected { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.15), 0 12px 48px rgba(0,0,0,0.5); }
+  .selected-badge { display: none; position: absolute; top: 16px; right: 16px; z-index: 20; background: #3b82f6; color: #fff; padding: 5px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+  .scheme.selected .selected-badge { display: block; }
+
+  .login-frame { display: flex; height: 600px; width: 100%; position: relative; overflow: hidden; }
+
+  .form-container { width: 100%; max-width: 300px; }
+  .form-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; color: #0f172a; }
+  .form-subtitle { font-size: 13px; margin-bottom: 24px; color: #94a3b8; }
+  .form-label { font-size: 12px; font-weight: 500; margin-bottom: 6px; display: block; color: #64748b; }
+  .form-input { width: 100%; height: 44px; border-radius: 8px; padding: 0 14px; font-size: 14px; outline: none; margin-bottom: 16px; transition: all 0.2s; background: #f8fafc; border: 1px solid #e2e8f0; color: #334155; }
+  .form-input::placeholder { color: #cbd5e1; }
+  .form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
+  .form-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .form-row .form-input { margin-bottom: 0; }
+  .captcha-box { width: 110px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; letter-spacing: 4px; font-style: italic; flex-shrink: 0; user-select: none; background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #2563eb; }
+  .form-btn { width: 100%; height: 46px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; color: #fff; cursor: pointer; margin-top: 6px; letter-spacing: 2px; transition: all 0.3s; background: linear-gradient(135deg, #2563eb, #3b82f6); box-shadow: 0 4px 16px rgba(37,99,235,0.2); }
+  .form-btn:hover { box-shadow: 0 6px 24px rgba(37,99,235,0.3); }
+  .form-footer { text-align: center; margin-top: 18px; font-size: 12px; color: #94a3b8; }
+  .form-footer a { color: #2563eb; text-decoration: none; }
+
+  /* 通用右侧面板 */
+  .right-panel {
+    width: 38%; min-width: 380px;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 40px; position: relative; z-index: 5;
+  }
+
+  /* ========================================
+     方案一：精致商务
+     亮色蓝 + 优雅弧线 + 精致间距 + 留白呼吸感
+     ======================================== */
+  .elegant .left-panel {
+    width: 62%; position: relative;
+    background: linear-gradient(155deg, #f0f5ff 0%, #e8effc 40%, #f4f7ff 100%);
+    display: flex; align-items: center; overflow: hidden;
+  }
+  /* 大弧线装饰 */
+  .elegant .arc-1 { position: absolute; top: -30%; right: -15%; width: 700px; height: 700px; border: 1.5px solid rgba(37,99,235,0.06); border-radius: 50%; }
+  .elegant .arc-2 { position: absolute; top: -25%; right: -12%; width: 620px; height: 620px; border: 1px solid rgba(37,99,235,0.04); border-radius: 50%; }
+  .elegant .arc-3 { position: absolute; bottom: -35%; left: -12%; width: 550px; height: 550px; border: 1.5px solid rgba(37,99,235,0.05); border-radius: 50%; }
+  .elegant .arc-4 { position: absolute; bottom: -28%; left: -8%; width: 480px; height: 480px; border: 1px solid rgba(37,99,235,0.03); border-radius: 50%; }
+  /* 光斑 */
+  .elegant .glow-1 { position: absolute; top: 15%; left: 25%; width: 280px; height: 280px; background: radial-gradient(circle, rgba(37,99,235,0.04) 0%, transparent 70%); }
+  .elegant .glow-2 { position: absolute; bottom: 20%; right: 15%; width: 220px; height: 220px; background: radial-gradient(circle, rgba(99,102,241,0.03) 0%, transparent 70%); }
+  /* 蓝色微粒 */
+  .elegant .dot { position: absolute; border-radius: 50%; }
+  .elegant .d1 { width: 3px; height: 3px; background: rgba(37,99,235,0.15); top: 10%; left: 18%; }
+  .elegant .d2 { width: 2px; height: 2px; background: rgba(37,99,235,0.2); top: 25%; left: 60%; }
+  .elegant .d3 { width: 2px; height: 2px; background: rgba(99,102,241,0.15); top: 50%; left: 30%; }
+  .elegant .d4 { width: 3px; height: 3px; background: rgba(37,99,235,0.1); top: 70%; left: 55%; }
+  .elegant .d5 { width: 2px; height: 2px; background: rgba(37,99,235,0.18); top: 38%; left: 78%; }
+  .elegant .d6 { width: 1.5px; height: 1.5px; background: rgba(37,99,235,0.2); top: 85%; left: 22%; }
+  .elegant .d7 { width: 2px; height: 2px; background: rgba(99,102,241,0.12); top: 15%; left: 48%; }
+  /* 细线 */
+  .elegant .line { position: absolute; width: 1px; background: linear-gradient(to bottom, transparent, rgba(37,99,235,0.06), transparent); }
+  .elegant .l1 { height: 180px; top: 5%; left: 40%; transform: rotate(-6deg); }
+  .elegant .l2 { height: 130px; top: 48%; left: 68%; transform: rotate(10deg); }
+  .elegant .l3 { height: 100px; bottom: 10%; left: 32%; transform: rotate(-18deg); }
+
+  .elegant .left-content { position: relative; z-index: 2; padding: 0 56px; }
+  .elegant .brand-icon { width: 52px; height: 52px; margin-bottom: 28px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(37,99,235,0.15); }
+  .elegant .brand-icon::after { content: ''; width: 22px; height: 22px; background: rgba(255,255,255,0.85); border-radius: 6px; }
+  .elegant .brand-title { color: #0f172a; font-size: 30px; font-weight: 300; letter-spacing: 3px; margin-bottom: 8px; }
+  .elegant .brand-en { color: rgba(37,99,235,0.35); font-size: 11px; letter-spacing: 5px; margin-bottom: 28px; }
+  .elegant .brand-line { width: 32px; height: 2px; margin-bottom: 20px; background: linear-gradient(90deg, #3b82f6, transparent); border-radius: 1px; }
+  .elegant .brand-desc { color: #64748b; font-size: 14px; line-height: 1.8; max-width: 300px; margin-bottom: 36px; }
+  .elegant .brand-tags { display: flex; gap: 20px; }
+  .elegant .brand-tag { padding: 12px 0; border-top: 2px solid rgba(37,99,235,0.08); min-width: 72px; }
+  .elegant .brand-tag-val { font-size: 16px; font-weight: 500; color: #2563eb; margin-bottom: 3px; }
+  .elegant .brand-tag-label { font-size: 9px; color: #94a3b8; letter-spacing: 2px; text-transform: uppercase; }
+
+  .elegant .right-panel { border-left: 1px solid #edf0f7; }
+
+  /* ========================================
+     方案二：科技数据
+     亮色蓝灰 + 网格 + 节点 + 数据面板感
+     ======================================== */
+  .techlight .left-panel {
+    width: 62%; position: relative;
+    background: #f3f6fb;
+    display: flex; align-items: center; overflow: hidden;
+  }
+  /* 网格 */
+  .techlight .grid { position: absolute; inset: 0; background: linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px); background-size: 32px 32px; }
+  /* 中心光源 */
+  .techlight .core-glow { position: absolute; top: 50%; left: 48%; transform: translate(-50%,-50%); width: 450px; height: 450px; background: radial-gradient(circle, rgba(37,99,235,0.04) 0%, transparent 65%); }
+  /* 扫描线 */
+  .techlight .scan { position: absolute; left: 0; right: 0; height: 1px; }
+  .techlight .sc1 { top: 22%; background: linear-gradient(90deg, transparent, rgba(37,99,235,0.06), transparent); }
+  .techlight .sc2 { top: 48%; background: linear-gradient(90deg, transparent, rgba(37,99,235,0.04), transparent); }
+  .techlight .sc3 { top: 72%; background: linear-gradient(90deg, transparent, rgba(37,99,235,0.06), transparent); }
+  /* 节点 */
+  .techlight .node { position: absolute; border-radius: 50%; border: 1.5px solid rgba(37,99,235,0.12); background: rgba(37,99,235,0.03); }
+  .techlight .node::after { content:''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 5px; height: 5px; border-radius: 50%; background: rgba(37,99,235,0.2); }
+  .techlight .tn1 { width: 24px; height: 24px; top: 22%; left: 20%; }
+  .techlight .tn2 { width: 18px; height: 18px; top: 48%; left: 52%; }
+  .techlight .tn3 { width: 20px; height: 20px; top: 72%; left: 76%; }
+  .techlight .tn4 { width: 14px; height: 14px; top: 32%; left: 68%; }
+  .techlight .tn5 { width: 16px; height: 16px; top: 80%; left: 32%; }
+  .techlight .tn6 { width: 12px; height: 12px; top: 15%; left: 55%; }
+  .techlight .tn7 { width: 14px; height: 14px; top: 58%; left: 82%; }
+  /* 连线 */
+  .techlight .conn { position: absolute; height: 1px; background: rgba(37,99,235,0.06); transform-origin: left center; }
+  .techlight .tc1 { width: 220px; top: 24%; left: 22%; transform: rotate(16deg); }
+  .techlight .tc2 { width: 190px; top: 50%; left: 54%; transform: rotate(-20deg); }
+  .techlight .tc3 { width: 160px; top: 74%; left: 34%; transform: rotate(10deg); }
+  .techlight .tc4 { width: 140px; top: 34%; left: 58%; transform: rotate(-30deg); }
+  .techlight .tc5 { width: 170px; top: 60%; left: 75%; transform: rotate(22deg); }
+  /* 六边形 */
+  .techlight .hex { position: absolute; border: 1.5px solid rgba(37,99,235,0.06); clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); background: rgba(37,99,235,0.015); }
+  .techlight .th1 { width: 60px; height: 60px; top: 12%; left: 32%; }
+  .techlight .th2 { width: 42px; height: 42px; top: 62%; left: 18%; }
+  .techlight .th3 { width: 50px; height: 50px; top: 38%; left: 72%; }
+
+  .techlight .left-content { position: relative; z-index: 2; padding: 0 48px; }
+  .techlight .brand-icon { width: 48px; height: 48px; margin-bottom: 24px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 12px rgba(37,99,235,0.15); }
+  .techlight .brand-icon::after { content: ''; width: 20px; height: 20px; background: rgba(255,255,255,0.85); border-radius: 5px; }
+  .techlight .brand-title { color: #0f172a; font-size: 24px; font-weight: 600; letter-spacing: 2px; margin-bottom: 6px; }
+  .techlight .brand-en { color: rgba(37,99,235,0.3); font-size: 10px; letter-spacing: 4px; font-weight: 500; margin-bottom: 24px; }
+  .techlight .brand-desc { color: #64748b; font-size: 13px; line-height: 1.8; margin-bottom: 32px; max-width: 300px; }
+  .techlight .metrics { display: flex; gap: 2px; }
+  .techlight .metric { padding: 10px 14px; background: rgba(255,255,255,0.7); border: 1px solid rgba(37,99,235,0.06); backdrop-filter: blur(4px); }
+  .techlight .metric:first-child { border-radius: 6px 0 0 6px; }
+  .techlight .metric:last-child { border-radius: 0 6px 6px 0; }
+  .techlight .metric-val { font-size: 13px; font-weight: 600; color: #2563eb; }
+  .techlight .metric-label { font-size: 9px; color: #94a3b8; letter-spacing: 1px; margin-top: 2px; }
+
+  .techlight .right-panel { border-left: 1px solid #e8edf5; }
+  /* 右侧延伸微弱网格 */
+  .techlight .right-panel::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0.3; background: linear-gradient(rgba(37,99,235,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(37,99,235,0.03) 1px, transparent 1px); background-size: 32px 32px; }
+  .techlight .form-card { position: relative; z-index: 2; background: rgba(255,255,255,0.8); border: 1px solid rgba(37,99,235,0.06); border-radius: 16px; padding: 36px 32px; width: 100%; max-width: 330px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); backdrop-filter: blur(8px); }
+  .techlight .form-card::before { content: ''; position: absolute; top: 0; left: 32px; right: 32px; height: 2px; background: linear-gradient(90deg, transparent, rgba(37,99,235,0.15), transparent); border-radius: 1px; }
+
+  /* ========================================
+     方案三：SaaS 全景
+     亮色蓝 + 全铺插画 + 平台相关元素
+     ======================================== */
+  .saas .left-panel {
+    width: 62%; position: relative;
+    background: linear-gradient(160deg, #eef4ff 0%, #e0eafc 50%, #edf2ff 100%);
+    overflow: hidden;
+  }
+
+  /* 全铺底图：仪表盘 + 图表 + 组织架构 + 财务元素 */
+
+  /* 底部大色块层 */
+  .saas .bg-shape-1 { position: absolute; top: -5%; right: -3%; width: 55%; height: 70%; background: radial-gradient(ellipse, rgba(37,99,235,0.04) 0%, transparent 70%); }
+  .saas .bg-shape-2 { position: absolute; bottom: -8%; left: -5%; width: 50%; height: 60%; background: radial-gradient(ellipse, rgba(99,102,241,0.03) 0%, transparent 70%); }
+
+  /* 仪表盘卡片 — 右上区域 */
+  .saas .dash-card {
+    position: absolute; background: rgba(255,255,255,0.65); border-radius: 12px;
+    border: 1px solid rgba(37,99,235,0.06);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    backdrop-filter: blur(4px);
+  }
+  .saas .dc1 { top: 8%; right: 8%; width: 180px; height: 100px; padding: 14px; }
+  .saas .dc1-title { font-size: 9px; color: #94a3b8; letter-spacing: 1px; margin-bottom: 6px; font-weight: 500; }
+  .saas .dc1-val { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+  .saas .dc1-bar { display: flex; gap: 3px; align-items: flex-end; height: 24px; }
+  .saas .dc1-bar div { width: 8px; border-radius: 2px; background: rgba(37,99,235,0.15); }
+  .saas .dc1-bar div:nth-child(1) { height: 8px; } .saas .dc1-bar div:nth-child(2) { height: 14px; }
+  .saas .dc1-bar div:nth-child(3) { height: 10px; } .saas .dc1-bar div:nth-child(4) { height: 20px; background: rgba(37,99,235,0.3); }
+  .saas .dc1-bar div:nth-child(5) { height: 24px; background: #3b82f6; } .saas .dc1-bar div:nth-child(6) { height: 16px; background: rgba(37,99,235,0.25); }
+  .saas .dc1-bar div:nth-child(7) { height: 12px; } .saas .dc1-bar div:nth-child(8) { height: 18px; background: rgba(37,99,235,0.2); }
+
+  /* 折线图卡片 — 左下区域 */
+  .saas .dc2 { bottom: 12%; left: 6%; width: 200px; height: 110px; padding: 14px; }
+  .saas .dc2-title { font-size: 9px; color: #94a3b8; letter-spacing: 1px; margin-bottom: 10px; font-weight: 500; }
+  .saas .dc2-chart { position: relative; height: 50px; }
+  .saas .dc2-line {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
+    background: linear-gradient(to top, rgba(37,99,235,0.04), transparent);
+    clip-path: polygon(0% 80%, 12% 60%, 25% 70%, 38% 40%, 50% 50%, 62% 20%, 75% 30%, 88% 10%, 100% 25%, 100% 100%, 0% 100%);
+  }
+  .saas .dc2-stroke {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
+    border: none; background: none;
+  }
+  /* SVG折线 */
+  .saas .dc2-chart svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+  /* 组织架构树 — 中间偏右 */
+  .saas .org-tree { position: absolute; top: 38%; right: 22%; }
+  .saas .org-node { width: 48px; height: 24px; background: rgba(255,255,255,0.7); border: 1px solid rgba(37,99,235,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #475569; font-weight: 500; }
+  .saas .org-root { margin: 0 auto 0; }
+  .saas .org-line-v { width: 1px; height: 14px; background: rgba(37,99,235,0.12); margin: 0 auto; }
+  .saas .org-line-h { width: 96px; height: 1px; background: rgba(37,99,235,0.12); margin: 0 auto; position: relative; }
+  .saas .org-line-h::before, .saas .org-line-h::after { content: ''; position: absolute; top: 0; width: 1px; height: 14px; background: rgba(37,99,235,0.12); }
+  .saas .org-line-h::before { left: 0; } .saas .org-line-h::after { right: 0; }
+  .saas .org-children { display: flex; gap: 0; justify-content: space-between; margin-top: 14px; }
+
+  /* 钱包/金额小卡 — 左上 */
+  .saas .dc3 { top: 15%; left: 8%; width: 140px; height: 68px; padding: 12px; }
+  .saas .dc3-icon { width: 20px; height: 20px; background: rgba(37,99,235,0.1); border-radius: 5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; }
+  .saas .dc3-icon::after { content: ''; width: 10px; height: 10px; background: rgba(37,99,235,0.25); border-radius: 3px; }
+  .saas .dc3-label { font-size: 9px; color: #94a3b8; margin-bottom: 2px; }
+  .saas .dc3-val { font-size: 14px; font-weight: 700; color: #1e293b; }
+
+  /* 订单状态小卡 — 右下 */
+  .saas .dc4 { bottom: 8%; right: 5%; width: 150px; height: 72px; padding: 12px; }
+  .saas .dc4-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .saas .dc4-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .saas .dc4-dot-1 { background: #3b82f6; } .saas .dc4-dot-2 { background: #93c5fd; } .saas .dc4-dot-3 { background: #dbeafe; }
+  .saas .dc4-text { font-size: 10px; color: #64748b; }
+  .saas .dc4-num { font-size: 10px; font-weight: 600; color: #1e293b; margin-left: auto; }
+
+  /* 散布装饰点 */
+  .saas .sd { position: absolute; border-radius: 50%; }
+  .saas .sd1 { width: 5px; height: 5px; background: rgba(37,99,235,0.1); top: 32%; left: 35%; }
+  .saas .sd2 { width: 3px; height: 3px; background: rgba(99,102,241,0.12); top: 55%; left: 50%; }
+  .saas .sd3 { width: 4px; height: 4px; background: rgba(37,99,235,0.08); top: 75%; right: 35%; }
+  .saas .sd4 { width: 6px; height: 6px; background: rgba(37,99,235,0.05); top: 20%; left: 55%; }
+  .saas .sd5 { width: 3px; height: 3px; background: rgba(37,99,235,0.12); top: 88%; left: 42%; }
+
+  /* 品牌文字 — 左侧居中 */
+  .saas .brand-float {
+    position: absolute; top: 50%; left: 56px; transform: translateY(-50%);
+    z-index: 3;
+  }
+  .saas .brand-float-logo { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .saas .brand-float-icon { width: 40px; height: 40px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 11px; display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 12px rgba(37,99,235,0.2); }
+  .saas .brand-float-icon::after { content: ''; width: 18px; height: 18px; background: rgba(255,255,255,0.85); border-radius: 5px; }
+  .saas .brand-float-name { font-size: 18px; font-weight: 700; color: #0f172a; }
+  .saas .brand-float-headline { font-size: 26px; font-weight: 700; color: #0f172a; line-height: 1.35; margin-bottom: 10px; }
+  .saas .brand-float-headline span { color: #2563eb; }
+  .saas .brand-float-desc { font-size: 14px; color: #64748b; line-height: 1.7; }
+
+  /* 右侧白色卡片 */
+  .saas .right-panel { background: #f5f8fd; }
+  .saas .form-card { background: #fff; border-radius: 16px; padding: 36px 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 16px rgba(0,0,0,0.04), 0 12px 48px rgba(0,0,0,0.05); width: 100%; max-width: 330px; }
+  .saas .form-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+  .saas .fc-icon { width: 32px; height: 32px; background: linear-gradient(135deg, #2563eb, #3b82f6); border-radius: 8px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(37,99,235,0.15); }
+  .saas .fc-icon::after { content: ''; width: 14px; height: 14px; background: rgba(255,255,255,0.85); border-radius: 3px; }
+  .saas .fc-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>商户管理平台 — 登录页设计</h1>
+  <p>亮色蓝系 · 点击选择</p>
+</div>
+
+<div class="schemes">
+
+  <!-- 方案一：精致商务 -->
+  <div class="scheme elegant" data-choice="elegant" onclick="selectScheme(this)">
+    <div class="selected-badge">已选择 ✓</div>
+    <div class="login-frame">
+      <div class="left-panel">
+        <div class="arc-1"></div><div class="arc-2"></div><div class="arc-3"></div><div class="arc-4"></div>
+        <div class="glow-1"></div><div class="glow-2"></div>
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div><div class="dot d4"></div>
+        <div class="dot d5"></div><div class="dot d6"></div><div class="dot d7"></div>
+        <div class="line l1"></div><div class="line l2"></div><div class="line l3"></div>
+        <div class="left-content">
+          <div class="brand-icon"></div>
+          <div class="brand-title">商户管理平台</div>
+          <div class="brand-en">MERCHANT MANAGEMENT PLATFORM</div>
+          <div class="brand-line"></div>
+          <div class="brand-desc">集团 · 公司 · 企业三级组织架构<br>资产管理、订单监控、财务运营一体化</div>
+          <div class="brand-tags">
+            <div class="brand-tag"><div class="brand-tag-val">集团</div><div class="brand-tag-label">GROUP</div></div>
+            <div class="brand-tag"><div class="brand-tag-val">公司</div><div class="brand-tag-label">COMPANY</div></div>
+            <div class="brand-tag"><div class="brand-tag-val">企业</div><div class="brand-tag-label">ENTERPRISE</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="form-container">
+          <div class="form-title">商户管理平台</div>
+          <div class="form-subtitle">登录您的管理账户</div>
+          <label class="form-label">用户名</label>
+          <input class="form-input" placeholder="请输入用户名" readonly>
+          <label class="form-label">密码</label>
+          <input class="form-input" type="password" placeholder="请输入密码" readonly>
+          <label class="form-label">验证码</label>
+          <div class="form-row">
+            <input class="form-input" placeholder="请输入验证码" readonly style="flex:1;">
+            <div class="captcha-box">X7k2</div>
+          </div>
+          <button class="form-btn">登 录</button>
+          <div class="form-footer">遇到问题？<a href="#">联系管理员</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案二：科技数据 -->
+  <div class="scheme techlight" data-choice="tech" onclick="selectScheme(this)">
+    <div class="selected-badge">已选择 ✓</div>
+    <div class="login-frame">
+      <div class="left-panel">
+        <div class="grid"></div>
+        <div class="core-glow"></div>
+        <div class="scan sc1"></div><div class="scan sc2"></div><div class="scan sc3"></div>
+        <div class="node tn1"></div><div class="node tn2"></div><div class="node tn3"></div><div class="node tn4"></div>
+        <div class="node tn5"></div><div class="node tn6"></div><div class="node tn7"></div>
+        <div class="conn tc1"></div><div class="conn tc2"></div><div class="conn tc3"></div><div class="conn tc4"></div><div class="conn tc5"></div>
+        <div class="hex th1"></div><div class="hex th2"></div><div class="hex th3"></div>
+        <div class="left-content">
+          <div class="brand-icon"></div>
+          <div class="brand-title">商户管理平台</div>
+          <div class="brand-en">MERCHANT MANAGEMENT PLATFORM</div>
+          <div class="brand-desc">集团 · 公司 · 企业三级组织架构<br>资产管理、订单监控、财务运营一体化</div>
+          <div class="metrics">
+            <div class="metric"><div class="metric-val">集团</div><div class="metric-label">GROUP</div></div>
+            <div class="metric"><div class="metric-val">公司</div><div class="metric-label">COMPANY</div></div>
+            <div class="metric"><div class="metric-val">企业</div><div class="metric-label">ENTERPRISE</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="form-card">
+          <div class="form-container">
+            <div class="form-title">商户管理平台</div>
+            <div class="form-subtitle">登录您的管理账户</div>
+            <label class="form-label">用户名</label>
+            <input class="form-input" placeholder="请输入用户名" readonly>
+            <label class="form-label">密码</label>
+            <input class="form-input" type="password" placeholder="请输入密码" readonly>
+            <label class="form-label">验证码</label>
+            <div class="form-row">
+              <input class="form-input" placeholder="请输入验证码" readonly style="flex:1;">
+              <div class="captcha-box">X7k2</div>
+            </div>
+            <button class="form-btn">登 录</button>
+            <div class="form-footer">遇到问题？<a href="#">联系管理员</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 方案三：SaaS 全景 -->
+  <div class="scheme saas" data-choice="saas" onclick="selectScheme(this)">
+    <div class="selected-badge">已选择 ✓</div>
+    <div class="login-frame">
+      <div class="left-panel">
+        <div class="bg-shape-1"></div><div class="bg-shape-2"></div>
+        <div class="sd sd1"></div><div class="sd sd2"></div><div class="sd sd3"></div><div class="sd sd4"></div><div class="sd sd5"></div>
+
+        <!-- 仪表盘卡片 — 收入 -->
+        <div class="dash-card dc1">
+          <div class="dc1-title">MONTHLY REVENUE</div>
+          <div class="dc1-val">178,283</div>
+          <div class="dc1-bar"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+        </div>
+
+        <!-- 折线图 — 趋势 -->
+        <div class="dash-card dc2">
+          <div class="dc2-title">ORDER TREND</div>
+          <div class="dc2-chart">
+            <div class="dc2-line"></div>
+            <svg viewBox="0 0 172 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <polyline points="0,40 20,30 43,35 65,20 86,25 107,10 129,15 151,5 172,12" stroke="rgba(37,99,235,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="107" cy="10" r="3" fill="#3b82f6" opacity="0.5"/>
+              <circle cx="151" cy="5" r="3" fill="#3b82f6" opacity="0.5"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 钱包卡片 -->
+        <div class="dash-card dc3">
+          <div class="dc3-icon"></div>
+          <div class="dc3-label">集团钱包余额</div>
+          <div class="dc3-val">¥ 2,847,102</div>
+        </div>
+
+        <!-- 订单状态 -->
+        <div class="dash-card dc4">
+          <div class="dc4-row"><div class="dc4-dot dc4-dot-1"></div><div class="dc4-text">已完成</div><div class="dc4-num">1,247</div></div>
+          <div class="dc4-row"><div class="dc4-dot dc4-dot-2"></div><div class="dc4-text">进行中</div><div class="dc4-num">384</div></div>
+          <div class="dc4-row"><div class="dc4-dot dc4-dot-3"></div><div class="dc4-text">待审核</div><div class="dc4-num">56</div></div>
+        </div>
+
+        <!-- 组织架构树 -->
+        <div class="org-tree">
+          <div class="org-node org-root">集团</div>
+          <div class="org-line-v"></div>
+          <div class="org-line-h"></div>
+          <div class="org-children">
+            <div class="org-node">公司 A</div>
+            <div class="org-node">公司 B</div>
+          </div>
+        </div>
+
+        <!-- 品牌文字浮层 -->
+        <div class="brand-float">
+          <div class="brand-float-logo">
+            <div class="brand-float-icon"></div>
+            <div class="brand-float-name">商户管理平台</div>
+          </div>
+          <div class="brand-float-headline">一站式<span>商户运营</span><br>管理解决方案</div>
+          <div class="brand-float-desc">集团 · 公司 · 企业三级架构<br>全方位运营管理</div>
+        </div>
+      </div>
+      <div class="right-panel">
+        <div class="form-card">
+          <div class="form-card-header">
+            <div class="fc-icon"></div>
+            <div class="fc-title">商户管理平台</div>
+          </div>
+          <div class="form-container">
+            <div class="form-subtitle">登录您的管理账户</div>
+            <label class="form-label">用户名</label>
+            <input class="form-input" placeholder="请输入用户名" readonly>
+            <label class="form-label">密码</label>
+            <input class="form-input" type="password" placeholder="请输入密码" readonly>
+            <label class="form-label">验证码</label>
+            <div class="form-row">
+              <input class="form-input" placeholder="请输入验证码" readonly style="flex:1;">
+              <div class="captcha-box">X7k2</div>
+            </div>
+            <button class="form-btn">登 录</button>
+            <div class="form-footer">遇到问题？<a href="#">联系管理员</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function selectScheme(el) {
+  document.querySelectorAll('.scheme').forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  if (window.__reportChoice) {
+    window.__reportChoice(el.dataset.choice, '');
+  }
+}
+</script>
+
+</body>
+</html>

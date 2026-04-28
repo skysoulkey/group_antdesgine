@@ -166,7 +166,8 @@ const ALL_COLUMN_DEFS: { key: string; title: string; defaultVisible: boolean }[]
   { key: 'shareRatio', title: '股份比例', defaultVisible: true },
   { key: 'status', title: '审批状态', defaultVisible: true },
   { key: 'orderStatus', title: '订单状态', defaultVisible: true },
-  { key: 'orderId', title: '订单ID', defaultVisible: false },
+  { key: 'approvalId', title: '审批单ID', defaultVisible: true },
+  { key: 'orderId', title: '订单ID', defaultVisible: true },
   { key: 'deadline', title: '审批截止', defaultVisible: false },
   { key: 'sourceOwnerNickname', title: '企业主昵称', defaultVisible: false },
   { key: 'sourceOwnerId', title: '企业主ID', defaultVisible: false },
@@ -301,6 +302,7 @@ const ApprovalListTab: React.FC = () => {
       title: '订单状态', dataIndex: 'orderStatus', width: 100,
       render: (v: OrderStatus) => <Tag color={ORDER_STATUS_COLORS[v]}>{ORDER_STATUS_LABELS[v]}</Tag>,
     },
+    approvalId: { title: '审批单ID', dataIndex: 'id', width: 140 },
     orderId: { title: '订单ID', dataIndex: 'orderId', width: 140 },
     deadline: { title: '审批截止', dataIndex: 'deadline', width: 170 },
     sourceOwnerNickname: { title: '企业主昵称', dataIndex: 'sourceOwnerNickname', width: 100 },
@@ -383,7 +385,7 @@ const ApprovalListTab: React.FC = () => {
               </Radio.Group>
             </ConfigProvider>
           </FilterField>
-          <FilterField label="触发方企业">
+          <FilterField label="企业名称">
             <Select
               placeholder="请选择"
               value={companyFilter}
@@ -399,7 +401,7 @@ const ApprovalListTab: React.FC = () => {
         </Space>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, fontWeight: 600 }}>订单列表</Text>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>审批列表</Text>
           <TableToolbar
             columns={ALL_COLUMN_DEFS.map((c) => ({ key: c.key, title: c.title }))}
             visibleKeys={visibleKeys}
@@ -468,7 +470,7 @@ const ApprovalsPage: React.FC = () => {
   const activeTab = searchParams.get('tab') || 'list';
 
   const tabItems = [
-    { key: 'list', label: '订单列表', children: <ApprovalListTab /> },
+    { key: 'list', label: '审批列表', children: <ApprovalListTab /> },
     { key: 'rules', label: '审批规则', children: <ApprovalRulesTab /> },
     { key: 'permissions', label: '审批权限', children: <ApprovalPermissionsTab /> },
   ];

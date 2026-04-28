@@ -62,6 +62,19 @@
   2. 哪怕项目目录里没找到，也要去 CLAUDE.md 列的固定位置 stat 一次确认，不要根据"找不到"就推断"不存在"
   3. 改动后同步检查清单的 5 项是硬性要求，不能因为"看起来文件不在"就跳过
 
+### 2026-04-27 — 越界改动仪表盘折线图配置 + 工作区脏改动跨会话漂移
+
+- **错误描述**：用户让做投资审批模块改动时，发现 `src/pages/dashboard/company/index.tsx` 和 `src/pages/dashboard/index.tsx` 都是 `M` 状态，diff 显示折线图 chartCfg 被改：`point.size 4→2、point.lineWidth 2→1、x.line: null→true 加了 lineStroke/lineLineWidth、y.line:null→false、tick:null→false、新增 gridFilter`。这些是之前会话越界改的，没 commit / revert，挂在工作区导致用户在仪表盘看到"折线整体往上移、样式错乱"。
+- **症结**：
+  1. `x.line: true + lineStroke/lineStrokeOpacity/lineLineWidth` 在当前 antv 版本不识别但触发了底部轴线渲染，挤压绘图区
+  2. `gridFilter` 写法对不上当前 G2 v5 API
+  3. `y.line/tick: false` 与 `null` 在 antv 中布局占位行为不同
+- **正确做法**：
+  1. 严格守 CLAUDE.md 规则 1「不擅自扩展范围」，只改用户当前任务点名的文件
+  2. **每次会话结束前必跑 `git status`**，确认工作区干净；越界改的文件当场 commit + 说明、或 git checkout 撤销，绝不留脏改动跨会话
+  3. 改图表配置必须启 dev server 浏览器实测后才能保留改动，不靠"代码看起来对"判断
+  4. 修复方法：`git checkout -- src/pages/dashboard/company/index.tsx src/pages/dashboard/index.tsx`，回到 `931dbcd refactor: 全局视觉风格调整` 那个基线
+
 ### 2026-04-26 — 「筛选控件不加 label」旧规则作废，统一改为「必须加字段名前缀」
 
 - **背景**：旧反馈 `feedback_no_label_before_buttons.md` 要求筛选区控件前不加 label 文字。2026-04-26 用户提出反向新约定：筛选区每个控件必须带字段名前缀。

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>场景2：企业加入平台 → 产生业务</title>
+  <style>
+    /* CSS Variables */
+    :root {
+      --primary: #1677ff;
+      --highlight: #fa8c16;
+      --success: #52c41a;
+      --danger: #ff4d4f;
+      --text: #141414;
+      --text-secondary: #666;
+      --bg-light: #f5f7fa;
+      --border: #e8e8e8;
+    }
+
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      background: #fff;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Step Block */
+    .step-block {
+      margin: 48px 0;
+      padding: 32px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Step Number Circle */
+    .step-number {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Step Header */
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    /* Step Title */
+    .step-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Step Description */
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* Mockup Frame */
+    .mockup-frame {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Arrow Down */
+    .arrow-down {
+      text-align: center;
+      color: var(--primary);
+      font-size: 24px;
+      margin: 16px 0;
+      line-height: 1;
+    }
+
+    /* Mock Table */
+    .mock-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .mock-table th {
+      background: #fafafa;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .mock-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .mock-table tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    /* Radio Group */
+    .radio-group {
+      display: inline-flex;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .radio-btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      background: #fff;
+      border: none;
+      border-right: 1px solid var(--border);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .radio-btn:last-child {
+      border-right: none;
+    }
+
+    .radio-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .tag-success {
+      background: #f6ffed;
+      color: #389e0d;
+      border: 1px solid #b7eb8f;
+    }
+
+    .tag-processing {
+      background: #e6f4ff;
+      color: #0958d9;
+      border: 1px solid #91caff;
+    }
+
+    .tag-warning {
+      background: #fff7e6;
+      color: #d46b08;
+      border: 1px solid #ffd591;
+    }
+
+    .tag-error {
+      background: #fff1f0;
+      color: #cf1322;
+      border: 1px solid #ffa39e;
+    }
+
+    .tag-default {
+      background: #fafafa;
+      color: #8c8c8c;
+      border: 1px solid #d9d9d9;
+    }
+
+    /* Highlight Box */
+    .highlight-box {
+      border: 2px solid var(--highlight);
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+
+    .highlight-label {
+      color: var(--highlight);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Annotation */
+    .annotation {
+      margin-top: 16px;
+      padding: 10px 16px;
+      background: #f5f7fa;
+      border-left: 3px solid var(--primary);
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Telegram Chat Mockup */
+    .tg-chat {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #d9d9d9;
+      background: #e7ebf0;
+    }
+    .tg-header {
+      background: #517da2;
+      color: #fff;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tg-header-back {
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+    .tg-header-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #6b9ec2;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .tg-header-info { flex: 1; }
+    .tg-header-name { font-size: 14px; font-weight: 600; }
+    .tg-header-sub { font-size: 11px; opacity: 0.8; }
+    .tg-body {
+      padding: 12px;
+      min-height: 120px;
+      background: #c8d9e6;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b0c4d4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .tg-bubble {
+      background: #fff;
+      border-radius: 0 8px 8px 8px;
+      padding: 10px 12px;
+      max-width: 95%;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .tg-bubble-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #3a8dcc;
+      margin-bottom: 4px;
+    }
+    .tg-bubble-text {
+      font-size: 13px;
+      color: #333;
+      line-height: 1.7;
+    }
+    .tg-bubble-time {
+      font-size: 10px;
+      color: #999;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* Email mockup */
+    .email-mockup {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+    }
+    .email-header {
+      background: #f5f5f5;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    .email-body {
+      padding: 20px 16px;
+      font-size: 13px;
+      color: #333;
+      line-height: 1.8;
+    }
+
+    /* In-app notification mockup */
+    .notif-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #fff;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+    }
+    .notif-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .notif-content {
+      flex: 1;
+    }
+    .notif-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .notif-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .notif-time {
+      font-size: 11px;
+      color: #999;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    /* Notification channels grid */
+    .channels-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 16px;
+    }
+
+    /* Tab bar mockup */
+    .tab-bar {
+      display: flex;
+      border-bottom: 2px solid #f0f0f0;
+      gap: 0;
+    }
+    .tab-item {
+      padding: 10px 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      white-space: nowrap;
+    }
+    .tab-item.active {
+      color: var(--primary);
+      font-weight: 600;
+      border-bottom-color: var(--primary);
+    }
+
+    /* Page header mockup */
+    .page-header-mock {
+      padding: 16px 20px;
+      background: #fafafa;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .breadcrumb-mock {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .breadcrumb-mock a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+    .breadcrumb-mock .current {
+      color: var(--text);
+    }
+
+    /* Toolbar row */
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* APP mockup phone frame */
+    .phone-frame {
+      width: 320px;
+      margin: 0 auto;
+      border-radius: 28px;
+      border: 3px solid #333;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    }
+    .phone-status-bar {
+      background: #333;
+      padding: 6px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+      font-size: 12px;
+    }
+    .phone-notch {
+      width: 80px;
+      height: 4px;
+      background: #555;
+      border-radius: 2px;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        max-width: 100%;
+      }
+      .step-block {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back link -->
+  <a href="index.html" class="back-link">← 返回全局架构</a>
+
+  <!-- ===== HEADER ===== -->
+  <header style="text-align: center; padding-top: 8px;">
+    <h1 style="font-size: 32px; color: #141414; text-align: center; margin: 0 0 12px 0; font-weight: 700; letter-spacing: -0.5px;">
+      场景2：企业加入平台 → 产生业务
+    </h1>
+    <p style="font-size: 16px; color: #666; text-align: center; margin: 0;">
+      公司生成认证码 → 企业在 APP 认证绑定 → 通知公司主 → 企业详情查看东方彩票订单和佣金订单
+    </p>
+    <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 32px 0;">
+  </header>
+
+
+  <!-- ===== STEP 1: 公司主生成认证码 ===== -->
+  <section class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--primary);">1</div>
+      <h2 class="step-title">公司主生成企业认证码</h2>
+    </div>
+    <p class="step-desc">
+      公司管理员进入「邀请企业」页面，生成企业认证码。支持两种有效期：<strong>永久有效</strong>和<strong>自定义时效</strong>。<br>
+      一个认证码可被多个企业使用。点击「详情」可查看该认证码下已绑定的全部企业清单。
+    </p>
+
+    <!-- Mockup: 邀请企业管理页 -->
+    <div class="mockup-frame">
+      <div class="page-header-mock">
+        <span class="breadcrumb-mock">企业管理 / <span class="current">邀请企业</span></span>
+      </div>
+      <div style="padding: 20px;">
+        <div class="toolbar-row">
+          <span style="font-size: 14px; font-weight: 600;">认证码列表</span>
+          <button style="background: var(--primary); color: #fff; border: none; padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer;">+ 生成认证码</button>
+        </div>
+        <table class="mock-table">
+          <thead>
+            <tr>
+              <th>创建时间</th>
+              <th>企业认证码</th>
+              <th>认证码有效期</th>
+              <th>认证码状态</th>
+              <th>邀请企业数</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: #fff7e6; border-left: 3px solid #fa8c16;">
+              <td>2026-04-10 09:00</td>
+              <td style="font-family: monospace; letter-spacing: 1px; font-weight: 600;">HT-A8K3-X7M2</td>
+              <td>永久有效</td>
+              <td><span class="tag tag-success">有效</span></td>
+              <td><strong>3</strong></td>
+              <td><span class="highlight-box" style="color: var(--primary); cursor: pointer;">详情</span></td>
+            </tr>
+            <tr>
+              <td>2026-04-05 11:00</td>
+              <td style="font-family: monospace; letter-spacing: 1px;">HT-P5N9-R2J6</td>
+              <td>2026-04-12 到期</td>
+              <td><span class="tag tag-default">已过期</span></td>
+              <td>0</td>
+              <td><span style="color: #999;">—</span></td>
+            </tr>
+            <tr>
+              <td>2026-04-01 08:00</td>
+              <td style="font-family: monospace; letter-spacing: 1px;">HT-K4W8-M1Q3</td>
+              <td>2026-05-01 到期</td>
+              <td><span class="tag tag-success">有效</span></td>
+              <td>1</td>
+              <td><span style="color: var(--primary); cursor: pointer;">详情</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="arrow-down">▼</div>
+    <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); text-align: center; margin-bottom: 8px;">点击「详情」→ 查看已绑定企业清单</div>
+
+    <!-- Detail Modal -->
+    <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 40px 20px;">
+      <div style="max-width: 640px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); overflow: hidden;">
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 16px; font-weight: 600;">认证码详情 — HT-A8K3-X7M2</span>
+          <span style="color: #999; font-size: 18px; cursor: pointer;">✕</span>
+        </div>
+        <div style="padding: 24px;">
+          <div style="display: flex; gap: 24px; margin-bottom: 20px; font-size: 13px; color: var(--text-secondary);">
+            <div>认证码状态：<span class="tag tag-success">有效</span></div>
+            <div>有效期：永久有效</div>
+            <div>已邀请企业：<strong style="color: var(--text);">3 家</strong></div>
+          </div>
+          <table class="mock-table">
+            <thead>
+              <tr>
+                <th>企业 ID</th>
+                <th>企业名称</th>
+                <th>企业主 ID</th>
+                <th>企业主用户名</th>
+                <th>邀请成功时间</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ENT001</td>
+                <td style="font-weight: 600;">NewCup</td>
+                <td>U101</td>
+                <td>zhang_wei</td>
+                <td>2026-04-12 10:00</td>
+              </tr>
+              <tr>
+                <td>ENT002</td>
+                <td style="font-weight: 600;">StarLink</td>
+                <td>U102</td>
+                <td>li_na</td>
+                <td>2026-04-14 14:30</td>
+              </tr>
+              <tr>
+                <td>ENT004</td>
+                <td style="font-weight: 600;">NovaTech</td>
+                <td>U104</td>
+                <td>chen_jie</td>
+                <td>2026-04-16 09:15</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      一个认证码可被多个企业使用。公司管理员通过详情弹窗查看所有已绑定企业的完整信息。
+    </div>
+  </section>
+
+  <div class="arrow-down">&#x25BC;</div>
+
+
+  <!-- ===== STEP 2: 企业认证 ===== -->
+  <section class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--primary);">2</div>
+      <h2 class="step-title">企业主在 APP 中认证企业</h2>
+    </div>
+    <p class="step-desc">
+      企业主在 APP 中进入「认证企业」入口，填写公司提供的认证码。系统验证成功后显示公司信息，确认即完成企业认证绑定。
+    </p>
+
+    <!-- APP Phone Mockup -->
+    <div class="phone-frame">
+      <div class="phone-status-bar">
+        <span>10:00</span>
+        <div class="phone-notch"></div>
+        <span style="font-size: 11px;">🔋</span>
+      </div>
+      <div style="background: #f5f5f5; padding: 8px 16px 12px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="color: #1677ff; font-size: 15px;">＜ 返回</span>
+        <span style="font-size: 17px; font-weight: 600;">认证企业</span>
+        <span style="font-size: 18px; color: #999;">✕</span>
+      </div>
+      <div style="background: #f5f5f5; padding: 16px;">
+        <div style="background: #fff; border-radius: 12px; padding: 20px 16px;">
+          <!-- Enterprise name -->
+          <div style="text-align: center; margin-bottom: 20px;">
+            <div style="width: 56px; height: 56px; background: #e6f4ff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+              <span style="font-size: 24px; font-weight: 700; color: var(--primary);">C</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 600; color: #141414;">NewCup</div>
+            <div style="font-size: 13px; color: #999;">企业主：张伟</div>
+          </div>
+
+          <!-- 认证码 input -->
+          <div style="margin-bottom: 16px;">
+            <div style="font-size: 13px; color: #666; margin-bottom: 6px;">认证码</div>
+            <div style="border: 2px solid var(--primary); border-radius: 8px; padding: 12px; font-size: 15px; font-family: monospace; letter-spacing: 2px; color: #141414; background: #fafafa;">
+              HT-A8K3-X7M2
+            </div>
+          </div>
+
+          <!-- Verification result -->
+          <div style="background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+            <div style="font-size: 12px; color: #389e0d; margin-bottom: 6px; font-weight: 600;">✓ 验证成功</div>
+            <div style="font-size: 14px; color: #141414;">公司名称：<strong>恒信达</strong></div>
+          </div>
+
+          <div style="background: var(--primary); color: #fff; text-align: center; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer;">
+            确认认证
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 12px; color: #999; margin-top: 16px;">
+          认证后，企业数据将对公司可见
+        </div>
+      </div>
+      <div style="background: #f5f5f5; height: 20px;"></div>
+    </div>
+
+    <div class="annotation">
+      企业主输入认证码后，系统验证有效性并显示公司名称。确认认证后即时生效，公司端同步收到通知。
+    </div>
+  </section>
+
+  <div class="arrow-down">&#x25BC;</div>
+
+
+  <!-- ===== STEP 3: 新增认证企业通知 ===== -->
+  <section class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--highlight);">3</div>
+      <h2 class="step-title">通知公司主 — 新增认证企业</h2>
+    </div>
+    <p class="step-desc">
+      企业认证成功后，系统自动向公司管理员发送「新增认证企业」通知，通过三个渠道同步推送。
+    </p>
+
+    <!-- 三渠道并排 -->
+    <div style="border: 2px dashed #91caff; border-radius: 12px; padding: 20px; background: #e6f4ff;">
+      <div style="font-weight: 600; color: #1677ff; text-align: center; margin-bottom: 16px;">三渠道同步推送</div>
+
+      <div style="display: flex; gap: 16px;">
+        <!-- Column 1: 小程序 Telegram 风格 -->
+        <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">📱 小程序通知</div>
+          <div class="tg-chat">
+            <div class="tg-header">
+              <div class="tg-header-back">‹</div>
+              <div class="tg-header-avatar">👥</div>
+              <div class="tg-header-info">
+                <div class="tg-header-name">企业认证通知</div>
+                <div class="tg-header-sub">5位成员</div>
+              </div>
+            </div>
+            <div class="tg-body">
+              <div class="tg-bubble">
+                <div class="tg-bubble-name">🤖 APP Name Bot</div>
+                <div class="tg-bubble-text">
+                  <div style="color: #1677ff; font-weight: 600;">@所有人 🤖 新增认证企业</div>
+                  <div style="margin-top: 6px;">
+                    企业：<strong>NewCup</strong><br>
+                    企业主：张伟<br>
+                    认证码：HT-A8K3-X7M2<br>
+                    认证时间：2026-04-16 10:00
+                  </div>
+                </div>
+                <div class="tg-bubble-time">10:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: 邮件 -->
+        <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">📧 邮件通知</div>
+          <div style="background: #fff; border: 1px solid #e8e8e8; border-radius: 8px;">
+            <div style="padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #999;">
+              <div>From: noreply@APP Name.com</div>
+              <div>To: admin@company.sg</div>
+            </div>
+            <div style="padding: 10px 14px; font-weight: 600; font-size: 14px; border-bottom: 1px solid #f0f0f0;">消息通知：新增认证企业</div>
+            <div style="padding: 14px; font-size: 12px; line-height: 1.8; color: #333;">
+              <div>尊敬的用户，</div>
+              <div>我们很高兴地通知您，<strong>【NewCup】</strong>已成功成为您的认证企业。</div>
+              <div style="background: #f5f7fa; border-radius: 6px; padding: 10px; margin: 8px 0;">
+                企业名称：<strong>NewCup</strong><br>
+                企业主：张伟<br>
+                认证码：HT-A8K3-X7M2<br>
+                认证时间：2026-04-16 10:00
+              </div>
+              <div>请注意，您现在可以查看和管理该企业的相关信息。</div>
+              <div style="margin-top: 4px;">感谢您的支持与合作。</div>
+              <div><strong>APP Name团队</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 3: 站内 -->
+        <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+          <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">🔔 站内通知</div>
+          <div style="background: #e6f4ff; border-left: 3px solid #1677ff; padding: 12px 14px; border-radius: 4px; margin-bottom: 8px; position: relative;">
+            <div style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: #1677ff; border-radius: 50%;"></div>
+            <div style="font-weight: 600; font-size: 13px; padding-right: 16px;">新增认证企业【NewCup】（认证码：HT-A8K3-X7M2），您现在可以查看和管理该企业的相关信息。</div>
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">2026-04-16 10:00</div>
+          </div>
+          <div style="padding: 12px 14px; color: #666; font-size: 13px;">
+            <div>【StarLink】的释放股份申请已通过…</div>
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">2026-04-15 14:35</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      三个渠道同时推送，确保公司管理员第一时间获知新企业认证信息。通知内容包含企业名称、企业主、认证码和认证时间。
+    </div>
+  </section>
+
+  <div class="arrow-down">&#x25BC;</div>
+
+
+  <!-- ===== STEP 4: 企业详情 — 东方彩票 + 佣金订单 ===== -->
+  <section class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--success);">4</div>
+      <h2 class="step-title">企业详情 — 东方彩票订单 → 佣金订单</h2>
+    </div>
+    <p class="step-desc">
+      企业在 APP 端产生东方彩票业务后，订单数据自动同步至平台。公司管理员在「企业详情」页面的「东方彩票」和「佣金订单」Tab 下查看该企业的业务数据。<br>
+      <span style="color: var(--highlight); font-weight: 600;">佣金记录由系统根据东方彩票订单自动生成，无需人工创建。</span>
+    </p>
+
+    <!-- Mockup: Enterprise detail — 东方彩票 Tab -->
+    <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">企业详情 — 东方彩票 Tab</div>
+    <div class="mockup-frame">
+      <div class="page-header-mock">
+        <span class="breadcrumb-mock">
+          <a href="#" style="color: var(--text-secondary); text-decoration: none;">企业管理</a> / <a href="#" style="color: var(--text-secondary); text-decoration: none;">企业清单</a> / <span class="current" style="color: var(--text);">NewCup</span>
+        </span>
+      </div>
+      <div style="padding: 20px 20px 0;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <div style="width: 40px; height: 40px; border-radius: 8px; background: #e6f4ff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: var(--primary);">C</div>
+          <div>
+            <div style="font-size: 18px; font-weight: 600;">NewCup</div>
+            <div style="font-size: 13px; color: #999;">企业主：张伟 &nbsp;|&nbsp; 认证时间：2026-04-16</div>
+          </div>
+        </div>
+        <div class="tab-bar" style="overflow-x: auto;">
+          <div class="tab-item">概览</div>
+          <div class="tab-item">成员清单</div>
+          <div class="tab-item">股东清单</div>
+          <div class="tab-item">投资分红</div>
+          <div class="tab-item">股份交易</div>
+          <div class="tab-item">开通应用</div>
+          <div class="tab-item">应用红包</div>
+          <div class="tab-item active">东方彩票</div>
+          <div class="tab-item">佣金订单</div>
+        </div>
+      </div>
+
+      <div style="padding: 16px 20px 20px; overflow-x: auto;">
+        <div class="toolbar-row">
+          <div class="radio-group">
+            <button class="radio-btn active">全部</button>
+            <button class="radio-btn">未结算</button>
+            <button class="radio-btn">结算中</button>
+            <button class="radio-btn">已结算</button>
+          </div>
+          <div style="font-size: 12px; color: #999;">共 156 条</div>
+        </div>
+        <table class="mock-table">
+          <thead>
+            <tr>
+              <th>发起时间</th>
+              <th>下注人ID</th>
+              <th>下注人昵称</th>
+              <th>游戏</th>
+              <th>游戏期数</th>
+              <th>订单编号</th>
+              <th>订单金额</th>
+              <th>完成时间</th>
+              <th>企业盈亏</th>
+              <th>订单状态</th>
+              <th>赔付金额</th>
+              <th>订单备注</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2026-04-16 14:32</td>
+              <td>BT001</td>
+              <td>玩家A</td>
+              <td>快三</td>
+              <td>2026041688</td>
+              <td style="font-family: monospace;">LOT001</td>
+              <td>5,000</td>
+              <td>2026-04-16 14:35</td>
+              <td style="font-weight: 600;">+850</td>
+              <td><span class="tag tag-success">已结算</span></td>
+              <td>4,150</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>2026-04-16 13:15</td>
+              <td>BT002</td>
+              <td>玩家B</td>
+              <td>时时彩</td>
+              <td>2026041652</td>
+              <td style="font-family: monospace;">LOT002</td>
+              <td>2,000</td>
+              <td>2026-04-16 13:20</td>
+              <td style="font-weight: 600; color: var(--danger);">-1,200</td>
+              <td><span class="tag tag-success">已结算</span></td>
+              <td>3,200</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td>2026-04-16 10:28</td>
+              <td>BT001</td>
+              <td>玩家A</td>
+              <td>快三</td>
+              <td>2026041645</td>
+              <td style="font-family: monospace;">LOT003</td>
+              <td>3,500</td>
+              <td>—</td>
+              <td>—</td>
+              <td><span class="tag tag-processing">未结算</span></td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="arrow-down">▼</div>
+    <div style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">切换到「佣金订单」Tab</div>
+
+    <!-- Mockup: Enterprise detail — 佣金订单 Tab -->
+    <div class="mockup-frame">
+      <div style="padding: 20px 20px 0;">
+        <div class="tab-bar" style="overflow-x: auto;">
+          <div class="tab-item">概览</div>
+          <div class="tab-item">成员清单</div>
+          <div class="tab-item">股东清单</div>
+          <div class="tab-item">投资分红</div>
+          <div class="tab-item">股份交易</div>
+          <div class="tab-item">开通应用</div>
+          <div class="tab-item">应用红包</div>
+          <div class="tab-item">东方彩票</div>
+          <div class="tab-item active">佣金订单</div>
+        </div>
+      </div>
+
+      <div style="padding: 16px 20px 20px; overflow-x: auto;">
+        <table class="mock-table">
+          <thead>
+            <tr>
+              <th>订单时间</th>
+              <th>订单编号</th>
+              <th>应用名称</th>
+              <th>游戏</th>
+              <th>企业支出佣金</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2026-04-16 14:35</td>
+              <td style="font-family: monospace;">COM001</td>
+              <td>东方彩票</td>
+              <td>快三</td>
+              <td style="font-weight: 600;">85.00 USDT</td>
+              <td><span style="color: var(--primary); cursor: pointer;">详情</span></td>
+            </tr>
+            <tr>
+              <td>2026-04-16 13:20</td>
+              <td style="font-family: monospace;">COM002</td>
+              <td>东方彩票</td>
+              <td>时时彩</td>
+              <td style="font-weight: 600;">40.00 USDT</td>
+              <td><span style="color: var(--primary); cursor: pointer;">详情</span></td>
+            </tr>
+            <tr>
+              <td>2026-04-15 18:45</td>
+              <td style="font-family: monospace;">COM003</td>
+              <td>东方彩票</td>
+              <td>快三</td>
+              <td style="font-weight: 600;">120.00 USDT</td>
+              <td><span style="color: var(--primary); cursor: pointer;">详情</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top: 16px; padding: 10px 14px; background: #fff7e6; border: 1px solid #ffd591; border-radius: 6px; display: flex; align-items: center; gap: 8px;">
+          <span style="color: var(--highlight); font-size: 16px;">⚠</span>
+          <span style="font-size: 13px; color: #d46b08;">佣金记录由系统根据东方彩票已结算订单自动生成。此处展示的是<strong>企业视角</strong>的佣金支出数据。</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      东方彩票订单和佣金订单都在<strong>企业详情</strong>页面内，属于企业级数据。东方彩票订单结算后自动生成对应佣金记录，无需人工操作。
+    </div>
+  </section>
+
+
+  <!-- ===== FOOTER ===== -->
+  <footer style="text-align: center; padding: 48px 0 24px; color: #999; font-size: 13px;">
+    <hr style="border: none; border-top: 1px solid #e8e8e8; margin-bottom: 24px;">
+    商户管理平台 &mdash; 场景2 流程文档 &nbsp;|&nbsp; 最后更新：2026-04-20
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>场景1：集团及公司初始化创建</title>
+  <style>
+    /* CSS Variables */
+    :root {
+      --primary: #1677ff;
+      --highlight: #fa8c16;
+      --success: #52c41a;
+      --danger: #ff4d4f;
+      --text: #141414;
+      --text-secondary: #666;
+      --bg-light: #f5f7fa;
+      --border: #e8e8e8;
+    }
+
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      background: #fff;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--primary);
+      text-decoration: none;
+      margin-bottom: 24px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Page Header */
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .page-header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+    .page-header p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    /* Section title */
+    .section-title {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 32px;
+      color: var(--text);
+    }
+
+    /* Flow Overview */
+    .overview-container {
+      max-width: 700px;
+      margin: 0 auto 56px;
+    }
+
+    .flow-node {
+      background: #f0f5ff;
+      border: 2px solid #1677ff;
+      border-radius: 10px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .flow-node.orange {
+      background: #fff7f0;
+      border-color: #fa8c16;
+    }
+
+    .flow-node.green {
+      background: #f6ffed;
+      border-color: #52c41a;
+    }
+
+    .flow-node-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1677ff;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .flow-node.orange .flow-node-num {
+      background: #fa8c16;
+    }
+
+    .flow-node.green .flow-node-num {
+      background: #52c41a;
+    }
+
+    .flow-node-text {
+      flex: 1;
+    }
+
+    .flow-node-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 2px 0;
+    }
+
+    .flow-node-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .flow-arrow {
+      text-align: center;
+      color: #1677ff;
+      font-size: 20px;
+      margin: 8px 0;
+      line-height: 1;
+    }
+
+    /* Step Block */
+    .step-block {
+      margin: 48px 0;
+      padding: 32px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Step Number Circle */
+    .step-number {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Step Header */
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    /* Step Title */
+    .step-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Step Description */
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* Mockup Frame */
+    .mockup-frame {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Mockup Header Bar */
+    .mockup-header {
+      background: #fafafa;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mockup-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #d9d9d9;
+    }
+    .mockup-dot.red { background: #ff5f57; }
+    .mockup-dot.yellow { background: #ffbd2e; }
+    .mockup-dot.green { background: #28c840; }
+
+    .mockup-url {
+      flex: 1;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-left: 8px;
+    }
+
+    .mockup-body {
+      padding: 24px;
+      background: #fff;
+    }
+
+    /* Form elements */
+    .mock-form-group {
+      margin-bottom: 16px;
+    }
+
+    .mock-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .mock-label .required {
+      color: var(--danger);
+      margin-left: 2px;
+    }
+
+    .mock-input {
+      width: 100%;
+      max-width: 360px;
+      height: 36px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      padding: 0 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: #fff;
+    }
+
+    .mock-select {
+      width: 100%;
+      max-width: 360px;
+      height: 36px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      padding: 0 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: #fff;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23999' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+
+    .mock-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      padding: 0 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .mock-btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .mock-btn-default {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid #d9d9d9;
+    }
+
+    /* Success Alert */
+    .mock-alert-success {
+      padding: 12px 16px;
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      border-radius: 6px;
+      color: #389e0d;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Info Banner */
+    .mock-info-banner {
+      padding: 10px 16px;
+      background: #e6f4ff;
+      border: 1px solid #91caff;
+      border-radius: 6px;
+      color: #0958d9;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Mock Table */
+    .mock-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .mock-table th {
+      background: #fafafa;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .mock-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .mock-table tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .mock-table tbody tr.highlight-row {
+      background: #fffbe6;
+      border-left: 3px solid var(--highlight);
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .tag-success {
+      background: #f6ffed;
+      color: #389e0d;
+      border: 1px solid #b7eb8f;
+    }
+
+    .tag-processing {
+      background: #e6f4ff;
+      color: #0958d9;
+      border: 1px solid #91caff;
+    }
+
+    .tag-default {
+      background: #fafafa;
+      color: #8c8c8c;
+      border: 1px solid #d9d9d9;
+    }
+
+    /* Highlight annotation */
+    .highlight-annotation {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border: 2px solid var(--highlight);
+      border-radius: 8px;
+      background: #fffaf0;
+    }
+
+    .highlight-annotation-label {
+      color: var(--highlight);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .highlight-annotation-text {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Annotation */
+    .annotation {
+      margin-top: 16px;
+      padding: 10px 16px;
+      background: #f5f7fa;
+      border-left: 3px solid var(--primary);
+      border-radius: 0 6px 6px 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Arrow Down */
+    .arrow-down {
+      text-align: center;
+      color: var(--primary);
+      font-size: 24px;
+      margin: 16px 0;
+      line-height: 1;
+    }
+
+    /* Login Page Layout */
+    .login-container {
+      display: flex;
+      min-height: 360px;
+    }
+
+    .login-left {
+      flex: 1;
+      background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      padding: 32px;
+      border-radius: 12px 0 0 12px;
+    }
+
+    .login-left h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .login-left p {
+      font-size: 14px;
+      opacity: 0.85;
+      margin: 0;
+    }
+
+    .login-right {
+      flex: 1;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .login-right h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 24px;
+    }
+
+    /* Sidebar Layout */
+    .platform-layout {
+      display: flex;
+      min-height: 420px;
+      border-radius: 0 0 12px 12px;
+    }
+
+    .platform-sidebar {
+      width: 200px;
+      background: #001529;
+      color: #fff;
+      padding: 16px 0;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo {
+      padding: 8px 16px 20px;
+      font-size: 15px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 8px;
+    }
+
+    .sidebar-menu-item {
+      padding: 10px 16px 10px 24px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.65);
+      cursor: pointer;
+    }
+
+    .sidebar-menu-item:hover {
+      color: #fff;
+    }
+
+    .sidebar-menu-item.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .platform-content {
+      flex: 1;
+      padding: 24px;
+      background: var(--bg-light);
+    }
+
+    .platform-topbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .breadcrumb span {
+      color: var(--text);
+    }
+
+    /* Success Result */
+    .success-result {
+      text-align: center;
+      padding: 32px;
+    }
+
+    .success-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #f6ffed;
+      border: 2px solid #52c41a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #52c41a;
+      margin-bottom: 16px;
+    }
+
+    .success-result h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 12px;
+    }
+
+    .success-checks {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+      margin-top: 8px;
+    }
+
+    .success-check-item {
+      font-size: 14px;
+      color: #389e0d;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Change Password Form */
+    .pwd-form-container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 32px;
+    }
+
+    .pwd-form-container h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 8px;
+      text-align: center;
+    }
+
+    .pwd-form-container .pwd-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    /* Mockup label */
+    .mockup-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin: 16px 0 8px;
+      text-align: center;
+    }
+
+    /* External platform style */
+    .ext-platform-header {
+      background: #2b3a4a;
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .ext-platform-header .logo-text {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .ext-platform-nav {
+      display: flex;
+      gap: 20px;
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .ext-platform-body {
+      padding: 32px;
+      background: #f8f9fc;
+    }
+
+    .ext-form-card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .ext-form-card h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Two column mockup */
+    .mockup-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .mockup-two-col {
+        grid-template-columns: 1fr;
+      }
+      .login-container {
+        flex-direction: column;
+      }
+      .login-left {
+        border-radius: 12px 12px 0 0;
+        min-height: 120px;
+      }
+      .platform-layout {
+        flex-direction: column;
+      }
+      .platform-sidebar {
+        width: 100%;
+      }
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: #fff;
+        padding: 20px;
+      }
+      .step-block {
+        box-shadow: none;
+        border: 1px solid var(--border);
+        break-inside: avoid;
+      }
+      .back-link {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back Link -->
+  <a href="index.html" class="back-link">&larr; 返回全局架构</a>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>场景1：集团及公司初始化创建</h1>
+    <p>从外部平台创建集团，到公司主可以登录本平台开始运营的完整流程</p>
+  </div>
+
+  <!-- ===== STEP 1 ===== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--highlight);">1</div>
+      <h2 class="step-title">外部平台创建集团</h2>
+    </div>
+    <div class="step-desc">
+      在另一个管理平台上，运营人员填写集团基本信息并提交。创建成功后，本平台（商户管理平台）会自动生成一个集团主账号，用于后续登录和管理。
+    </div>
+
+    <div class="mockup-frame">
+      <div class="ext-platform-header">
+        <span class="logo-text">运营管理后台</span>
+        <div class="ext-platform-nav">
+          <span>商户管理</span>
+          <span>订单中心</span>
+          <span>系统设置</span>
+        </div>
+      </div>
+      <div class="ext-platform-body">
+        <div class="ext-form-card">
+          <h3>创建集团</h3>
+          <div class="mock-form-group">
+            <label class="mock-label">集团名称 <span class="required">*</span></label>
+            <input class="mock-input" type="text" value="恒信达" readonly style="color: var(--text);">
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">公司数上限 <span class="required">*</span></label>
+            <input class="mock-input" type="text" value="5" readonly style="color: var(--text); max-width: 120px;">
+          </div>
+          <div class="mock-form-group" style="margin-top: 24px;">
+            <button class="mock-btn mock-btn-primary">创建集团</button>
+          </div>
+        </div>
+
+        <div style="max-width: 480px; margin: 16px auto 0;">
+          <div class="mock-alert-success">
+            <span style="font-size: 16px;">&#10003;</span>
+            <span>集团创建成功，已在商户管理平台自动生成集团主账号</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-annotation">
+      <div class="highlight-annotation-label">&#9432; 关键点</div>
+      <div class="highlight-annotation-text">
+        集团的创建发生在外部运营平台，不在本系统内。创建完成后，本平台自动收到通知并初始化集团主账号（手机号/邮箱 + 初始密码）。
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2 ===== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--primary);">2</div>
+      <h2 class="step-title">集团主登录本平台</h2>
+    </div>
+    <div class="step-desc">
+      集团主使用账号信息首次登录商户管理平台。系统要求完成 MFA 多因素认证绑定，并强制修改初始密码，之后进入集团管理看板。
+    </div>
+
+    <div class="mockup-label">登录页面</div>
+    <div class="mockup-frame">
+      <div class="mockup-header">
+        <div class="mockup-dot red"></div>
+        <div class="mockup-dot yellow"></div>
+        <div class="mockup-dot green"></div>
+        <div class="mockup-url">https://admin.example.com/login</div>
+      </div>
+      <div class="login-container">
+        <div class="login-left">
+          <h2>商户管理平台</h2>
+          <p>集团 &middot; 公司 &middot; 高效管理</p>
+        </div>
+        <div class="login-right">
+          <h3>账号登录</h3>
+          <div class="mock-form-group">
+            <label class="mock-label">手机号 / 邮箱</label>
+            <input class="mock-input" type="text" value="admin@dididada.com" readonly style="color: var(--text); max-width: 100%;">
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">登录密码</label>
+            <input class="mock-input" type="password" value="••••••••" readonly style="max-width: 100%;">
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">验证码</label>
+            <div style="display: flex; gap: 8px;">
+              <input class="mock-input" type="text" placeholder="请输入验证码" style="max-width: 100%; flex: 1;">
+              <button class="mock-btn mock-btn-default" style="white-space: nowrap; flex-shrink: 0;">获取验证码</button>
+            </div>
+          </div>
+          <div class="mock-form-group" style="margin-top: 24px;">
+            <button class="mock-btn mock-btn-primary" style="width: 100%; max-width: 100%;">登 录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow-down">&darr;</div>
+    <div class="mockup-label">首次登录强制修改密码</div>
+
+    <div class="mockup-frame">
+      <div class="mockup-header">
+        <div class="mockup-dot red"></div>
+        <div class="mockup-dot yellow"></div>
+        <div class="mockup-dot green"></div>
+        <div class="mockup-url">https://admin.example.com/change-password</div>
+      </div>
+      <div class="mockup-body">
+        <div class="pwd-form-container">
+          <h3>修改密码</h3>
+          <div class="pwd-subtitle">首次登录，请修改初始密码后继续使用</div>
+          <div class="mock-form-group">
+            <label class="mock-label">原始密码 <span class="required">*</span></label>
+            <input class="mock-input" type="password" value="********" readonly style="max-width: 100%;">
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">新密码 <span class="required">*</span></label>
+            <input class="mock-input" type="password" placeholder="8-20位，需包含大小写字母及数字" style="max-width: 100%;">
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">确认新密码 <span class="required">*</span></label>
+            <input class="mock-input" type="password" placeholder="请再次输入新密码" style="max-width: 100%;">
+          </div>
+          <div class="mock-form-group" style="margin-top: 24px;">
+            <button class="mock-btn mock-btn-primary" style="width: 100%; max-width: 100%;">确认修改</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      MFA 绑定和密码修改均为首次登录的强制步骤，完成后才能进入系统主界面。后续登录只需输入账号 + OTP + MFA。
+    </div>
+  </div>
+
+  <!-- ===== STEP 3 ===== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--primary);">3</div>
+      <h2 class="step-title">集团主创建公司</h2>
+    </div>
+    <div class="step-desc">
+      集团主登录后，在公司管理模块创建下属公司和公司管理员。每个集团有公司数量上限，创建时同步设置公司主账号。系统会自动为新公司初始化公司钱包。
+    </div>
+
+    <!-- 创建公司弹窗 Mockup -->
+    <div style="background: rgba(0,0,0,0.4); border-radius: 12px; padding: 40px 20px;">
+      <div style="max-width: 560px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); overflow: hidden;">
+        <!-- Modal Header -->
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 16px; font-weight: 600;">创建公司</span>
+          <span style="color: #999; font-size: 18px; cursor: pointer;">✕</span>
+        </div>
+        <!-- Modal Body -->
+        <div style="padding: 24px;">
+          <!-- Info Banner -->
+          <div class="mock-info-banner" style="margin-bottom: 20px;">
+            <span style="font-size: 15px;">&#9432;</span>
+            <span>当前集团：UU Talk 集团 &nbsp;|&nbsp; 已创建公司：1 / 5（上限 5 个）</span>
+          </div>
+
+          <!-- Section 1: 公司信息 -->
+          <div style="font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">公司信息</div>
+          <div class="mock-form-group">
+            <label class="mock-label">公司名称 <span class="required">*</span></label>
+            <input class="mock-input" type="text" value="恒信达" readonly style="color: var(--text); max-width: 100%;">
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">公司 ID</label>
+            <input class="mock-input" type="text" value="836291" readonly style="color: #999; background: #fafafa; max-width: 100%;">
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">系统自动生成，不可修改</div>
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">所属集团</label>
+            <input class="mock-input" type="text" value="UU Talk 集团" readonly style="color: #999; background: #fafafa; max-width: 100%;">
+          </div>
+
+          <!-- Section 2: 公司主账号 -->
+          <div style="font-size: 13px; font-weight: 600; color: var(--primary); margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">公司主账号</div>
+          <div class="mock-form-group">
+            <label class="mock-label">用户名 <span class="required">*</span></label>
+            <input class="mock-input" type="text" value="admin_dididada" readonly style="color: var(--text); max-width: 100%;">
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">登录密码 <span class="required">*</span></label>
+            <div style="display: flex; gap: 8px; max-width: 100%;">
+              <input class="mock-input" type="text" value="Xk9#mPw2$rL5" readonly style="color: var(--text); flex: 1; max-width: none; font-family: monospace;">
+              <button class="mock-btn mock-btn-default" style="white-space: nowrap; flex-shrink: 0; height: 36px; font-size: 12px;">随机生成</button>
+            </div>
+            <div style="font-size: 11px; color: #999; margin-top: 4px;">8-30位，需包含大小写字母、数字、特殊字符中的至少 3 种</div>
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">再次输入密码 <span class="required">*</span></label>
+            <input class="mock-input" type="text" value="Xk9#mPw2$rL5" readonly style="color: var(--text); max-width: 100%; font-family: monospace;">
+          </div>
+
+          <!-- Section 3: 账号配置 -->
+          <div style="font-size: 13px; font-weight: 600; color: var(--primary); margin: 20px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0;">账号配置</div>
+          <div class="mock-form-group">
+            <label class="mock-label">账户有效期</label>
+            <select class="mock-select" style="max-width: 100%;">
+              <option>永久有效</option>
+            </select>
+          </div>
+          <div class="mock-form-group">
+            <label class="mock-label">IP 限制</label>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="display: inline-block; width: 32px; height: 18px; background: #d9d9d9; border-radius: 9px; position: relative;"><span style="position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; background: #fff; border-radius: 50%;"></span></span>
+              <span style="font-size: 12px; color: #999;">关闭</span>
+            </div>
+          </div>
+        </div>
+        <!-- Modal Footer -->
+        <div style="padding: 12px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; background: #fafafa;">
+          <button class="mock-btn mock-btn-default" style="height: 32px; font-size: 13px;">取 消</button>
+          <button class="mock-btn mock-btn-primary" style="height: 32px; font-size: 13px;">确认创建</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-annotation">
+      <div class="highlight-annotation-label">&#9432; 关键点</div>
+      <div class="highlight-annotation-text">
+        <strong>公司数上限：</strong>集团创建时设定的上限会在此校验，达上限则按钮置灰。<br>
+        <strong>公司主账号：</strong>创建公司时同步创建，支持随机生成强密码。公司主首次登录同样需要强制改密 + MFA 绑定。<br>
+        <strong>公司钱包：</strong>系统自动初始化，无需手动操作。
+      </div>
+    </div>
+  </div>
+
+
+</body>
+</html>

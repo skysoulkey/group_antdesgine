@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>场景4：集团资金下拨 / 调回</title>
+  <style>
+    /* CSS Variables */
+    :root {
+      --primary: #1677ff;
+      --highlight: #fa8c16;
+      --success: #52c41a;
+      --danger: #ff4d4f;
+      --text: #141414;
+      --text-secondary: #666;
+      --bg-light: #f5f7fa;
+      --border: #e8e8e8;
+    }
+
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      background: #fff;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* Step Block */
+    .step-block {
+      margin: 48px 0;
+      padding: 32px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Step Number Circle */
+    .step-number {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Step Header */
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    /* Step Title */
+    .step-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Step Description */
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* Mockup Frame */
+    .mockup-frame {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Highlight Box */
+    .highlight-box {
+      border: 2px solid var(--highlight);
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+
+    /* Highlight Label */
+    .highlight-label {
+      color: var(--highlight);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Arrow Down */
+    .arrow-down {
+      text-align: center;
+      color: var(--primary);
+      font-size: 24px;
+      margin: 16px 0;
+      line-height: 1;
+    }
+
+    /* Mock Table */
+    .mock-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .mock-table th {
+      background: #fafafa;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .mock-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .mock-table tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .tag-success {
+      background: #f6ffed;
+      color: #389e0d;
+      border: 1px solid #b7eb8f;
+    }
+
+    .tag-processing {
+      background: #e6f4ff;
+      color: #0958d9;
+      border: 1px solid #91caff;
+    }
+
+    .tag-warning {
+      background: #fff7e6;
+      color: #d46b08;
+      border: 1px solid #ffd591;
+    }
+
+    .tag-error {
+      background: #fff1f0;
+      color: #cf1322;
+      border: 1px solid #ffa39e;
+    }
+
+    .tag-default {
+      background: #fafafa;
+      color: #8c8c8c;
+      border: 1px solid #d9d9d9;
+    }
+
+    /* Overview */
+    .overview-container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 20px 0;
+      text-align: center;
+    }
+
+    .flow-node {
+      background: #f0f5ff;
+      border: 2px solid #1677ff;
+      border-radius: 10px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .flow-node.orange {
+      background: #fff7f0;
+      border-color: #fa8c16;
+    }
+
+    .flow-node.green {
+      background: #f6ffed;
+      border-color: #52c41a;
+    }
+
+    .flow-node-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1677ff;
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .flow-node.orange .flow-node-num {
+      background: #fa8c16;
+    }
+
+    .flow-node.green .flow-node-num {
+      background: #52c41a;
+    }
+
+    .flow-node-text {
+      flex: 1;
+    }
+
+    .flow-node-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0 0 2px 0;
+    }
+
+    .flow-node-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .flow-arrow {
+      text-align: center;
+      color: #1677ff;
+      font-size: 20px;
+      margin: 8px 0;
+      line-height: 1;
+    }
+
+    /* KPI Cards */
+    .kpi-row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      flex: 1;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+
+    .kpi-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #141414;
+    }
+
+    .kpi-value-sm {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      margin-left: 4px;
+    }
+
+    /* Telegram Chat Mockup */
+    .tg-chat {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #d9d9d9;
+      background: #e7ebf0;
+    }
+    .tg-header {
+      background: #517da2;
+      color: #fff;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tg-header-back {
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+    .tg-header-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #6b9ec2;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .tg-header-info { flex: 1; }
+    .tg-header-name { font-size: 14px; font-weight: 600; }
+    .tg-header-sub { font-size: 11px; opacity: 0.8; }
+    .tg-body {
+      padding: 12px;
+      min-height: 120px;
+      background: #c8d9e6;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23b0c4d4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .tg-bubble {
+      background: #fff;
+      border-radius: 0 8px 8px 8px;
+      padding: 10px 12px;
+      max-width: 95%;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .tg-bubble-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #3a8dcc;
+      margin-bottom: 4px;
+    }
+    .tg-bubble-text {
+      font-size: 13px;
+      color: #333;
+      line-height: 1.7;
+    }
+    .tg-bubble-time {
+      font-size: 11px;
+      color: #999;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* Form styles */
+    .mock-form-group {
+      margin-bottom: 16px;
+    }
+    .mock-form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .mock-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text);
+    }
+    .mock-select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text);
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .mock-btn {
+      display: inline-block;
+      padding: 8px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+    }
+    .mock-btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .mock-btn-default {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid #d9d9d9;
+    }
+
+    /* Comparison arrow */
+    .comparison-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: var(--primary);
+      padding: 0 24px;
+      flex-shrink: 0;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        max-width: 100%;
+      }
+      .step-block {
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back link -->
+  <a href="index.html" style="display: inline-block; margin-bottom: 16px; font-size: 14px; color: var(--primary); text-decoration: none;">← 返回全局架构</a>
+
+  <!-- ===== HEADER ===== -->
+  <header style="text-align: center; padding-top: 20px;">
+    <h1 style="font-size: 32px; color: #141414; text-align: center; margin: 0 0 12px 0; font-weight: 700; letter-spacing: -0.5px;">
+      场景4：集团资金下拨 / 调回
+    </h1>
+    <p style="font-size: 16px; color: #666; text-align: center; margin: 0;">
+      集团财务管理员查看钱包余额、发起资金下拨或调回操作的完整流程
+    </p>
+    <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 32px 0;">
+  </header>
+
+  <!-- ===== STEP 1: GROUP WALLET ===== -->
+
+  <section id="step1" class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--primary);">1</div>
+      <h2 class="step-title">集团钱包查看余额</h2>
+    </div>
+
+    <div class="step-desc">
+      集团财务管理员进入「集团钱包」页面，查看集团的总余额和已下拨总额，以及绑定的钱包账户信息。
+    </div>
+
+    <!-- Mockup: Wallet page -->
+    <div class="mockup-frame">
+      <!-- Page header bar -->
+      <div style="background: #fafafa; padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 14px; color: var(--text-secondary);">集团金融 / 集团钱包</div>
+        <div style="font-size: 12px; color: #999;">最后更新：2026-04-16 10:45</div>
+      </div>
+
+      <div style="padding: 24px;">
+        <!-- KPI Cards Row -->
+        <div class="kpi-row">
+          <div class="kpi-card" style="border: 2px solid var(--primary); background: #f0f5ff;">
+            <div class="kpi-label">总余额</div>
+            <div class="kpi-value">125,000 <span class="kpi-value-sm">USDT</span></div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">已下拨总额</div>
+            <div class="kpi-value">80,000 <span class="kpi-value-sm">USDT</span></div>
+          </div>
+        </div>
+
+        <!-- Wallet Account Info -->
+        <div style="background: #fafafa; border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin-top: 8px;">
+          <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">绑定钱包账户</div>
+          <div style="display: flex; gap: 40px; font-size: 13px;">
+            <div>
+              <span style="color: var(--text-secondary);">钱包类型：</span>
+              <span>TRC-20</span>
+            </div>
+            <div>
+              <span style="color: var(--text-secondary);">钱包地址：</span>
+              <span style="font-family: monospace; font-size: 12px;">TXqH7s...kR9mZ4</span>
+            </div>
+            <div>
+              <span style="color: var(--text-secondary);">绑定时间：</span>
+              <span>2026-01-15</span>
+            </div>
+            <div>
+              <span style="color: var(--text-secondary);">状态：</span>
+              <span class="tag tag-success">正常</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Highlight annotation -->
+        <div style="margin-top: 16px; padding: 10px 14px; background: #fff7e6; border-left: 3px solid var(--highlight); border-radius: 4px; font-size: 13px;">
+          <span class="highlight-label">当前可下拨金额为 45,000 USDT</span> — 即总余额减去已下拨总额
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== STEP 2: INITIATE ALLOCATION ===== -->
+  <div class="arrow-down">▼</div>
+
+  <section id="step2" class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--primary);">2</div>
+      <h2 class="step-title">发起下拨操作</h2>
+    </div>
+
+    <div class="step-desc">
+      管理员点击「下拨资金」按钮，选择目标公司、填写下拨金额和备注，提交后弹出二次确认弹窗。
+    </div>
+
+    <div style="display: flex; gap: 24px; align-items: flex-start;">
+      <!-- Left: Form -->
+      <div style="flex: 1;">
+        <div class="mockup-frame">
+          <div style="background: #fafafa; padding: 10px 20px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600;">
+            资金下拨
+          </div>
+          <div style="padding: 24px;">
+            <div class="mock-form-group">
+              <div class="mock-form-label">选择公司 <span style="color: var(--danger);">*</span></div>
+              <select class="mock-select">
+                <option>恒信达</option>
+              </select>
+            </div>
+            <div class="mock-form-group">
+              <div class="mock-form-label">下拨金额 (USDT) <span style="color: var(--danger);">*</span></div>
+              <input class="mock-input" type="text" value="20,000" readonly>
+            </div>
+            <div class="mock-form-group">
+              <div class="mock-form-label">备注 <span style="color: #999; font-weight: 400;">(选填)</span></div>
+              <input class="mock-input" type="text" value="4月运营资金" readonly>
+            </div>
+            <div style="margin-top: 24px; display: flex; gap: 12px;">
+              <span class="mock-btn mock-btn-primary">提交下拨</span>
+              <span class="mock-btn mock-btn-default">取消</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="comparison-arrow" style="padding-top: 80px;">→</div>
+
+      <!-- Right: Confirmation modal -->
+      <div style="flex: 1;">
+        <div style="border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); overflow: hidden; border: 2px solid var(--highlight);">
+          <!-- Modal overlay effect -->
+          <div style="background: #fff; border-radius: 12px;">
+            <!-- Modal header -->
+            <div style="padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 16px; font-weight: 600;">确认下拨</span>
+              <span style="color: #999; font-size: 18px; cursor: pointer;">&times;</span>
+            </div>
+            <!-- Modal body -->
+            <div style="padding: 24px; text-align: center;">
+              <div style="font-size: 40px; margin-bottom: 12px;">&#9888;&#65039;</div>
+              <div style="font-size: 15px; color: var(--text); line-height: 1.8;">
+                确认向 <strong style="color: var(--primary);">【恒信达】</strong> 下拨
+              </div>
+              <div style="font-size: 28px; font-weight: 700; color: #141414; margin: 8px 0;">20,000 USDT</div>
+              <div style="font-size: 13px; color: var(--text-secondary);">下拨后公司钱包余额将实时增加。</div>
+            </div>
+            <!-- Modal footer -->
+            <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px;">
+              <span class="mock-btn mock-btn-default">取消</span>
+              <span class="mock-btn mock-btn-primary">确认下拨</span>
+            </div>
+          </div>
+        </div>
+        <!-- Highlight label -->
+        <div style="text-align: center; margin-top: 8px;">
+          <span class="highlight-label">二次确认弹窗 — 防止误操作</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== STEP 3: COMPANY WALLET BALANCE CHANGE ===== -->
+  <div class="arrow-down">▼</div>
+
+  <section id="step3" class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--success);">3</div>
+      <h2 class="step-title">公司钱包余额变动</h2>
+    </div>
+
+    <div class="step-desc">
+      下拨完成后，目标公司的钱包余额实时更新。管理员可在公司钱包页面确认变动。
+    </div>
+
+    <!-- Before/After comparison -->
+    <div style="display: flex; gap: 0; align-items: stretch;">
+      <!-- Before -->
+      <div style="flex: 1;">
+        <div style="text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">下拨前</div>
+        <div class="mockup-frame" style="height: 100%;">
+          <div style="background: #fafafa; padding: 10px 20px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-secondary);">
+            公司钱包 / 恒信达
+          </div>
+          <div style="padding: 20px;">
+            <div class="kpi-card" style="border-color: var(--border);">
+              <div class="kpi-label">钱包余额</div>
+              <div class="kpi-value">30,000 <span class="kpi-value-sm">USDT</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="comparison-arrow">→</div>
+
+      <!-- After -->
+      <div style="flex: 1;">
+        <div style="text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">下拨后</div>
+        <div class="mockup-frame" style="height: 100%; border-color: var(--success);">
+          <div style="background: #f6ffed; padding: 10px 20px; border-bottom: 1px solid #b7eb8f; font-size: 13px; color: #389e0d;">
+            公司钱包 / 恒信达
+          </div>
+          <div style="padding: 20px;">
+            <div class="kpi-card" style="border: 2px solid var(--success); background: #f6ffed;">
+              <div class="kpi-label">钱包余额</div>
+              <div class="kpi-value">50,000 <span class="kpi-value-sm">USDT</span></div>
+              <div style="margin-top: 8px; font-size: 14px; color: var(--success); font-weight: 600;">
+                +20,000 USDT
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balance breakdown -->
+    <div style="margin-top: 20px; background: #f5f7fa; border-radius: 8px; padding: 16px 20px; font-size: 13px; line-height: 2;">
+      <div style="font-weight: 600; margin-bottom: 4px;">集团钱包同步变动：</div>
+      <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+        <div>总余额：125,000 USDT <span style="color: var(--text-secondary);">(不变)</span></div>
+        <div>已下拨总额：80,000 → <strong>100,000 USDT</strong> <span style="color: var(--danger);">(+20,000)</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== STEP 4: THREE-CHANNEL NOTIFICATION ===== -->
+  <div class="arrow-down">▼</div>
+
+  <section id="step4" class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--highlight);">4</div>
+      <h2 class="step-title">三渠道通知 — Telegram / 邮件 / 站内</h2>
+    </div>
+
+    <div class="step-desc">
+      系统自动向相关人员推送「集团下拨」通知，三个渠道同时发出。
+    </div>
+
+    <div style="display: flex; gap: 16px; align-items: flex-start;">
+
+      <!-- Column 1: Telegram -->
+      <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+        <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">📱 Telegram 通知</div>
+
+        <div class="tg-chat">
+          <!-- Header -->
+          <div class="tg-header">
+            <div class="tg-header-back">‹</div>
+            <div class="tg-header-avatar">💰</div>
+            <div class="tg-header-info">
+              <div class="tg-header-name">资金通知</div>
+              <div class="tg-header-sub">8位成员</div>
+            </div>
+          </div>
+          <!-- Body -->
+          <div class="tg-body">
+            <div class="tg-bubble">
+              <div class="tg-bubble-name">🤖 HeyTalk Bot</div>
+              <div class="tg-bubble-text">
+                <div style="color: #1677ff; font-weight: 600;">@所有人 🤖 集团下拨资金</div>
+                <div style="margin-top: 6px;">
+                  集团：<strong>HeyTalk集团</strong><br>
+                  公司：<strong>恒信达</strong><br>
+                  金额：<strong>20,000 USDT</strong><br>
+                  时间：2026-04-16 11:00
+                </div>
+              </div>
+              <div class="tg-bubble-time">11:00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 2: Email -->
+      <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+        <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">📧 邮件通知</div>
+
+        <!-- Email mockup -->
+        <div style="background: #fff; border: 1px solid #e8e8e8; border-radius: 8px;">
+          <!-- Email header -->
+          <div style="padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 12px; color: #999;">
+            <div>From: noreply@heytalk.com</div>
+            <div>To: finance@didadida.com</div>
+          </div>
+          <!-- Subject -->
+          <div style="padding: 10px 14px; font-weight: 600; font-size: 14px; border-bottom: 1px solid #f0f0f0;">消息通知：集团下拨资金</div>
+          <!-- Body -->
+          <div style="padding: 14px; font-size: 12px; line-height: 1.8; color: #333;">
+            <div>尊敬的用户，</div>
+            <div style="margin-top: 4px;">集团【HeyTalk集团】已向贵公司【恒信达】下拨运营资金。</div>
+            <div style="margin: 8px 0; padding: 10px; background: #f5f7fa; border-radius: 4px;">
+              <div>下拨金额：<strong>20,000 USDT</strong></div>
+              <div>操作时间：2026-04-16 11:00:00</div>
+              <div>操作人：Miya</div>
+              <div>备注：4月运营资金</div>
+            </div>
+            <div>资金已到账，请登录系统查看最新余额。</div>
+            <div style="margin-top: 4px;">感谢您的理解与合作。</div>
+            <div>最好的问候，</div>
+            <div><strong>HeyTalk团队</strong></div>
+            <div style="margin-top: 8px;"><a href="#" style="display: inline-block; background: #1677ff; color: #fff; padding: 8px 20px; border-radius: 4px; text-decoration: none; font-size: 13px;">前往钱包页面 →</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Column 3: In-app -->
+      <div style="flex: 1; background: #fff; border-radius: 10px; padding: 16px; border: 1px solid var(--border);">
+        <div style="font-weight: 600; font-size: 15px; margin-bottom: 12px;">🔔 站内通知</div>
+
+        <!-- Notification list -->
+        <!-- Item 1 — highlighted -->
+        <div style="background: #e6f4ff; border-left: 3px solid #1677ff; padding: 12px 14px; border-radius: 4px; margin-bottom: 8px; position: relative;">
+          <div style="position: absolute; top: 10px; right: 10px; width: 8px; height: 8px; background: #1677ff; border-radius: 50%;"></div>
+          <div style="font-weight: 600; font-size: 13px; padding-right: 16px;">集团【HeyTalk集团】已向贵公司【恒信达】下拨 20,000 USDT，资金已到账。</div>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">2026-04-16 11:00</div>
+        </div>
+        <!-- Item 2 — normal -->
+        <div style="padding: 12px 14px; color: #666; font-size: 13px;">
+          <div>【StarLink】4月佣金已结算，请查看…</div>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">2026-04-15 14:35</div>
+        </div>
+        <!-- Item 3 — normal -->
+        <div style="padding: 12px 14px; color: #666; font-size: 13px; border-top: 1px solid #f0f0f0;">
+          <div>系统维护通知：4月17日 02:00-04:00…</div>
+          <div style="font-size: 11px; color: #999; margin-top: 4px;">2026-04-14 16:20</div>
+        </div>
+      </div>
+
+    </div><!-- /.three columns -->
+  </section>
+
+  <!-- ===== STEP 5: OPERATION LOG ===== -->
+  <div class="arrow-down">▼</div>
+
+  <section id="step5" class="step-block">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--primary);">5</div>
+      <h2 class="step-title">操作日志记录</h2>
+    </div>
+
+    <div class="step-desc">
+      系统自动在操作日志中记录本次下拨操作，管理员可在「系统日志 → 操作日志」Tab 下查看。
+    </div>
+
+    <!-- Mockup: System logs page -->
+    <div class="mockup-frame">
+      <!-- Tab bar -->
+      <div style="background: #fff; padding: 0 20px; border-bottom: 1px solid var(--border); display: flex; gap: 0;">
+        <div style="padding: 12px 20px; font-size: 14px; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent;">登录日志</div>
+        <div style="padding: 12px 20px; font-size: 14px; color: var(--primary); font-weight: 600; cursor: pointer; border-bottom: 2px solid var(--primary);">操作日志</div>
+      </div>
+
+      <!-- Table -->
+      <div style="padding: 16px 20px;">
+        <table class="mock-table">
+          <thead>
+            <tr>
+              <th>操作时间</th>
+              <th>操作人</th>
+              <th>角色</th>
+              <th>操作行为</th>
+              <th>模块</th>
+              <th>IP 地址</th>
+              <th>结果</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Highlighted row -->
+            <tr style="background: #e6f4ff !important; border-left: 3px solid var(--primary);">
+              <td><strong>2026-04-16 11:00:00</strong></td>
+              <td><strong>Miya</strong></td>
+              <td>集团主</td>
+              <td><strong>集团下拨</strong></td>
+              <td>集团金融</td>
+              <td style="font-family: monospace; font-size: 12px;">103.12.68.55</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td><a href="#" style="color: var(--primary); text-decoration: none; font-size: 13px;">详情</a></td>
+            </tr>
+            <tr>
+              <td>2026-04-16 10:45:12</td>
+              <td>Miya</td>
+              <td>集团主</td>
+              <td>查看钱包</td>
+              <td>集团金融</td>
+              <td style="font-family: monospace; font-size: 12px;">103.12.68.55</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td><a href="#" style="color: var(--primary); text-decoration: none; font-size: 13px;">详情</a></td>
+            </tr>
+            <tr>
+              <td>2026-04-16 09:30:08</td>
+              <td>张伟</td>
+              <td>集团管理员</td>
+              <td>审批通过</td>
+              <td>投资审批</td>
+              <td style="font-family: monospace; font-size: 12px;">58.22.71.103</td>
+              <td><span class="tag tag-success">成功</span></td>
+              <td><a href="#" style="color: var(--primary); text-decoration: none; font-size: 13px;">详情</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Detail JSON -->
+    <div style="margin-top: 20px;">
+      <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">日志详情 JSON</div>
+      <div style="background: #1e1e1e; color: #d4d4d4; border-radius: 8px; padding: 16px 20px; font-family: 'SF Mono', Monaco, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.8; overflow-x: auto;">
+        <div>{</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"action"</span>: <span style="color: #ce9178;">"集团下拨"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"operator"</span>: <span style="color: #ce9178;">"Miya"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"role"</span>: <span style="color: #ce9178;">"集团主"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"module"</span>: <span style="color: #ce9178;">"集团金融"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"target_company"</span>: <span style="color: #ce9178;">"恒信达"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"amount"</span>: <span style="color: #b5cea8;">20000</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"currency"</span>: <span style="color: #ce9178;">"USDT"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"remark"</span>: <span style="color: #ce9178;">"4月运营资金"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"ip"</span>: <span style="color: #ce9178;">"103.12.68.55"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"timestamp"</span>: <span style="color: #ce9178;">"2026-04-16T11:00:00+08:00"</span>,</div>
+        <div style="padding-left: 20px;"><span style="color: #9cdcfe;">"result"</span>: <span style="color: #ce9178;">"成功"</span></div>
+        <div>}</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SECONDARY FLOW: RECALL ===== -->
+  <div style="text-align: center; margin: 48px 0 16px;">
+    <div style="display: inline-block; width: 60px; border-top: 2px dashed var(--border);"></div>
+  </div>
+
+  <section id="recall" class="step-block" style="border-left: 4px solid var(--danger); box-shadow: 0 2px 12px rgba(255, 77, 79, 0.1), 0 0 0 1px rgba(255, 77, 79, 0.08);">
+    <div class="step-header">
+      <div class="step-number" style="background: var(--danger);">↩</div>
+      <h2 class="step-title">逆向操作：资金调回</h2>
+    </div>
+
+    <div class="step-desc">
+      集团管理员也可以发起「调回」操作，将已下拨给公司的资金收回至集团钱包。流程与下拨对称。
+    </div>
+
+    <div style="display: flex; gap: 24px; align-items: flex-start;">
+
+      <!-- Left: Recall form -->
+      <div style="flex: 1;">
+        <div class="mockup-frame">
+          <div style="background: #fff1f0; padding: 10px 20px; border-bottom: 1px solid #ffa39e; font-size: 14px; font-weight: 600; color: #cf1322;">
+            资金调回
+          </div>
+          <div style="padding: 20px;">
+            <div class="mock-form-group">
+              <div class="mock-form-label">选择公司 <span style="color: var(--danger);">*</span></div>
+              <select class="mock-select">
+                <option>恒信达</option>
+              </select>
+              <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">该公司当前余额：50,000 USDT</div>
+            </div>
+            <div class="mock-form-group">
+              <div class="mock-form-label">调回金额 (USDT) <span style="color: var(--danger);">*</span></div>
+              <input class="mock-input" type="text" value="10,000" readonly>
+            </div>
+            <div class="mock-form-group">
+              <div class="mock-form-label">调回原因 <span style="color: var(--danger);">*</span></div>
+              <input class="mock-input" type="text" value="季度资金回笼" readonly>
+            </div>
+            <div style="margin-top: 20px;">
+              <span class="mock-btn" style="background: var(--danger); color: #fff;">确认调回</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Result summary -->
+      <div style="flex: 1;">
+        <div style="background: #f5f7fa; border-radius: 10px; padding: 24px;">
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 16px;">调回后变动</div>
+
+          <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+            <!-- Company wallet -->
+            <div style="flex: 1; background: #fff; border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">恒信达 钱包余额</div>
+              <div style="font-size: 18px; font-weight: 700; color: #141414;">40,000 <span style="font-size: 12px; font-weight: 400; color: var(--text-secondary);">USDT</span></div>
+              <div style="font-size: 12px; color: var(--danger); margin-top: 4px;">-10,000</div>
+            </div>
+            <!-- Group wallet -->
+            <div style="flex: 1; background: #fff; border-radius: 8px; padding: 14px; border: 1px solid var(--border);">
+              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">集团总余额</div>
+              <div style="font-size: 18px; font-weight: 700; color: #141414;">35,000 <span style="font-size: 12px; font-weight: 400; color: var(--text-secondary);">USDT</span></div>
+              <div style="font-size: 12px; color: var(--success); margin-top: 4px;">+10,000</div>
+            </div>
+          </div>
+
+          <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+            <div><strong>触发通知：</strong>与下拨相同，三渠道推送「集团调回」通知</div>
+            <div><strong>操作日志：</strong>记录为「集团调回」行为，含调回原因</div>
+            <div><strong>权限要求：</strong>仅集团主 / 集团财务管理员可操作</div>
+          </div>
+
+          <!-- Telegram preview (mini) -->
+          <div style="margin-top: 16px;">
+            <div class="tg-chat" style="font-size: 12px;">
+              <div class="tg-header" style="padding: 8px 10px;">
+                <div style="font-size: 14px; cursor: pointer; opacity: 0.8;">‹</div>
+                <div style="width: 28px; height: 28px; border-radius: 50%; background: #6b9ec2; display: flex; align-items: center; justify-content: center; font-size: 12px;">💰</div>
+                <div style="flex: 1;">
+                  <div style="font-size: 12px; font-weight: 600;">资金通知</div>
+                </div>
+              </div>
+              <div class="tg-body" style="padding: 8px; min-height: auto;">
+                <div class="tg-bubble" style="padding: 8px 10px;">
+                  <div style="font-size: 11px; font-weight: 600; color: #3a8dcc;">🤖 HeyTalk Bot</div>
+                  <div style="font-size: 11px; color: #333; margin-top: 2px; line-height: 1.6;">
+                    <div style="color: var(--danger); font-weight: 600;">@所有人 🤖 集团调回资金</div>
+                    集团：<strong>HeyTalk集团</strong><br>
+                    公司：<strong>恒信达</strong><br>
+                    金额：<strong>10,000 USDT</strong><br>
+                    原因：季度资金回笼
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="text-align: center; margin-top: 48px; padding: 24px 0; border-top: 1px solid var(--border); color: #999; font-size: 13px;">
+    商户管理平台 — 场景4：集团资金下拨 / 调回 &nbsp;|&nbsp; 文档版本 v1.0 &nbsp;|&nbsp; 2026-04-20
+  </footer>
+
+</body>
+</html>

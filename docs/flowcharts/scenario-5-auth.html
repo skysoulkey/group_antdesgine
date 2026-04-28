@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>场景5：用户登录与权限控制 — 商户管理平台</title>
+  <style>
+    /* CSS Variables */
+    :root {
+      --primary: #1677ff;
+      --highlight: #fa8c16;
+      --success: #52c41a;
+      --danger: #ff4d4f;
+      --text: #141414;
+      --text-secondary: #666;
+      --bg-light: #f5f7fa;
+      --border: #e8e8e8;
+    }
+
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      background: #fff;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+    }
+
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 24px;
+      font-size: 14px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+
+    .page-subtitle {
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
+
+    /* Step Block */
+    .step-block {
+      margin: 48px 0;
+      padding: 32px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+
+    .step-number {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+      background: var(--primary);
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .step-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    /* Mockup Frame */
+    .mockup-frame {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .mockup-titlebar {
+      background: #fafafa;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mockup-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e0e0e0;
+    }
+
+    .mockup-body {
+      padding: 32px;
+      background: var(--bg-light);
+    }
+
+    /* Arrow Down */
+    .arrow-down {
+      text-align: center;
+      color: var(--primary);
+      font-size: 24px;
+      margin: 16px 0;
+      line-height: 1;
+    }
+
+    /* Mock Table */
+    .mock-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .mock-table th {
+      background: #fafafa;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .mock-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .mock-table tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .mock-table tbody tr.row-highlight {
+      background: #e6f4ff;
+    }
+
+    /* Radio Group */
+    .radio-group {
+      display: inline-flex;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .radio-btn {
+      padding: 6px 14px;
+      font-size: 12px;
+      background: #fff;
+      border: none;
+      border-right: 1px solid var(--border);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .radio-btn:last-child {
+      border-right: none;
+    }
+
+    .radio-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    .tag-success {
+      background: #f6ffed;
+      color: #389e0d;
+      border: 1px solid #b7eb8f;
+    }
+
+    .tag-error {
+      background: #fff1f0;
+      color: #cf1322;
+      border: 1px solid #ffa39e;
+    }
+
+    .tag-processing {
+      background: #e6f4ff;
+      color: #0958d9;
+      border: 1px solid #91caff;
+    }
+
+    .tag-default {
+      background: #fafafa;
+      color: #8c8c8c;
+      border: 1px solid #d9d9d9;
+    }
+
+    .tag-warning {
+      background: #fff7e6;
+      color: #d46b08;
+      border: 1px solid #ffd591;
+    }
+
+    /* Login Form Mockup */
+    .login-card {
+      max-width: 380px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 40px 32px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .login-card h3 {
+      text-align: center;
+      margin: 0 0 28px 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .form-input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-input-row .form-input {
+      flex: 1;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 9px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--primary);
+      border-color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .btn-default {
+      background: #fff;
+      color: var(--text);
+      border-color: #d9d9d9;
+    }
+
+    /* Decision Diagram */
+    .decision-flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .decision-box {
+      background: #fff7e6;
+      border: 2px solid var(--highlight);
+      border-radius: 10px;
+      padding: 14px 24px;
+      font-weight: 600;
+      font-size: 15px;
+      text-align: center;
+    }
+
+    .branch-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    .branch-item {
+      background: #f0f5ff;
+      border: 1px solid #91caff;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .branch-item .role-name {
+      font-weight: 600;
+      color: var(--primary);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .branch-item .route-path {
+      font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .branch-arrow {
+      text-align: center;
+      color: var(--highlight);
+      font-size: 18px;
+      padding: 2px 0;
+    }
+
+    /* Side by Side */
+    .side-by-side {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .side-label {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* Sidebar mockup */
+    .sidebar-mock {
+      background: #001529;
+      border-radius: 8px;
+      padding: 16px 0;
+      min-height: 360px;
+    }
+
+    .sidebar-logo {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 0 16px 16px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 8px;
+    }
+
+    .sidebar-item {
+      padding: 10px 16px 10px 20px;
+      color: rgba(255,255,255,0.65);
+      font-size: 13px;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-item.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .sidebar-item.parent {
+      color: rgba(255,255,255,0.85);
+      font-weight: 500;
+    }
+
+    .sidebar-item.child {
+      padding-left: 40px;
+      font-size: 12px;
+    }
+
+    .sidebar-item.hidden {
+      opacity: 0.2;
+      text-decoration: line-through;
+    }
+
+    /* Note box */
+    .note-box {
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: #8c6e00;
+      margin-top: 16px;
+      line-height: 1.7;
+    }
+
+    .note-box strong {
+      color: #614700;
+    }
+
+    /* Annotation */
+    .annotation {
+      background: #f0f5ff;
+      border: 1px solid #91caff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-size: 13px;
+      color: var(--text);
+      margin-top: 20px;
+      line-height: 1.8;
+    }
+
+    .annotation strong {
+      color: var(--primary);
+    }
+
+    /* Strength indicator */
+    .strength-bar {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .strength-bar span {
+      flex: 1;
+      height: 4px;
+      border-radius: 2px;
+      background: #e8e8e8;
+    }
+
+    .strength-bar span.filled-weak { background: var(--danger); }
+    .strength-bar span.filled-medium { background: var(--highlight); }
+    .strength-bar span.filled-strong { background: var(--success); }
+
+    .strength-text {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Role table */
+    .role-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 16px;
+    }
+
+    .role-table th {
+      background: #fafafa;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .role-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .role-table tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    .role-table .group-header td {
+      background: #e6f4ff;
+      font-weight: 600;
+      color: var(--primary);
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    .role-table .company-header td {
+      background: #f6ffed;
+      font-weight: 600;
+      color: #389e0d;
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+
+    .code {
+      font-family: 'SF Mono', Monaco, 'Consolas', monospace;
+      font-size: 12px;
+      background: #f5f5f5;
+      padding: 1px 6px;
+      border-radius: 3px;
+      color: #595959;
+    }
+
+    /* MFA code input */
+    .mfa-inputs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .mfa-box {
+      width: 44px;
+      height: 52px;
+      border: 1px solid #d9d9d9;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 52px;
+      background: #fff;
+    }
+
+    .qr-placeholder {
+      width: 140px;
+      height: 140px;
+      border: 2px dashed #d9d9d9;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      font-size: 12px;
+      margin: 0 auto;
+    }
+
+    /* Highlight Box */
+    .highlight-box {
+      border: 2px solid var(--highlight);
+      border-radius: 4px;
+      padding: 2px 4px;
+    }
+
+    .highlight-label {
+      color: var(--highlight);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Print */
+    @media print {
+      body { padding: 20px; }
+      .step-block { box-shadow: none; border: 1px solid #eee; break-inside: avoid; }
+      .back-link { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <a href="index.html" class="back-link">&larr; 返回全局架构</a>
+
+  <h1>场景5：用户登录与权限控制</h1>
+  <p class="page-subtitle">用户从登录认证到角色权限分配的完整流程，包括 MFA 验证、强制改密、动态菜单过滤与数据隔离。</p>
+
+  <!-- ==================== Step 1: 登录认证 ==================== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number">1</div>
+      <h2 class="step-title">登录认证</h2>
+    </div>
+    <p class="step-desc">用户在登录页输入手机号或邮箱，获取短信/邮件验证码后提交登录。系统校验凭证是否匹配。</p>
+
+    <div class="mockup-frame">
+      <div class="mockup-titlebar">
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <span style="margin-left:8px;font-size:12px;color:var(--text-secondary);">login.example.com</span>
+      </div>
+      <div class="mockup-body" style="display:flex;align-items:center;justify-content:center;min-height:360px;">
+        <div class="login-card">
+          <h3>商户管理平台</h3>
+          <div class="form-group">
+            <label class="form-label">手机号 / 邮箱</label>
+            <input class="form-input" type="text" placeholder="请输入手机号或邮箱" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">验证码</label>
+            <div class="form-input-row">
+              <input class="form-input" type="text" placeholder="请输入验证码" disabled>
+              <button class="btn btn-outline" disabled>获取验证码</button>
+            </div>
+          </div>
+          <div style="margin-top:24px;">
+            <button class="btn btn-primary" disabled>登录</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Step 2: MFA 验证 ==================== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number">2</div>
+      <h2 class="step-title">MFA 验证</h2>
+    </div>
+    <p class="step-desc">凭证校验通过后，系统要求进行多因素认证（MFA）。首次登录需扫码绑定验证器 APP，后续登录直接输入 6 位动态码。</p>
+
+    <div class="mockup-frame">
+      <div class="mockup-titlebar">
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <span style="margin-left:8px;font-size:12px;color:var(--text-secondary);">MFA 验证</span>
+      </div>
+      <div class="mockup-body" style="display:flex;align-items:center;justify-content:center;min-height:320px;">
+        <div class="login-card" style="max-width:400px;">
+          <h3 style="font-size:18px;">多因素认证</h3>
+          <div style="text-align:center;margin-bottom:20px;">
+            <div class="qr-placeholder">
+              <span>首次绑定<br>扫描二维码</span>
+            </div>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:8px;">使用 Google Authenticator 或其他验证器扫码绑定</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" style="text-align:center;display:block;">请输入 6 位验证码</label>
+            <div class="mfa-inputs">
+              <div class="mfa-box">3</div>
+              <div class="mfa-box">8</div>
+              <div class="mfa-box">1</div>
+              <div class="mfa-box">7</div>
+              <div class="mfa-box">0</div>
+              <div class="mfa-box">5</div>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <button class="btn btn-primary" disabled>验证</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Step 3: 强制改密 ==================== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number">3</div>
+      <h2 class="step-title">首次登录强制改密</h2>
+    </div>
+    <p class="step-desc">若账号标记 <span class="code">must_change_password: true</span>，MFA 通过后系统强制跳转到修改密码页面，用户必须设置新密码后才能进入系统。</p>
+
+    <div class="mockup-frame">
+      <div class="mockup-titlebar">
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <span style="margin-left:8px;font-size:12px;color:var(--text-secondary);">修改密码</span>
+      </div>
+      <div class="mockup-body" style="display:flex;align-items:center;justify-content:center;min-height:380px;">
+        <div class="login-card" style="max-width:400px;">
+          <h3 style="font-size:18px;">设置新密码</h3>
+          <div class="form-group">
+            <label class="form-label">旧密码</label>
+            <input class="form-input" type="password" placeholder="请输入当前密码" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label">新密码</label>
+            <input class="form-input" type="password" placeholder="至少8位，含大小写字母和数字" disabled>
+            <div class="strength-bar" style="margin-top:8px;">
+              <span class="filled-weak"></span>
+              <span class="filled-medium"></span>
+              <span class="filled-strong"></span>
+              <span></span>
+            </div>
+            <div class="strength-text" style="color:var(--highlight);">强度：中等</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">确认密码</label>
+            <input class="form-input" type="password" placeholder="请再次输入新密码" disabled>
+          </div>
+          <div style="margin-top:20px;">
+            <button class="btn btn-primary" disabled>确认修改</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <strong>规则说明：</strong>所有新建账号首次登录必须修改密码。系统自动在创建账号时设置 <span class="code">must_change_password: true</span>，用户完成改密后该标记自动清除。
+    </div>
+  </div>
+
+  <!-- ==================== Step 4: 角色判定 ==================== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number">4</div>
+      <h2 class="step-title">角色判定 &rarr; 默认首页跳转</h2>
+    </div>
+    <p class="step-desc">登录完成后，系统根据用户所属角色自动跳转到对应的默认首页。不同角色看到不同的入口页面。</p>
+
+    <!-- Decision diagram -->
+    <div class="decision-flow">
+      <div class="decision-box">判断用户角色</div>
+      <div class="arrow-down">&darr;</div>
+      <div class="branch-container">
+        <div class="branch-item">
+          <span class="role-name">group_owner / group_ops</span>
+          <span class="route-path">/dashboard</span>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">集团仪表盘</div>
+        </div>
+        <div class="branch-item">
+          <span class="role-name">company_owner / company_ops</span>
+          <span class="route-path">/dashboard/company</span>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">公司仪表盘</div>
+        </div>
+        <div class="branch-item">
+          <span class="role-name">group_finance</span>
+          <span class="route-path">/finance/wallet</span>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">集团钱包</div>
+        </div>
+        <div class="branch-item">
+          <span class="role-name">company_finance</span>
+          <span class="route-path">/finance/my-wallet</span>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">公司钱包</div>
+        </div>
+        <div class="branch-item">
+          <span class="role-name">group_audit / company_audit</span>
+          <span class="route-path">/system/logs</span>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">系统日志</div>
+        </div>
+        <div class="branch-item">
+          <span class="role-name">company_promo</span>
+          <span class="route-path">/enterprise/list</span>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">企业清单</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role Table -->
+    <h3 style="font-size:16px;font-weight:600;margin:32px 0 8px 0;">角色权限总表（9 个角色）</h3>
+    <div style="overflow-x:auto;">
+      <table class="role-table">
+        <thead>
+          <tr>
+            <th>角色标识</th>
+            <th>角色名称</th>
+            <th>层级</th>
+            <th>权限模块</th>
+            <th>默认首页</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="group-header"><td colspan="5">集团级角色（4个）</td></tr>
+          <tr>
+            <td><span class="code">group_owner</span></td>
+            <td>集团主</td>
+            <td>集团</td>
+            <td>全部模块</td>
+            <td><span class="code">/dashboard</span></td>
+          </tr>
+          <tr>
+            <td><span class="code">group_ops</span></td>
+            <td>集团运营</td>
+            <td>集团</td>
+            <td>仪表盘、企业管理、公司管理、佣金</td>
+            <td><span class="code">/dashboard</span></td>
+          </tr>
+          <tr>
+            <td><span class="code">group_finance</span></td>
+            <td>集团财务</td>
+            <td>集团</td>
+            <td>财务管理（钱包、审批、结算）</td>
+            <td><span class="code">/finance/wallet</span></td>
+          </tr>
+          <tr>
+            <td><span class="code">group_audit</span></td>
+            <td>集团审计</td>
+            <td>集团</td>
+            <td>系统日志（只读）</td>
+            <td><span class="code">/system/logs</span></td>
+          </tr>
+          <tr class="company-header"><td colspan="5">公司级角色（5个）</td></tr>
+          <tr>
+            <td><span class="code">company_owner</span></td>
+            <td>公司主</td>
+            <td>公司</td>
+            <td>本公司全部模块</td>
+            <td><span class="code">/dashboard/company</span></td>
+          </tr>
+          <tr>
+            <td><span class="code">company_ops</span></td>
+            <td>公司经营</td>
+            <td>公司</td>
+            <td>公司仪表盘、公司持股、佣金订单、东方彩票订单、通知管理</td>
+            <td><span class="code">/dashboard/company</span></td>
+          </tr>
+          <tr>
+            <td><span class="code">company_finance</span></td>
+            <td>公司财务</td>
+            <td>公司</td>
+            <td>公司财务（钱包、审批）</td>
+            <td><span class="code">/finance/my-wallet</span></td>
+          </tr>
+          <tr>
+            <td><span class="code">company_audit</span></td>
+            <td>公司审计</td>
+            <td>公司</td>
+            <td>本公司日志（只读）</td>
+            <td><span class="code">/system/logs</span></td>
+          </tr>
+          <tr>
+            <td><span class="code">company_promo</span></td>
+            <td>公司推广</td>
+            <td>公司</td>
+            <td>企业清单、邀请企业</td>
+            <td><span class="code">/enterprise/list</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== Step 5: 菜单动态过滤 ==================== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number">5</div>
+      <h2 class="step-title">菜单动态过滤 + 数据隔离</h2>
+    </div>
+    <p class="step-desc">前端根据用户角色动态过滤侧边栏菜单，仅展示该角色有权限的模块。当父级菜单下的所有子菜单均被过滤时，父级菜单自动隐藏。同时后端根据角色层级执行数据隔离。</p>
+
+    <div class="side-by-side">
+      <!-- Left: 集团主 -->
+      <div>
+        <div class="side-label">集团主（<span class="code">group_owner</span>）完整菜单</div>
+        <div class="sidebar-mock">
+          <div class="sidebar-logo">商户管理平台</div>
+          <div class="sidebar-item parent active">仪表盘</div>
+          <div class="sidebar-item parent">企业管理</div>
+          <div class="sidebar-item child">企业清单</div>
+          <div class="sidebar-item child">邀请企业</div>
+          <div class="sidebar-item parent">公司管理</div>
+          <div class="sidebar-item child">公司清单</div>
+          <div class="sidebar-item child">公司持股</div>
+          <div class="sidebar-item child">公司收益</div>
+          <div class="sidebar-item parent">佣金管理</div>
+          <div class="sidebar-item child">佣金总览</div>
+          <div class="sidebar-item parent">财务管理</div>
+          <div class="sidebar-item child">集团钱包</div>
+          <div class="sidebar-item child">审批管理</div>
+          <div class="sidebar-item child">结算管理</div>
+          <div class="sidebar-item parent">系统管理</div>
+          <div class="sidebar-item child">系统日志</div>
+          <div class="sidebar-item child">账号管理</div>
+        </div>
+      </div>
+
+      <!-- Right: 公司经营 -->
+      <div>
+        <div class="side-label">公司经营（<span class="code">company_ops</span>）过滤后菜单</div>
+        <div class="sidebar-mock">
+          <div class="sidebar-logo">商户管理平台</div>
+          <div class="sidebar-item parent active">仪表盘</div>
+          <div class="sidebar-item parent hidden">企业管理</div>
+          <div class="sidebar-item child hidden">企业清单</div>
+          <div class="sidebar-item child hidden">邀请企业</div>
+          <div class="sidebar-item parent">公司管理</div>
+          <div class="sidebar-item child hidden">公司清单</div>
+          <div class="sidebar-item child">公司持股</div>
+          <div class="sidebar-item child hidden">公司收益</div>
+          <div class="sidebar-item parent">公司订单</div>
+          <div class="sidebar-item child">东方彩票订单</div>
+          <div class="sidebar-item child">佣金订单</div>
+          <div class="sidebar-item parent hidden">财务管理</div>
+          <div class="sidebar-item child hidden">集团钱包</div>
+          <div class="sidebar-item child hidden">审批管理</div>
+          <div class="sidebar-item child hidden">结算管理</div>
+          <div class="sidebar-item parent">系统管理</div>
+          <div class="sidebar-item child">通知管理</div>
+          <div class="sidebar-item child hidden">系统日志</div>
+          <div class="sidebar-item child hidden">账号管理</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="annotation">
+      <strong>菜单过滤规则：</strong>每个菜单项绑定所需权限模块（如"公司管理"需 <span class="code">company:manage</span>）。用户登录后，前端获取角色对应的权限列表，逐项匹配。若子菜单全部被过滤，则父菜单自动隐藏。<br>
+      <strong>数据隔离规则：</strong>集团级角色可查看所有公司数据；公司级角色仅可查看自己所属公司的数据。后端 API 通过 <span class="code">company_id</span> 字段自动过滤。
+    </div>
+  </div>
+
+  <!-- ==================== Step 6: 登录日志 ==================== -->
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-number">6</div>
+      <h2 class="step-title">登录日志记录</h2>
+    </div>
+    <p class="step-desc">每次登录事件（包括登录成功、登出、登录失败）都会被系统自动记录到登录日志中，供审计角色查阅。</p>
+
+    <div class="mockup-frame">
+      <div class="mockup-titlebar">
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <div class="mockup-dot"></div>
+        <span style="margin-left:8px;font-size:12px;color:var(--text-secondary);">系统管理 / 系统日志</span>
+      </div>
+      <div class="mockup-body" style="padding:20px;">
+        <!-- Tab bar -->
+        <div style="display:flex;gap:24px;border-bottom:2px solid var(--border);margin-bottom:16px;padding-bottom:0;">
+          <div style="padding:8px 0;font-size:14px;font-weight:500;color:var(--primary);border-bottom:2px solid var(--primary);margin-bottom:-2px;">登录日志</div>
+          <div style="padding:8px 0;font-size:14px;color:var(--text-secondary);">操作日志</div>
+        </div>
+
+        <!-- Filters -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+          <span style="font-size:13px;color:var(--text-secondary);">操作类型</span>
+          <div class="radio-group">
+            <div class="radio-btn active">全部</div>
+            <div class="radio-btn">登录</div>
+            <div class="radio-btn">登出</div>
+            <div class="radio-btn">登录失败</div>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div style="background:#fff;border-radius:8px;overflow:hidden;">
+          <table class="mock-table">
+            <thead>
+              <tr>
+                <th>事件时间</th>
+                <th>账号</th>
+                <th>角色</th>
+                <th>操作类型</th>
+                <th>IP</th>
+                <th>归属地</th>
+                <th>结果</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="row-highlight">
+                <td>2026-04-20 09:32:18</td>
+                <td>zhang@example.com</td>
+                <td>集团主</td>
+                <td>登录</td>
+                <td>203.0.113.42</td>
+                <td>上海市</td>
+                <td><span class="tag tag-success">成功</span></td>
+              </tr>
+              <tr>
+                <td>2026-04-20 09:15:03</td>
+                <td>13800138000</td>
+                <td>-</td>
+                <td>登录失败</td>
+                <td>198.51.100.7</td>
+                <td>北京市</td>
+                <td><span class="tag tag-error">失败</span></td>
+              </tr>
+              <tr>
+                <td>2026-04-20 08:47:55</td>
+                <td>li.wei@corp.cn</td>
+                <td>公司财务</td>
+                <td>登录</td>
+                <td>192.0.2.88</td>
+                <td>深圳市</td>
+                <td><span class="tag tag-success">成功</span></td>
+              </tr>
+              <tr>
+                <td>2026-04-19 18:02:30</td>
+                <td>wang@example.com</td>
+                <td>集团运营</td>
+                <td>登出</td>
+                <td>203.0.113.15</td>
+                <td>广州市</td>
+                <td><span class="tag tag-default">-</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:12px;font-size:12px;color:var(--text-secondary);">
+          共 1,287 条记录 &nbsp;&middot;&nbsp; 第 1 / 129 页
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <strong>提示：</strong>第一行高亮为刚刚产生的新登录事件。登录失败记录中角色显示"-"，因为此时尚未通过认证，无法确定用户角色。
+    </div>
+  </div>
+
+</body>
+</html>
