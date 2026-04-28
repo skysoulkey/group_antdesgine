@@ -370,12 +370,12 @@ interface NiuniuClaim {
   claimOrderId: string;
   userNickname: string;
   userId: string;
-  userIp: string;
   claimAmount: string;
   face: NiuniuFace;
   roundPnl: string; // 本局盈亏（原"牌面盈亏"）
   arrival: string;  // 到账
   rake: string;     // 抽水
+  rebate: string;   // 返佣金额（每条领取记录对应的返佣）
 }
 
 interface NiuniuRebate {
@@ -418,12 +418,12 @@ const buildNiuniuClaims = (order: NiuniuOrder): NiuniuClaim[] =>
     claimOrderId: `NCO${order.orderId.slice(-7)}${String(i + 1).padStart(2, '0')}`,
     userNickname: `用户${i + 10}`,
     userId: `MB${300000 + i}`,
-    userIp: `104.${28 + i}.${200 + i}.${i + 10}`,
     claimAmount: `${(Number(order.baseBet.replace(/,/g, '')) / order.packetCount).toFixed(2)}`,
     face: NIUNIU_FACES[i % 3],
     roundPnl: i % 2 === 0 ? `${(20 + i * 5).toFixed(2)}` : `-${(15 + i * 4).toFixed(2)}`,
     arrival: `${(Number(order.baseBet.replace(/,/g, '')) / order.packetCount * 1.5).toFixed(2)}`,
     rake: `${(0.5 + i * 0.2).toFixed(2)}`,
+    rebate: `${(0.3 + i * 0.15).toFixed(2)}`,
   }));
 
 const buildNiuniuRebates = (order: NiuniuOrder): NiuniuRebate[] =>
@@ -1038,7 +1038,7 @@ const EnterpriseDetail: React.FC = () => {
             title: '操作', width: 140, fixed: 'right' as const,
             render: (_: unknown, r: NiuniuOrder) => (
               <Space size={4}>
-                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setOrderDetail(r)}>订单详情</Button>
+                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setOrderDetail(r)}>详情</Button>
                 <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setRebateDetail(r)}>返佣详情</Button>
               </Space>
             ),
@@ -1103,9 +1103,9 @@ const EnterpriseDetail: React.FC = () => {
               </Card>
             </Space>
 
-            {/* 订单详情 Modal：顶部概要区 + 领取记录表 */}
+            {/* 详情 Modal：顶部概要区 + 领取记录表 */}
             <Modal
-              title="订单详情"
+              title="详情"
               open={!!orderDetail}
               onCancel={() => setOrderDetail(null)}
               footer={null}
@@ -1144,7 +1144,6 @@ const EnterpriseDetail: React.FC = () => {
                       { title: '领取订单号', dataIndex: 'claimOrderId', width: 150 },
                       { title: '用户昵称', dataIndex: 'userNickname', width: 100 },
                       { title: '用户ID', dataIndex: 'userId', width: 100 },
-                      { title: '用户IP', dataIndex: 'userIp', width: 130 },
                       {
                         title: '领取金额', dataIndex: 'claimAmount', width: 100, align: 'right',
                         render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
@@ -1160,6 +1159,10 @@ const EnterpriseDetail: React.FC = () => {
                       },
                       {
                         title: '抽水', dataIndex: 'rake', width: 100, align: 'right',
+                        render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+                      },
+                      {
+                        title: '返佣金额', dataIndex: 'rebate', width: 110, align: 'right',
                         render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
                       },
                     ]}
