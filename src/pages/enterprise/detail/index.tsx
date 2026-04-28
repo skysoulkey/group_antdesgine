@@ -1118,10 +1118,11 @@ const EnterpriseDetail: React.FC = () => {
                       { title: '用户昵称', dataIndex: 'userNickname', width: 100 },
                       { title: '用户ID', dataIndex: 'userId', width: 100 },
                       {
-                        title: '领取金额', dataIndex: 'claimAmount', width: 100, align: 'right',
-                        render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
+                        title: '牌面（领取金额）', dataIndex: 'face', width: 130,
+                        render: (_: unknown, r: { face: string; claimAmount: string }) => (
+                          <Text style={{ color: '#141414' }}>{`${r.face}（${r.claimAmount}）`}</Text>
+                        ),
                       },
-                      { title: '牌面', dataIndex: 'face', width: 80 },
                       {
                         title: '本局盈亏', dataIndex: 'roundPnl', width: 100, align: 'right',
                         render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
