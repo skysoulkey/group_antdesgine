@@ -373,7 +373,6 @@ interface NiuniuClaim {
   claimAmount: string;
   face: NiuniuFace;
   roundPnl: string; // 本局盈亏（原"牌面盈亏"）
-  arrival: string;  // 到账
   rake: string;     // 抽水
   rebate: string;   // 返佣金额（每条领取记录对应的返佣）
 }
@@ -411,7 +410,6 @@ const buildNiuniuClaims = (order: NiuniuOrder): NiuniuClaim[] =>
     claimAmount: `${(Number(order.baseBet.replace(/,/g, '')) / order.packetCount).toFixed(2)}`,
     face: NIUNIU_FACES[i % 3],
     roundPnl: i % 2 === 0 ? `${(20 + i * 5).toFixed(2)}` : `-${(15 + i * 4).toFixed(2)}`,
-    arrival: `${(Number(order.baseBet.replace(/,/g, '')) / order.packetCount * 1.5).toFixed(2)}`,
     rake: `${(0.5 + i * 0.2).toFixed(2)}`,
     rebate: `${(0.3 + i * 0.15).toFixed(2)}`,
   }));
@@ -1126,10 +1124,6 @@ const EnterpriseDetail: React.FC = () => {
                       { title: '牌面', dataIndex: 'face', width: 80 },
                       {
                         title: '本局盈亏', dataIndex: 'roundPnl', width: 100, align: 'right',
-                        render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
-                      },
-                      {
-                        title: '到账', dataIndex: 'arrival', width: 100, align: 'right',
                         render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
                       },
                       {
