@@ -340,8 +340,8 @@ const lotteryData: LotteryOrder[] = mk(8).map((i) => ({
 }));
 
 // ── 牛牛红包 ───────────────────────────────────────────────────────
-// 三层数据：主订单（NiuniuOrder） → 领取记录（NiuniuClaim） / 返佣记录（NiuniuRebate）
-// 返佣链路：庄家发起红包 → 下级用户领取 → 系统按比例返佣给该下级的「上级」（推荐人）
+// 两层数据：主订单（NiuniuOrder） → 领取记录（NiuniuClaim）
+// 备注：原有"返佣详情" Modal 已下线，每条领取记录的返佣金额合并到 NiuniuClaim.rebate 列展示
 type NiuniuPlay = '庄比' | '通比';
 type NiuniuStatus = '已开奖' | '未开奖';
 type NiuniuFace = '牛牛' | '牛一' | '牛八';
@@ -376,16 +376,6 @@ interface NiuniuClaim {
   arrival: string;  // 到账
   rake: string;     // 抽水
   rebate: string;   // 返佣金额（每条领取记录对应的返佣）
-}
-
-interface NiuniuRebate {
-  rebateId: string;
-  createdAt: string;
-  rebateUserNickname: string;
-  rebateUserId: string;
-  parentNickname: string;
-  parentId: string;
-  rebateAmt: string;
 }
 
 const NIUNIU_PLAYS: NiuniuPlay[] = ['庄比', '通比'];
@@ -424,17 +414,6 @@ const buildNiuniuClaims = (order: NiuniuOrder): NiuniuClaim[] =>
     arrival: `${(Number(order.baseBet.replace(/,/g, '')) / order.packetCount * 1.5).toFixed(2)}`,
     rake: `${(0.5 + i * 0.2).toFixed(2)}`,
     rebate: `${(0.3 + i * 0.15).toFixed(2)}`,
-  }));
-
-const buildNiuniuRebates = (order: NiuniuOrder): NiuniuRebate[] =>
-  Array.from({ length: 3 }, (_, i) => ({
-    rebateId: `NR${order.id}-${i + 1}`,
-    createdAt: order.completedAt === '—' ? order.startTime : order.completedAt,
-    rebateUserNickname: `用户${i + 10}（${i % 2 === 0 ? '庄' : '闲'}）`,
-    rebateUserId: `MB${300000 + i}`,
-    parentNickname: `上级${i + 1}`,
-    parentId: `MB${400000 + i}`,
-    rebateAmt: `${(2 + i * 1.5).toFixed(2)}`,
   }));
 
 // ── 应用费用 ───────────────────────────────────────────────────────
@@ -1002,7 +981,6 @@ const EnterpriseDetail: React.FC = () => {
         const [nnRange, setNnRange] = useState<[Dayjs, Dayjs] | null>(null);
         const [nnSearch, setNnSearch] = useState('');
         const [orderDetail, setOrderDetail] = useState<NiuniuOrder | null>(null);
-        const [rebateDetail, setRebateDetail] = useState<NiuniuOrder | null>(null);
 
         const niuniuColumns: ColumnsType<NiuniuOrder> = [
           { title: '发起时间', dataIndex: 'startTime', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
@@ -1035,12 +1013,9 @@ const EnterpriseDetail: React.FC = () => {
           { title: '庄家ID', dataIndex: 'bankerId', width: 100 },
           { title: '完成时间', dataIndex: 'completedAt', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
           {
-            title: '操作', width: 140, fixed: 'right' as const,
+            title: '操作', width: 80, fixed: 'right' as const,
             render: (_: unknown, r: NiuniuOrder) => (
-              <Space size={4}>
-                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setOrderDetail(r)}>详情</Button>
-                <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setRebateDetail(r)}>返佣详情</Button>
-              </Space>
+              <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setOrderDetail(r)}>详情</Button>
             ),
           },
         ];
@@ -1171,38 +1146,6 @@ const EnterpriseDetail: React.FC = () => {
                 </>
               )}
             </Modal>
-
-            {/* 返佣详情 Modal：返佣链路 庄家 → 下级领取者 → 上级（推荐人） */}
-            <Modal
-              title="返佣详情"
-              open={!!rebateDetail}
-              onCancel={() => setRebateDetail(null)}
-              footer={null}
-              width={800}
-            >
-              {rebateDetail && (
-                <Table
-                  size="small"
-                  rowKey="rebateId"
-                  pagination={{ pageSize: 5, showTotal: (t) => `共 ${t} 条` }}
-                  rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
-                  style={{ marginTop: 12 }}
-                  columns={[
-                    { title: '创建时间', dataIndex: 'createdAt', width: 160 },
-                    { title: '返佣任务ID', dataIndex: 'rebateId', width: 130 },
-                    { title: '用户昵称', dataIndex: 'rebateUserNickname', width: 130 },
-                    { title: '用户ID', dataIndex: 'rebateUserId', width: 120 },
-                    { title: '上级昵称', dataIndex: 'parentNickname', width: 100 },
-                    { title: '上级ID', dataIndex: 'parentId', width: 100 },
-                    {
-                      title: '返佣金额', dataIndex: 'rebateAmt', width: 110, align: 'right',
-                      render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
-                    },
-                  ]}
-                  dataSource={buildNiuniuRebates(rebateDetail)}
-                />
-              )}
-            </Modal>
           </>
         );
       })(),
@@ -1213,17 +1156,21 @@ const EnterpriseDetail: React.FC = () => {
       label: '东方彩票',
       children: (() => {
         const [ltStatus, setLtStatus] = useState('all');
+        const [ltGame, setLtGame] = useState('all');
         const [ltRange, setLtRange] = useState<[Dayjs, Dayjs] | null>(null);
+        const [ltSearch, setLtSearch] = useState('');
+
+        const LT_GAMES = ['百家乐', '龙虎斗', '骰子'];
 
         const lotteryColumns: ColumnsType<LotteryOrder> = [
-          { title: '发起时间', dataIndex: 'startTime', width: 170 },
+          { title: '发起时间', dataIndex: 'startTime', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
           { title: '下注人ID', dataIndex: 'bettorId', width: 100 },
           { title: '下注人昵称', dataIndex: 'bettorName', width: 100 },
           { title: '游戏', dataIndex: 'game', width: 80 },
           { title: '游戏期数', dataIndex: 'period', width: 90 },
           { title: '订单编号', dataIndex: 'orderId', width: 130 },
           { title: '订单金额', dataIndex: 'orderAmt', width: 110, align: 'right' },
-          { title: '完成时间', dataIndex: 'completedAt', width: 170 },
+          { title: '完成时间', dataIndex: 'completedAt', width: 170, render: (v) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span> },
           {
             title: '企业盈亏', dataIndex: 'pnl', width: 110, align: 'right',
             render: (v: string) => <Text style={{ color: '#141414' }}>{v}</Text>,
@@ -1238,28 +1185,69 @@ const EnterpriseDetail: React.FC = () => {
           { title: '订单备注', dataIndex: 'remark', width: 100 },
         ];
 
-        const filtered = lotteryData.filter((d) =>
-          (ltStatus === 'all' || d.status === ltStatus) &&
-          inRange(d.startTime, ltRange)
-        );
+        const filtered = lotteryData.filter((d) => {
+          const kw = ltSearch.trim();
+          const hitKw =
+            !kw ||
+            d.bettorId.includes(kw) ||
+            d.bettorName.includes(kw) ||
+            d.orderId.includes(kw);
+          return (
+            (ltStatus === 'all' || d.status === ltStatus) &&
+            (ltGame === 'all' || d.game === ltGame) &&
+            inRange(d.startTime, ltRange) &&
+            hitKw
+          );
+        });
 
         return (
           <Space direction="vertical" size={12} style={{ display: 'flex' }}>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
               <Space size={16} wrap align="center">
-                <ConfigProvider theme={radioTheme}>
-                  <Radio.Group
-                    value={ltStatus}
-                    onChange={(e) => setLtStatus(e.target.value)}
-                    buttonStyle="solid"
-                  >
-                    <Radio.Button value="all">全部</Radio.Button>
-                    <Radio.Button value="未结算">未结算</Radio.Button>
-                    <Radio.Button value="结算中">结算中</Radio.Button>
-                    <Radio.Button value="已结算">已结算</Radio.Button>
-                  </Radio.Group>
-                </ConfigProvider>
-                <RangePicker onChange={(v) => setLtRange(v as [Dayjs, Dayjs] | null)} />
+                <FilterField label="订单状态">
+                  <ConfigProvider theme={radioTheme}>
+                    <Radio.Group
+                      value={ltStatus}
+                      onChange={(e) => setLtStatus(e.target.value)}
+                      buttonStyle="solid"
+                    >
+                      <Radio.Button value="all">全部</Radio.Button>
+                      <Radio.Button value="未结算">未结算</Radio.Button>
+                      <Radio.Button value="结算中">结算中</Radio.Button>
+                      <Radio.Button value="已结算">已结算</Radio.Button>
+                    </Radio.Group>
+                  </ConfigProvider>
+                </FilterField>
+                <FilterField label="游戏">
+                  <ConfigProvider theme={radioTheme}>
+                    <Radio.Group
+                      value={ltGame}
+                      onChange={(e) => setLtGame(e.target.value)}
+                      buttonStyle="solid"
+                    >
+                      <Radio.Button value="all">全部</Radio.Button>
+                      {LT_GAMES.map((g) => (
+                        <Radio.Button key={g} value={g}>{g}</Radio.Button>
+                      ))}
+                    </Radio.Group>
+                  </ConfigProvider>
+                </FilterField>
+                <FilterField label="发起时间">
+                  <RangePicker
+                    placeholder={['从', '到']}
+                    onChange={(v) => setLtRange(v as [Dayjs, Dayjs] | null)}
+                  />
+                </FilterField>
+                <FilterField label="下注人/订单">
+                  <Input
+                    suffix={<SearchOutlined style={{ color: 'rgba(0,0,0,0.25)' }} />}
+                    placeholder="下注人ID/昵称 或 订单编号"
+                    value={ltSearch}
+                    onChange={(e) => setLtSearch(e.target.value)}
+                    allowClear
+                    style={{ width: 260 }}
+                  />
+                </FilterField>
               </Space>
             </Card>
             <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>

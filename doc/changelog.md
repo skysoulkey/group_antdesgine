@@ -1,5 +1,22 @@
 # 变更记录
 
+## 2026-04-28
+
+### 调整：牛牛红包 — 下线「返佣详情」+ 东方彩票筛选增强
+
+**牛牛红包**
+- 主表操作列移除「返佣详情」按钮，仅保留「详情」（操作列宽 140 → 80）
+- 删除 `NiuniuRebate` 接口、`buildNiuniuRebates` 函数、`rebateDetail` state、返佣详情 Modal 组件
+- 每条领取记录的返佣金额已合并到详情 Modal 表格的「返佣金额」列
+- 同步：page_map / data-spec / dev-pitfalls / design-spec
+
+**东方彩票**
+- 筛选区改造为 FilterField 规范：
+  - 新增「游戏」单选筛选（百家乐 / 龙虎斗 / 骰子）
+  - 新增「下注人/订单」搜索框（命中下注人 ID、下注人昵称、订单编号）
+  - 时间 RangePicker 加 `placeholder=['从','到']`
+  - 全部包入 `<FilterField label="…">`，对齐全站规范
+
 ## 2026-04-26
 
 ### 调整：牛牛红包 — 操作列「订单详情」改名 + 弹窗字段调整
