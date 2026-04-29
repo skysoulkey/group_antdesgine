@@ -64,7 +64,8 @@ const TD_RIGHT: React.CSSProperties = { ...TD_STYLE, textAlign: 'right', fontVar
 const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const buildMockBill = (billId: string) => {
-  // 从 billId 反推月份；非法时回落到当前月
+  // 兼容订单编号：BILL202604-LO / BILL202604-BAC / BILL202604001（旧格式）
+  // 拿前 6 位数字推月份；非法时回落到当前月
   const m = billId.match(/(\d{6})/);
   const period = m ? `${m[1].slice(0, 4)}-${m[1].slice(4, 6)}` : '2026-04';
   const [year, month] = period.split('-');

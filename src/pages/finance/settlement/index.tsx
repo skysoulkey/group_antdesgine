@@ -1,12 +1,14 @@
 /**
  * 【所属模块】公司财务 / 公司清账
  *
- * 【核心定位】公司端展示平台向本公司收取的应用费用账单清单（按月一行）
+ * 【核心定位】公司端展示平台向本公司收取的应用费用账单清单（按游戏拆行）
  *
- * 【业务规则（PRD V1.3）】
+ * 【业务规则（PRD V1.3 + 2026-04-29 调整）】
  * - 多币种独立结算，跨币种不合并不汇兑
- * - 扣款全有或全无原则，无部分扣
- * - 一公司一月一份 PDF（含所有币种）
+ * - 每个游戏生成一条订单（同一个月一家公司有多条订单）
+ * - 一份 PDF 覆盖一公司一月所有订单（月度合并）
+ * - 每行扣款时间/状态按该游戏的币种粒度独立判定
+ * - 列表只展示本月+上月数据，更早数据后台保留但不展示
  * - 公司端不展示清账状态字段（业务决策）
  *
  * 【依赖接口】
@@ -38,78 +40,85 @@ const radioTheme = {
 // ── 数据类型 ─────────────────────────────────────────────────────
 type BillType = '自动月度' | '手动清账';
 type DeductStatus = '待扣' | '已扣';
+type GameType = '东方彩票' | '七星百家乐';
 
 interface SettlementBill {
   id: string;
-  orderId: string;          // 订单编号（PDF 编号）
+  orderId: string;          // 订单编号（游戏粒度）
   period: string;           // YYYY-MM
   billType: BillType;
-  revenueUsdt: number;      // 游戏收益 USDT
-  revenuePea: number;       // 游戏收益 PEA
-  feeUsdt: number;          // 应用费用 USDT
-  feePea: number;           // 应用费用 PEA
-  deductTime: string;       // 扣款时间（最后一笔）
-  status: DeductStatus;     // 全部币种结清才显示已扣
+  game: GameType;
+  revenueUsdt: number;      // 该游戏 USDT 收益
+  revenuePea: number;       // 该游戏 PEA 收益
+  feeUsdt: number;          // 该游戏 USDT 应用费用
+  feePea: number;           // 该游戏 PEA 应用费用
+  deductTime: string;       // 该游戏对应扣款时间（按币种粒度独立）
+  status: DeductStatus;     // 该游戏所有币种是否结清
 }
 
-// ── Mock 12 个月（含 2 个欠费场景）────────────────────────────────
+const GAMES: GameType[] = ['东方彩票', '七星百家乐'];
+
+// ── Mock 12 个月（后台保留），前端只展示本月+上月 ────────────────
 const buildMockBills = (): SettlementBill[] => {
   const today = dayjs();
-  return Array.from({ length: 12 }, (_, i) => {
+  const bills: SettlementBill[] = [];
+
+  for (let i = 0; i < 12; i += 1) {
     const monthStart = today.subtract(i, 'month').startOf('month');
     const period = monthStart.format('YYYY-MM');
-    // 第 3、7 期为欠费（待扣）；其余已扣
-    const isOverdue = i === 3 || i === 7;
-    // 第 5 期为手动清账
-    const billType: BillType = i === 5 ? '手动清账' : '自动月度';
+    const yyyymm = period.replace('-', '');
+    // 第 1、3 期欠费（待扣）；其余已扣
+    const isOverdue = i === 1 || i === 3;
+    // 第 2 期为手动清账
+    const billType: BillType = i === 2 ? '手动清账' : '自动月度';
 
-    const revenueUsdt = 8000 + i * 320;
-    const revenuePea = i % 2 === 0 ? 12000 + i * 500 : 0; // 部分月份只有 USDT
-    const feeUsdt = +(revenueUsdt * 0.1).toFixed(2);
-    const feePea = +(revenuePea * 0.1).toFixed(2);
+    GAMES.forEach((game, gi) => {
+      const baseRevenue = (game === '东方彩票' ? 4800 : 3200) + i * 200;
+      const revenueUsdt = baseRevenue;
+      const revenuePea = i % 2 === 0 ? baseRevenue * 1.5 : 0;
+      const feeUsdt = +(revenueUsdt * 0.1).toFixed(2);
+      const feePea = +(revenuePea * 0.1).toFixed(2);
+      const code = game === '东方彩票' ? 'LO' : 'BAC';
 
-    return {
-      id: `S${period.replace('-', '')}`,
-      orderId: `BILL${period.replace('-', '')}001`,
-      period,
-      billType,
-      revenueUsdt,
-      revenuePea,
-      feeUsdt,
-      feePea,
-      deductTime: isOverdue ? '—' : monthStart.add(1, 'day').format('YYYY-MM-DD HH:mm:ss'),
-      status: isOverdue ? '待扣' : '已扣',
-    };
-  });
+      bills.push({
+        id: `S${yyyymm}-${code}`,
+        orderId: `BILL${yyyymm}-${code}`,
+        period,
+        billType,
+        game,
+        revenueUsdt,
+        revenuePea,
+        feeUsdt,
+        feePea,
+        deductTime: isOverdue ? '—' : monthStart.add(1, 'day').add(gi * 2, 'minute').format('YYYY-MM-DD HH:mm:ss'),
+        status: isOverdue ? '待扣' : '已扣',
+      });
+    });
+  }
+  return bills;
 };
 
-const MOCK_BILLS = buildMockBills();
+const ALL_BILLS = buildMockBills();
 
-// ── 格式化工具 ────────────────────────────────────────────────────
-const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-// 收益单元格："USDT 8,000.00 / PEA 12,000.00"；某币种无则只显示有数据的那个；都为 0 显示 —
-const renderRevenue = (_: unknown, r: SettlementBill) => {
-  const parts: string[] = [];
-  if (r.revenueUsdt > 0) parts.push(`USDT ${fmt(r.revenueUsdt)}`);
-  if (r.revenuePea > 0) parts.push(`PEA ${fmt(r.revenuePea)}`);
-  return <Text style={{ color: '#141414' }}>{parts.length ? parts.join(' / ') : '—'}</Text>;
-};
-
-// 是否在本月或上月范围（PDF 下载条件）
-const isDownloadable = (period: string): boolean => {
+// ── 业务规则：只展示本月+上月 ────────────────────────────────────
+const isVisible = (period: string): boolean => {
   const now = dayjs();
   const thisMonth = now.format('YYYY-MM');
   const lastMonth = now.subtract(1, 'month').format('YYYY-MM');
   return period === thisMonth || period === lastMonth;
 };
 
+const VISIBLE_BILLS = ALL_BILLS.filter((b) => isVisible(b.period));
+
+// ── 工具 ─────────────────────────────────────────────────────────
+const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 const Settlement = () => {
   const [billType, setBillType] = useState<'all' | BillType>('all');
   const [status, setStatus] = useState<'all' | DeductStatus>('all');
   const [range, setRange] = useState<[Dayjs, Dayjs] | null>(null);
 
-  const filtered = MOCK_BILLS.filter((b) => {
+  const filtered = VISIBLE_BILLS.filter((b) => {
     if (billType !== 'all' && b.billType !== billType) return false;
     if (status !== 'all' && b.status !== status) return false;
     if (range && range[0] && range[1]) {
@@ -123,9 +132,14 @@ const Settlement = () => {
     { title: '订单编号', dataIndex: 'orderId', width: 170 },
     { title: '账单周期', dataIndex: 'period', width: 110 },
     { title: '账单类型', dataIndex: 'billType', width: 110 },
+    { title: '游戏', dataIndex: 'game', width: 110 },
     {
-      title: '游戏收益', dataIndex: 'revenue', width: 230,
-      render: renderRevenue,
+      title: '游戏收益 USDT', dataIndex: 'revenueUsdt', width: 140, align: 'right',
+      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
+    },
+    {
+      title: '游戏收益 PEA', dataIndex: 'revenuePea', width: 140, align: 'right',
+      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
     },
     {
       title: '应用费用 USDT', dataIndex: 'feeUsdt', width: 140, align: 'right',
@@ -142,16 +156,15 @@ const Settlement = () => {
     { title: '扣款状态', dataIndex: 'status', width: 90 },
     {
       title: '操作', width: 100, fixed: 'right' as const,
-      render: (_: unknown, r: SettlementBill) =>
-        isDownloadable(r.period) ? (
-          <Button
-            type="link" size="small" style={{ padding: 0 }}
-            icon={<DownloadOutlined />}
-            onClick={() => window.open(`/finance/settlement/preview/${r.orderId}`, '_blank')}
-          >
-            下载
-          </Button>
-        ) : null,
+      render: (_: unknown, r: SettlementBill) => (
+        <Button
+          type="link" size="small" style={{ padding: 0 }}
+          icon={<DownloadOutlined />}
+          onClick={() => window.open(`/finance/settlement/preview/${r.orderId}`, '_blank')}
+        >
+          下载
+        </Button>
+      ),
     },
   ];
 
@@ -193,7 +206,7 @@ const Settlement = () => {
           dataSource={filtered}
           rowKey="id"
           size="middle"
-          scroll={{ x: 1300 }}
+          scroll={{ x: 1500 }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />
