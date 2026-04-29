@@ -59,6 +59,11 @@ interface SettlementBill {
 const GAMES: GameType[] = ['东方彩票', '七星百家乐'];
 
 // ── Mock 12 个月（后台保留），前端只展示本月+上月 ────────────────
+// 业务规则（PRD V1.3 §7.2）：先扣旧再扣新；旧月未结清，新月不会先扣
+// 因此 mock 场景只能是：
+//   - 全部已扣（旧→新顺序扣完）
+//   - 全部待扣（旧月就欠费，新月跟着挂账）
+//   - 不能出现"旧月待扣 + 新月已扣"
 const buildMockBills = (): SettlementBill[] => {
   const today = dayjs();
   const bills: SettlementBill[] = [];
@@ -67,8 +72,8 @@ const buildMockBills = (): SettlementBill[] => {
     const monthStart = today.subtract(i, 'month').startOf('month');
     const period = monthStart.format('YYYY-MM');
     const yyyymm = period.replace('-', '');
-    // 第 1、3 期欠费（待扣）；其余已扣
-    const isOverdue = i === 1 || i === 3;
+    // 第 4、5 期为欠费场景；其余已扣（按月顺序，旧月不欠则新月扣得动）
+    const isOverdue = i === 4 || i === 5;
     // 第 2 期为手动清账
     const billType: BillType = i === 2 ? '手动清账' : '自动月度';
 
@@ -108,7 +113,13 @@ const isVisible = (period: string): boolean => {
   return period === thisMonth || period === lastMonth;
 };
 
-const VISIBLE_BILLS = ALL_BILLS.filter((b) => isVisible(b.period));
+const VISIBLE_BILLS = ALL_BILLS
+  .filter((b) => isVisible(b.period))
+  // 按账单周期升序排列（旧月在上，符合"先扣旧再扣新"扣款顺序）；同月内按游戏稳定排序
+  .sort((a, b) => {
+    if (a.period !== b.period) return a.period.localeCompare(b.period);
+    return a.game.localeCompare(b.game);
+  });
 
 // ── 工具 ─────────────────────────────────────────────────────────
 const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
