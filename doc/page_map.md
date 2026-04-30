@@ -785,7 +785,7 @@
 | `/finance/recall` | 资金调回 | 财务 |
 | `/finance/revenue` | 收益明细 | 财务 |
 | `/finance/revenue/detail/:month` | 月度收益详情 | 财务 |
-| `/finance/all-wallet` | 全公司钱包 | 财务 |
+| `/finance/all-wallet` | 公司钱包 | 财务 |
 
 ### `/finance/wallet` 集团钱包
 
@@ -815,7 +815,7 @@
 | 5 | 操作人 |
 | 6 | 时间 |
 
-### `/finance/all-wallet` 全公司钱包
+### `/finance/all-wallet` 公司钱包
 
 **流水表格**
 | # | 字段 |

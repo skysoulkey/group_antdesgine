@@ -110,7 +110,8 @@ const OWNER_MODULES = ROLE_ROUTES.company_owner.map((route) => {
     '/company/revenue': '公司收益', '/enterprise/list': '企业清单',
     '/enterprise/invite': '邀请企业', '/enterprise/detail': '企业详情',
     '/orders/lottery': '东方彩票订单', '/commission': '佣金订单',
-    '/finance/my-wallet': '公司钱包', '/system/notifications': '通知管理',
+    '/finance/my-wallet': '公司钱包（旧）', '/finance/all-wallet': '公司钱包',
+    '/system/notifications': '通知管理',
     '/system/users': '用户管理', '/system/logs': '系统日志',
   };
   return labels[route] ?? route;

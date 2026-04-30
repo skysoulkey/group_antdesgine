@@ -1,5 +1,25 @@
 # 变更记录
 
+## 2026-04-29（续 2）
+
+### 调整：去掉旧"公司钱包"菜单，"全公司钱包"改名为"公司钱包"
+
+**变更**
+- 侧边菜单：删除 `/finance/my-wallet` "公司钱包"菜单项；`/finance/all-wallet` 菜单 label 由"全公司钱包"改为"公司钱包"
+- 面包屑映射：`/finance/all-wallet` → `公司财务 / 公司钱包`；`/finance/my-wallet` 保留为"公司钱包（旧）"以兼容旧链接
+- 页面文件 `src/pages/finance/my-wallet/` 和路由保留（书签直链仍可访问），仅从导航入口移除
+
+**改动文件**
+- `src/layouts/index.tsx`
+- `src/pages/company/list/index.tsx`
+- `src/pages/system/users/index.tsx`
+- `src/pages/system/profile/index.tsx`
+- `src/pages/system/roles/index.tsx`
+- `doc/page_map.md`
+
+**风险**
+- 用户书签 `/finance/my-wallet` 直接访问仍能打开旧页（保留态），如需彻底废弃后续可删页面文件
+
 ## 2026-04-29（续）
 
 ### 调整：集团端应用费用列表按游戏拆分 + 去掉资金状态
