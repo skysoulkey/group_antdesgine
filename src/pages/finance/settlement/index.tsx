@@ -130,12 +130,10 @@ const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2,
 
 const Settlement = () => {
   const [status, setStatus] = useState<'all' | DeductStatus>('all');
-  const [game, setGame] = useState<'all' | GameType>('all');
   const [range, setRange] = useState<[Dayjs, Dayjs] | null>(null);
 
   const filtered = VISIBLE_BILLS.filter((b) => {
     if (status !== 'all' && b.status !== status) return false;
-    if (game !== 'all' && b.game !== game) return false;
     if (range && range[0] && range[1]) {
       const m = dayjs(b.period + '-01');
       if (m.isBefore(range[0].startOf('month')) || m.isAfter(range[1].endOf('month'))) return false;
@@ -155,7 +153,6 @@ const Settlement = () => {
     },
     { title: '订单号', dataIndex: 'orderId', width: 170 },
     { title: '账单周期', dataIndex: 'period', width: 110 },
-    { title: '游戏', dataIndex: 'game', width: 110 },
     {
       title: '应用费用 USDT', dataIndex: 'feeUsdt', width: 140, align: 'right',
       render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
@@ -203,16 +200,6 @@ const Settlement = () => {
               value={range}
               onChange={(v) => setRange(v as [Dayjs, Dayjs] | null)}
             />
-          </FilterField>
-          <FilterField label="游戏">
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={game} onChange={(e) => setGame(e.target.value)} buttonStyle="solid">
-                <Radio.Button value="all">全部</Radio.Button>
-                {GAMES.map((g) => (
-                  <Radio.Button key={g} value={g}>{g}</Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
           </FilterField>
           <FilterField label="扣款状态">
             <ConfigProvider theme={radioTheme}>
