@@ -290,8 +290,8 @@ const AllWalletPage: React.FC = () => {
                   buttonStyle="solid"
                 >
                   <Radio.Button value="全部">全部</Radio.Button>
-                  <Radio.Button value="balance->app">余额钱包 → 应用钱包</Radio.Button>
-                  <Radio.Button value="app->balance">应用钱包 → 余额钱包</Radio.Button>
+                  <Radio.Button value="balance->app">余额到应用</Radio.Button>
+                  <Radio.Button value="app->balance">应用到余额</Radio.Button>
                 </Radio.Group>
               </ConfigProvider>
             </FilterField>

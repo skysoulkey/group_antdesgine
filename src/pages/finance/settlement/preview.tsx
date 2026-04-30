@@ -69,9 +69,16 @@ const buildMockBill = (billId: string) => {
   const m = billId.match(/(\d{6})/);
   const period = m ? `${m[1].slice(0, 4)}-${m[1].slice(4, 6)}` : '2026-04';
   const [year, month] = period.split('-');
+
+  // 从订单号尾缀推游戏类型
+  let gameType = '东方彩票';
+  if (billId.endsWith('-BAC')) gameType = '七星百家乐';
+  else if (billId.endsWith('-LO')) gameType = '东方彩票';
+
   return {
     billId,
     companyName: '示例公司 A', // 假数据
+    gameType,
     period,
     generatedAt: `${year}-${month}-01 02:15:30`,
     currencies: ['USDT', 'PEA'] as const,
@@ -154,8 +161,10 @@ const SettlementPreview = () => {
               <td style={TD_STYLE}>{bill.generatedAt}</td>
             </tr>
             <tr>
+              <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>游戏类型</td>
+              <td style={TD_STYLE}>{bill.gameType}</td>
               <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>涉及币种</td>
-              <td style={TD_STYLE} colSpan={3}>{bill.currencies.join('、')}</td>
+              <td style={TD_STYLE}>{bill.currencies.join('、')}</td>
             </tr>
           </tbody>
         </table>
@@ -177,7 +186,7 @@ const SettlementPreview = () => {
                     <th style={{ ...TH_STYLE, textAlign: 'right' }}>流水金额</th>
                     <th style={{ ...TH_STYLE, textAlign: 'right' }}>赔付金额</th>
                     <th style={{ ...TH_STYLE, textAlign: 'right' }}>返佣支出</th>
-                    <th style={{ ...TH_STYLE, textAlign: 'right' }}>游戏收益</th>
+                    <th style={{ ...TH_STYLE, textAlign: 'right' }}>游戏盈亏</th>
                     <th style={{ ...TH_STYLE, textAlign: 'right' }}>应用费用</th>
                   </tr>
                 </thead>
