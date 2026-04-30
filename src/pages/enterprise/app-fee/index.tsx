@@ -129,19 +129,19 @@ const GroupAppFeePage = () => {
     { title: '游戏', dataIndex: 'game', width: 110 },
     {
       title: '游戏收益 USDT', dataIndex: 'revenueUsdt', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
+      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
     {
       title: '游戏收益 PEA', dataIndex: 'revenuePea', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
+      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
     {
       title: '应用费用 USDT', dataIndex: 'feeUsdt', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
+      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
     {
       title: '应用费用 PEA', dataIndex: 'feePea', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
+      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
     {
       title: '操作', width: 100, fixed: 'right' as const,

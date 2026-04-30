@@ -148,11 +148,11 @@ const Settlement = () => {
     { title: '账单周期', dataIndex: 'period', width: 110 },
     {
       title: '应用费用 USDT', dataIndex: 'feeUsdt', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
+      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
     {
       title: '应用费用 PEA', dataIndex: 'feePea', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{v > 0 ? fmt(v) : '—'}</Text>,
+      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
     { title: '扣款状态', dataIndex: 'status', width: 100 },
     { title: '备注', dataIndex: 'remark', width: 180, ellipsis: true,

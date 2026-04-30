@@ -157,8 +157,8 @@ const GroupAppFeePreview = () => {
               <tr key={c.code}>
                 <td style={TD_STYLE}>{c.code}</td>
                 <td style={TD_STYLE}>{c.name}</td>
-                <td style={TD_RIGHT}>{c.usdt > 0 ? fmt(c.usdt) : '—'}</td>
-                <td style={TD_RIGHT}>{c.pea > 0 ? fmt(c.pea) : '—'}</td>
+                <td style={TD_RIGHT}>{fmt(c.usdt ?? 0)}</td>
+                <td style={TD_RIGHT}>{fmt(c.pea ?? 0)}</td>
                 <td style={TD_STYLE}>{c.status}</td>
               </tr>
             ))}
