@@ -118,9 +118,10 @@ const GroupAppFeePreview = () => {
           </div>
           <div style={{
             position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
-            fontSize: 11, color: '#8c8c8c', textAlign: 'right',
+            fontSize: 11, color: '#141414', textAlign: 'right',
+            fontFamily: 'Menlo, Consolas, monospace',
           }}>
-            编号：<span style={{ color: '#141414', fontFamily: 'Menlo, Consolas, monospace' }}>{bill.billId}</span>
+            {bill.billId}
           </div>
         </div>
 
