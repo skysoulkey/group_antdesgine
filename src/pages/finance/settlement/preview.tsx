@@ -141,7 +141,6 @@ const SettlementPreview = () => {
         {/* 标题 */}
         <div style={{ textAlign: 'center', borderBottom: '2px solid #141414', paddingBottom: 12, marginBottom: 20 }}>
           <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 4, color: '#141414' }}>应用费用结算账单</div>
-          <div style={{ fontSize: 11, color: '#8c8c8c', marginTop: 4 }}>Application Fee Settlement Statement</div>
         </div>
 
         {/* 一、基本信息 */}
@@ -237,7 +236,7 @@ const SettlementPreview = () => {
 
         {/* 页脚 */}
         <div style={{ marginTop: 40, paddingTop: 16, borderTop: '1px solid #f0f0f0', textAlign: 'center', color: '#bfbfbf', fontSize: 11 }}>
-          本账单由商户管理平台系统自动生成 · 多币种独立结算 · 不分正负色 · 模板版本 V0.5-preview
+          本账单由商户管理平台系统自动生成 · 多币种独立结算
         </div>
       </div>
 
