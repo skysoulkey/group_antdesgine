@@ -135,8 +135,8 @@ const GroupAppFeePreview = () => {
             <tr>
               <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>涉及公司数</td>
               <td style={TD_STYLE}>{bill.companyCount}</td>
-              <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>资金状态</td>
-              <td style={TD_STYLE}>{bill.fundStatus}</td>
+              <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>涉及币种</td>
+              <td style={TD_STYLE}>USDT、PEA</td>
             </tr>
           </tbody>
         </table>
@@ -149,7 +149,6 @@ const GroupAppFeePreview = () => {
               <th style={TH_STYLE}>公司名称</th>
               <th style={{ ...TH_STYLE, textAlign: 'right' }}>应用费用 USDT</th>
               <th style={{ ...TH_STYLE, textAlign: 'right' }}>应用费用 PEA</th>
-              <th style={TH_STYLE}>资金状态</th>
             </tr>
           </thead>
           <tbody>
@@ -159,14 +158,12 @@ const GroupAppFeePreview = () => {
                 <td style={TD_STYLE}>{c.name}</td>
                 <td style={TD_RIGHT}>{fmt(c.usdt ?? 0)}</td>
                 <td style={TD_RIGHT}>{fmt(c.pea ?? 0)}</td>
-                <td style={TD_STYLE}>{c.status}</td>
               </tr>
             ))}
             <tr style={{ background: '#fafcff' }}>
               <td style={{ ...TD_STYLE, fontWeight: 600 }} colSpan={2}>合计</td>
               <td style={{ ...TD_RIGHT, fontWeight: 600, color: '#141414' }}>{fmt(bill.totalUsdt)}</td>
               <td style={{ ...TD_RIGHT, fontWeight: 600, color: '#141414' }}>{fmt(bill.totalPea)}</td>
-              <td style={TD_STYLE}>—</td>
             </tr>
           </tbody>
         </table>
@@ -174,9 +171,8 @@ const GroupAppFeePreview = () => {
         <div style={SECTION_TITLE}>三、说明</div>
         <div style={{ fontSize: 12, color: '#595959', lineHeight: 1.8, paddingLeft: 12 }}>
           1. 本账单按多币种独立结算，跨币种不合并、不汇兑。<br />
-          2. 任一公司任一币种未结清，集团整体资金状态显示为「资金不足」（A1 最严档）。<br />
-          3. 各公司详细扣款记录、按游戏分类的应用费用明细，请在对应公司端「公司清账」模块查询。<br />
-          4. 本账单为系统自动生成的全集团汇总稿，仅供集团管理员/财务/审计内部对账使用。
+          2. 各公司详细扣款记录、按游戏分类的应用费用明细，请在对应公司端「公司清账」模块查询。<br />
+          3. 本账单为系统自动生成的全集团汇总稿，仅供集团管理员/财务/审计内部对账使用。
         </div>
 
         <div style={{ marginTop: 40, paddingTop: 16, borderTop: '1px solid #f0f0f0', textAlign: 'center', color: '#bfbfbf', fontSize: 11 }}>
