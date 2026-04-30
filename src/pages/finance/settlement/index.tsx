@@ -45,12 +45,11 @@ type GameType = '东方彩票' | '七星百家乐';
 
 interface SettlementBill {
   id: string;
-  orderId: string;          // 订单编号（游戏粒度，如 BILL202604-LO）
-  orderTime: string;        // 订单生成时间
-  period: string;           // YYYY-MM
-  game: GameType;
-  feeUsdt: number;          // 该游戏 USDT 应用费用（应收）
-  feePea: number;           // 该游戏 PEA 应用费用（应收）
+  orderId: string;          // 订单编号（月度粒度，BILLYYYYMM）
+  orderTime: string;        // 订单生成时间（账单周期次月 1 号 10:00:00）
+  period: string;           // YYYY-MM（账单周期）
+  feeUsdt: number;          // 该月 USDT 应用费用（应收）
+  feePea: number;           // 该月 PEA 应用费用（应收）
   status: DeductStatus;
   remark: string;           // 自由文本，后端写入前端只读
 }
@@ -58,51 +57,48 @@ interface SettlementBill {
 const GAMES: GameType[] = ['东方彩票', '七星百家乐'];
 
 // ── Mock 12 个月（后台保留），前端只展示本月+上月 ────────────────
-// 业务规则（PRD §7.2）：先扣旧再扣新；旧月未结清，新月不会先扣
-// 本期场景：本月 2026-04 扣款失败（业务正常），上月 2026-03 扣款成功
+// 业务规则：
+//   - 每月一条账单（不按游戏拆，订单号 BILLYYYYMM）
+//   - 订单时间 = 账单周期次月 1 号 10:00:00（N 月 1 号生成 N-1 月账单）
+//   - PRD §7.2 先扣旧再扣新；旧月未结清，新月不会先扣
+//   - 状态分布：本月扣款失败演示重试；上月扣款成功；早期月份待扣款
 const buildMockBills = (): SettlementBill[] => {
   const today = dayjs();
   const bills: SettlementBill[] = [];
 
   for (let i = 0; i < 12; i += 1) {
-    const monthStart = today.subtract(i, 'month').startOf('month');
-    const period = monthStart.format('YYYY-MM');
+    const periodStart = today.subtract(i, 'month').startOf('month');
+    const period = periodStart.format('YYYY-MM');
     const yyyymm = period.replace('-', '');
+    // 订单生成时间 = 账单周期次月 1 号 10:00:00
+    const orderTime = periodStart.add(1, 'month').format('YYYY-MM-01 10:00:00');
 
-    // 状态分布：
-    //   i === 0（本月）→ 扣款失败（演示重试场景）
-    //   i === 4 / 5（早期）→ 待扣款（演示欠费跨月）
-    //   其余 → 扣款成功
+    // 状态分布
     let status: DeductStatus;
     if (i === 0) status = '扣款失败';
     else if (i === 4 || i === 5) status = '待扣款';
     else status = '扣款成功';
 
-    GAMES.forEach((game, gi) => {
-      const baseRevenue = (game === '东方彩票' ? 4800 : 3200) + i * 200;
-      const revenueUsdt = baseRevenue;
-      const revenuePea = i % 2 === 0 ? baseRevenue * 1.5 : 0;
-      const feeUsdt = +(revenueUsdt * 0.1).toFixed(2);
-      const feePea = +(revenuePea * 0.1).toFixed(2);
-      const code = game === '东方彩票' ? 'LO' : 'BAC';
-      const orderTime = monthStart.add(1, 'day').add(gi * 2, 'minute').format('YYYY-MM-DD HH:mm:ss');
+    // 多游戏汇总到一条账单（应用费用合并，订单号不再带游戏后缀）
+    const baseRevenue = 8000 + i * 500;
+    const revenueUsdt = baseRevenue;
+    const revenuePea = i % 2 === 0 ? baseRevenue * 1.5 : 0;
+    const feeUsdt = +(revenueUsdt * 0.1).toFixed(2);
+    const feePea = +(revenuePea * 0.1).toFixed(2);
 
-      // 备注（mock 演示用，真实由后端写）
-      let remark = '';
-      if (status === '扣款失败') remark = '余额不足，待重试';
-      else if (status === '待扣款') remark = '待月初触发扣款';
+    let remark = '';
+    if (status === '扣款失败') remark = '余额不足，待重试';
+    else if (status === '待扣款') remark = '待月初触发扣款';
 
-      bills.push({
-        id: `S${yyyymm}-${code}`,
-        orderId: `BILL${yyyymm}-${code}`,
-        orderTime,
-        period,
-        game,
-        feeUsdt,
-        feePea,
-        status,
-        remark,
-      });
+    bills.push({
+      id: `S${yyyymm}`,
+      orderId: `BILL${yyyymm}`,
+      orderTime,
+      period,
+      feeUsdt,
+      feePea,
+      status,
+      remark,
     });
   }
   return bills;
@@ -118,13 +114,10 @@ const isVisible = (period: string): boolean => {
   return period === thisMonth || period === lastMonth;
 };
 
-// 默认排序：账单周期降序（新月在上，符合常规列表习惯）；同月按游戏稳定排序
+// 默认排序：账单周期降序（新月在上）
 const VISIBLE_BILLS = ALL_BILLS
   .filter((b) => isVisible(b.period))
-  .sort((a, b) => {
-    if (a.period !== b.period) return b.period.localeCompare(a.period);
-    return a.game.localeCompare(b.game);
-  });
+  .sort((a, b) => b.period.localeCompare(a.period));
 
 const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
