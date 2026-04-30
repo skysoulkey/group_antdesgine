@@ -112,23 +112,26 @@ const AllWalletPage: React.FC = () => {
   const [flowData, setFlowData] = useState<TransferFlowRecord[]>(MOCK_FLOW_DATA);
 
   // 筛选
-  const [walletFilter, setWalletFilter] = useState<string>('全部');
+  const [directionFilter, setDirectionFilter] = useState<string>('全部'); // balance->app / app->balance / 全部
+  const [currencyFilter, setCurrencyFilter] = useState<string>('全部');
+  const [statusFilter, setStatusFilter] = useState<string>('全部');
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
 
   const filteredData = useMemo(() => {
     return flowData.filter((r) => {
-      if (walletFilter !== '全部') {
-        // 钱包筛选：只要"从"或"到"任一端是该钱包，即命中
-        const target: WalletType = walletFilter === '余额钱包' ? 'balance' : 'app';
-        if (r.fromWallet !== target && r.toWallet !== target) return false;
+      if (directionFilter !== '全部') {
+        const dir = `${r.fromWallet}->${r.toWallet}`;
+        if (dir !== directionFilter) return false;
       }
+      if (currencyFilter !== '全部' && r.currency !== currencyFilter) return false;
+      if (statusFilter !== '全部' && r.status !== statusFilter) return false;
       if (dateRange && dateRange[0] && dateRange[1]) {
         const day = r.createdAt.slice(0, 10);
         if (day < dateRange[0].format('YYYY-MM-DD') || day > dateRange[1].format('YYYY-MM-DD')) return false;
       }
       return true;
     });
-  }, [flowData, walletFilter, dateRange]);
+  }, [flowData, directionFilter, currencyFilter, statusFilter, dateRange]);
 
   // 详情弹窗
   const [detailOpen, setDetailOpen] = useState(false);
@@ -212,7 +215,7 @@ const AllWalletPage: React.FC = () => {
       sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
       render: (v: string) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span>,
     },
-    { title: '流水号', dataIndex: 'flowId', width: 130 },
+    { title: '订单号', dataIndex: 'flowId', width: 130 },
     {
       title: '划转方向', width: 200,
       render: (_: unknown, r: TransferFlowRecord) => (
@@ -279,16 +282,43 @@ const AllWalletPage: React.FC = () => {
       <Card bordered={false} style={{ borderRadius: CARD_RADIUS, boxShadow: CARD_SHADOW }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
           <Space size={16} wrap align="center">
-            <FilterField label="钱包">
+            <FilterField label="划转方向">
               <ConfigProvider theme={radioTheme}>
                 <Radio.Group
-                  value={walletFilter}
-                  onChange={(e) => setWalletFilter(e.target.value)}
+                  value={directionFilter}
+                  onChange={(e) => setDirectionFilter(e.target.value)}
                   buttonStyle="solid"
                 >
                   <Radio.Button value="全部">全部</Radio.Button>
-                  <Radio.Button value="余额钱包">余额钱包</Radio.Button>
-                  <Radio.Button value="应用钱包">应用钱包</Radio.Button>
+                  <Radio.Button value="balance->app">余额钱包 → 应用钱包</Radio.Button>
+                  <Radio.Button value="app->balance">应用钱包 → 余额钱包</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+            </FilterField>
+            <FilterField label="币种">
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group
+                  value={currencyFilter}
+                  onChange={(e) => setCurrencyFilter(e.target.value)}
+                  buttonStyle="solid"
+                >
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="USDT">USDT</Radio.Button>
+                  <Radio.Button value="PEA">PEA</Radio.Button>
+                </Radio.Group>
+              </ConfigProvider>
+            </FilterField>
+            <FilterField label="状态">
+              <ConfigProvider theme={radioTheme}>
+                <Radio.Group
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  buttonStyle="solid"
+                >
+                  <Radio.Button value="全部">全部</Radio.Button>
+                  <Radio.Button value="success">成功</Radio.Button>
+                  <Radio.Button value="pending">处理中</Radio.Button>
+                  <Radio.Button value="failed">失败</Radio.Button>
                 </Radio.Group>
               </ConfigProvider>
             </FilterField>
@@ -327,7 +357,7 @@ const AllWalletPage: React.FC = () => {
       >
         {currentRecord && (
           <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }} labelStyle={{ whiteSpace: 'nowrap', width: 140 }}>
-            <Descriptions.Item label="流水号">{currentRecord.flowId}</Descriptions.Item>
+            <Descriptions.Item label="订单号">{currentRecord.flowId}</Descriptions.Item>
             <Descriptions.Item label="订单时间">{currentRecord.createdAt}</Descriptions.Item>
             <Descriptions.Item label="转出钱包">{WALLET_TYPE_LABELS[currentRecord.fromWallet]}</Descriptions.Item>
             <Descriptions.Item label="转入钱包">{WALLET_TYPE_LABELS[currentRecord.toWallet]}</Descriptions.Item>
