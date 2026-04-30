@@ -12,14 +12,12 @@
  * 【依赖接口】
  * - GET /api/enterprise/app-fee — 列表（待对接）
  */
-import { useState } from 'react';
-import { Button, Card, Card as _Card, ConfigProvider, DatePicker, Space, Table, Typography } from 'antd';
+import { useState as _useState } from 'react';
+import { Button, Card, Space, Table, Typography } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import dayjs, { type Dayjs } from 'dayjs';
-import FilterField from '../../../components/FilterField';
+import dayjs from 'dayjs';
 
-const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
@@ -80,15 +78,7 @@ const VISIBLE_DATA = ALL_DATA
 const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const GroupAppFeePage = () => {
-  const [range, setRange] = useState<[Dayjs, Dayjs] | null>(null);
-
-  const filtered = VISIBLE_DATA.filter((b) => {
-    if (range && range[0] && range[1]) {
-      const m = dayjs(b.period + '-01');
-      if (m.isBefore(range[0].startOf('month')) || m.isAfter(range[1].endOf('month'))) return false;
-    }
-    return true;
-  });
+  const filtered = VISIBLE_DATA;
 
   // 集团端总能下载（业务约定本月+上月）
   const isDownloadable = (period: string): boolean => {
@@ -132,18 +122,6 @@ const GroupAppFeePage = () => {
 
   return (
     <Space direction="vertical" size={12} style={{ display: 'flex', padding: 16 }}>
-      <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
-        <Space size={16} wrap align="center">
-          <FilterField label="账单周期">
-            <RangePicker
-              picker="month"
-              placeholder={['从', '到']}
-              value={range}
-              onChange={(v) => setRange(v as [Dayjs, Dayjs] | null)}
-            />
-          </FilterField>
-        </Space>
-      </Card>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Table
           columns={columns}

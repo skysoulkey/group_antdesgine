@@ -18,13 +18,12 @@
  * - POST /api/finance/settlement/{orderId}/manual-deduct — 手动扣款（待对接）
  */
 import { useState } from 'react';
-import { Button, Card, ConfigProvider, DatePicker, message, Radio, Space, Table, Typography } from 'antd';
+import { Button, Card, ConfigProvider, message, Radio, Space, Table, Typography } from 'antd';
 import { EyeOutlined, RedoOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import FilterField from '../../../components/FilterField';
 
-const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
@@ -123,14 +122,9 @@ const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2,
 
 const Settlement = () => {
   const [status, setStatus] = useState<'all' | DeductStatus>('all');
-  const [range, setRange] = useState<[Dayjs, Dayjs] | null>(null);
 
   const filtered = VISIBLE_BILLS.filter((b) => {
     if (status !== 'all' && b.status !== status) return false;
-    if (range && range[0] && range[1]) {
-      const m = dayjs(b.period + '-01');
-      if (m.isBefore(range[0].startOf('month')) || m.isAfter(range[1].endOf('month'))) return false;
-    }
     return true;
   });
 
@@ -182,14 +176,6 @@ const Settlement = () => {
     <Space direction="vertical" size={12} style={{ display: 'flex', padding: 16 }}>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
         <Space size={16} wrap align="center">
-          <FilterField label="账单周期">
-            <RangePicker
-              picker="month"
-              placeholder={['从', '到']}
-              value={range}
-              onChange={(v) => setRange(v as [Dayjs, Dayjs] | null)}
-            />
-          </FilterField>
           <FilterField label="扣款状态">
             <ConfigProvider theme={radioTheme}>
               <Radio.Group value={status} onChange={(e) => setStatus(e.target.value)} buttonStyle="solid">
