@@ -1,20 +1,19 @@
 /**
  * 【所属模块】集团管理 / 应用费用
  *
- * 【核心定位】集团端汇总展示旗下公司每月按游戏拆分的应用费用
+ * 【核心定位】集团端聚合展示旗下公司每月应用费用账单
  *
- * 【业务规则（PRD V1.3 + 2026-04-29 调整）】
- * - 行粒度：一月每游戏一行（每月按游戏拆 N 行）
- * - 订单编号：`GBILL{YYYYMM}-{GAME_CODE}`（与公司端对齐）
- * - 公司数量：本期参与该游戏的公司数（按游戏各算各的）
+ * 【业务规则（PRD V1.3 + 2026-04-30 调整）】
+ * - 行粒度：每月一行（多公司多游戏全部聚合）
+ * - 集团不直接支付应用费用 → 不展示扣款状态、不展示订单编号
  * - 列表只展示本月+上月数据，更早数据后台保留但不展示
- * - 下载按钮：所有行共享一份月度全集团 PDF（不按游戏拆 PDF）
+ * - 订单时间：账单周期次月 1 号 10:00:00（与公司端一致）
  *
  * 【依赖接口】
  * - GET /api/enterprise/app-fee — 列表（待对接）
  */
 import { useState } from 'react';
-import { Button, Card, ConfigProvider, DatePicker, Radio, Space, Table, Typography } from 'antd';
+import { Button, Card, Card as _Card, ConfigProvider, DatePicker, Space, Table, Typography } from 'antd';
 import { DownloadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -24,72 +23,48 @@ const { RangePicker } = DatePicker;
 const { Text } = Typography;
 
 const CARD_SHADOW = '0 1px 2px rgba(0,0,0,0.03), 0 4px 16px rgba(0,0,0,0.06)';
-const radioTheme = {
-  components: {
-    Radio: {
-      buttonSolidCheckedBg: '#1677ff',
-      buttonSolidCheckedHoverBg: '#4096ff',
-      buttonSolidCheckedActiveBg: '#0958d9',
-      buttonSolidCheckedColor: '#fff',
-      colorPrimary: '#1677ff',
-    },
-  },
-};
 
 // ── 数据类型 ─────────────────────────────────────────────────────
-type GameType = '东方彩票' | '七星百家乐';
-
 interface GroupAppFee {
   id: string;
+  orderTime: string;     // 次月 1 号 10:00:00
   period: string;        // YYYY-MM
-  orderId: string;       // GBILL{YYYYMM}-{CODE}
-  game: GameType;
-  companyCount: number;  // 本期参与该游戏的公司数
-  revenueUsdt: number;
-  revenuePea: number;
-  feeUsdt: number;
-  feePea: number;
+  companyCount: number;
+  feeUsdt: number;       // 全集团 USDT 应用费汇总
+  feePea: number;        // 全集团 PEA 应用费汇总
+  remark: string;
 }
-
-const GAMES: GameType[] = ['东方彩票', '七星百家乐'];
 
 // ── Mock 12 个月（后台保留），前端只展示本月+上月 ────────────────
 const buildMockData = (): GroupAppFee[] => {
   const today = dayjs();
-  const rows: GroupAppFee[] = [];
-
-  for (let i = 0; i < 12; i += 1) {
-    const monthStart = today.subtract(i, 'month').startOf('month');
-    const period = monthStart.format('YYYY-MM');
+  return Array.from({ length: 12 }, (_, i) => {
+    const periodStart = today.subtract(i, 'month').startOf('month');
+    const period = periodStart.format('YYYY-MM');
     const yyyymm = period.replace('-', '');
+    const orderTime = periodStart.add(1, 'month').format('YYYY-MM-01 10:00:00');
 
-    GAMES.forEach((game) => {
-      const code = game === '东方彩票' ? 'LO' : 'BAC';
-      const baseRevenue = (game === '东方彩票' ? 38000 : 25000) + i * 1500;
-      const revenueUsdt = baseRevenue;
-      const revenuePea = i % 2 === 0 ? baseRevenue * 1.4 : 0;
-      const feeUsdt = +(revenueUsdt * 0.1).toFixed(2);
-      const feePea = +(revenuePea * 0.1).toFixed(2);
+    // 全集团聚合：基础值 × 公司数估算（mock 演示用）
+    const baseUsdt = 38000 + i * 1500;
+    const basePea = i % 2 === 0 ? (38000 + i * 1500) * 1.4 : 0;
+    const companyCount = 8 + (i % 4);
+    const feeUsdt = +(baseUsdt * 0.1 * companyCount).toFixed(2);
+    const feePea = +(basePea * 0.1 * companyCount).toFixed(2);
 
-      rows.push({
-        id: `G${yyyymm}-${code}`,
-        period,
-        orderId: `GBILL${yyyymm}-${code}`,
-        game,
-        companyCount: game === '东方彩票' ? 8 + (i % 3) : 6 + (i % 3),
-        revenueUsdt,
-        revenuePea,
-        feeUsdt,
-        feePea,
-      });
-    });
-  }
-  return rows;
+    return {
+      id: `G${yyyymm}`,
+      orderTime,
+      period,
+      companyCount,
+      feeUsdt,
+      feePea,
+      remark: '',
+    };
+  });
 };
 
 const ALL_DATA = buildMockData();
 
-// ── 业务规则：只展示本月+上月，按账单周期升序排列 ───────────────
 const isVisible = (period: string): boolean => {
   const now = dayjs();
   const thisMonth = now.format('YYYY-MM');
@@ -97,21 +72,17 @@ const isVisible = (period: string): boolean => {
   return period === thisMonth || period === lastMonth;
 };
 
+// 默认排序：账单周期降序（新月在上）
 const VISIBLE_DATA = ALL_DATA
   .filter((b) => isVisible(b.period))
-  .sort((a, b) => {
-    if (a.period !== b.period) return a.period.localeCompare(b.period);
-    return a.game.localeCompare(b.game);
-  });
+  .sort((a, b) => b.period.localeCompare(a.period));
 
 const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const GroupAppFeePage = () => {
   const [range, setRange] = useState<[Dayjs, Dayjs] | null>(null);
-  const [game, setGame] = useState<'all' | GameType>('all');
 
   const filtered = VISIBLE_DATA.filter((b) => {
-    if (game !== 'all' && b.game !== game) return false;
     if (range && range[0] && range[1]) {
       const m = dayjs(b.period + '-01');
       if (m.isBefore(range[0].startOf('month')) || m.isAfter(range[1].endOf('month'))) return false;
@@ -119,41 +90,43 @@ const GroupAppFeePage = () => {
     return true;
   });
 
+  // 集团端总能下载（业务约定本月+上月）
+  const isDownloadable = (period: string): boolean => {
+    const now = dayjs();
+    return period === now.format('YYYY-MM') || period === now.subtract(1, 'month').format('YYYY-MM');
+  };
+
   const columns: ColumnsType<GroupAppFee> = [
+    {
+      title: '订单时间', dataIndex: 'orderTime', width: 170,
+      render: (v: string) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span>,
+    },
     { title: '账单周期', dataIndex: 'period', width: 110 },
-    { title: '订单编号', dataIndex: 'orderId', width: 170 },
     {
       title: '公司数量', dataIndex: 'companyCount', width: 100, align: 'right',
       render: (v: number) => <Text style={{ color: '#141414' }}>{v}</Text>,
     },
-    { title: '游戏', dataIndex: 'game', width: 110 },
     {
-      title: '游戏收益 USDT', dataIndex: 'revenueUsdt', width: 140, align: 'right',
+      title: '应用费用 USDT', dataIndex: 'feeUsdt', width: 160, align: 'right',
       render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
     {
-      title: '游戏收益 PEA', dataIndex: 'revenuePea', width: 140, align: 'right',
+      title: '应用费用 PEA', dataIndex: 'feePea', width: 160, align: 'right',
       render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
     },
-    {
-      title: '应用费用 USDT', dataIndex: 'feeUsdt', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
-    },
-    {
-      title: '应用费用 PEA', dataIndex: 'feePea', width: 140, align: 'right',
-      render: (v: number) => <Text style={{ color: '#141414' }}>{fmt(v ?? 0)}</Text>,
-    },
+    { title: '备注', dataIndex: 'remark', width: 180, ellipsis: true, render: (v: string) => v || '—' },
     {
       title: '操作', width: 100, fixed: 'right' as const,
-      render: (_: unknown, r: GroupAppFee) => (
-        <Button
-          type="link" size="small" style={{ padding: 0 }}
-          icon={<DownloadOutlined />}
-          onClick={() => window.open(`/enterprise/app-fee/preview/${r.orderId}`, '_blank')}
-        >
-          下载
-        </Button>
-      ),
+      render: (_: unknown, r: GroupAppFee) =>
+        isDownloadable(r.period) ? (
+          <Button
+            type="link" size="small" style={{ padding: 0 }}
+            icon={<DownloadOutlined />}
+            onClick={() => window.open(`/enterprise/app-fee/preview/GBILL${r.period.replace('-', '')}`, '_blank')}
+          >
+            下载
+          </Button>
+        ) : null,
     },
   ];
 
@@ -169,16 +142,6 @@ const GroupAppFeePage = () => {
               onChange={(v) => setRange(v as [Dayjs, Dayjs] | null)}
             />
           </FilterField>
-          <FilterField label="游戏">
-            <ConfigProvider theme={radioTheme}>
-              <Radio.Group value={game} onChange={(e) => setGame(e.target.value)} buttonStyle="solid">
-                <Radio.Button value="all">全部</Radio.Button>
-                {GAMES.map((g) => (
-                  <Radio.Button key={g} value={g}>{g}</Radio.Button>
-                ))}
-              </Radio.Group>
-            </ConfigProvider>
-          </FilterField>
         </Space>
       </Card>
       <Card bordered={false} style={{ borderRadius: 12, boxShadow: CARD_SHADOW }}>
@@ -187,7 +150,7 @@ const GroupAppFeePage = () => {
           dataSource={filtered}
           rowKey="id"
           size="middle"
-          scroll={{ x: 1300 }}
+          scroll={{ x: 1100 }}
           pagination={{ pageSize: 10, showTotal: (t) => `共 ${t} 条` }}
           rowClassName={(_, i) => (i % 2 === 0 ? '' : 'table-row-light')}
         />
