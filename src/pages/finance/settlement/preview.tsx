@@ -139,8 +139,16 @@ const SettlementPreview = () => {
       {/* A4 纸 */}
       <div style={PAPER_STYLE} className="bill-paper">
         {/* 标题 */}
-        <div style={{ textAlign: 'center', borderBottom: '2px solid #141414', paddingBottom: 12, marginBottom: 20 }}>
-          <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 4, color: '#141414' }}>应用费用结算账单</div>
+        <div style={{ borderBottom: '2px solid #141414', paddingBottom: 12, marginBottom: 20, position: 'relative' }}>
+          <div style={{ textAlign: 'center', fontSize: 22, fontWeight: 700, letterSpacing: 4, color: '#141414' }}>
+            应用费用结算账单
+          </div>
+          <div style={{
+            position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
+            fontSize: 11, color: '#8c8c8c', textAlign: 'right',
+          }}>
+            编号：<span style={{ color: '#141414', fontFamily: 'Menlo, Consolas, monospace' }}>{bill.billId}</span>
+          </div>
         </div>
 
         {/* 一、基本信息 */}
@@ -154,16 +162,14 @@ const SettlementPreview = () => {
               <td style={{ ...TD_STYLE, width: '30%' }}>{bill.period}</td>
             </tr>
             <tr>
-              <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>账单编号</td>
-              <td style={TD_STYLE}>{bill.billId}</td>
-              <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>账单生成时间</td>
-              <td style={TD_STYLE}>{bill.generatedAt}</td>
-            </tr>
-            <tr>
               <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>游戏类型</td>
               <td style={TD_STYLE}>{bill.gameType}</td>
               <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>涉及币种</td>
               <td style={TD_STYLE}>{bill.currencies.join('、')}</td>
+            </tr>
+            <tr>
+              <td style={{ ...TD_STYLE, color: '#8c8c8c' }}>账单生成时间</td>
+              <td style={TD_STYLE} colSpan={3}>{bill.generatedAt}</td>
             </tr>
           </tbody>
         </table>
