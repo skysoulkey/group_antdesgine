@@ -7,7 +7,6 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import dayjs from 'dayjs';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'umi';
 import TableToolbar from '../../../components/TableToolbar';
 import FilterField from '../../../components/FilterField';
 
@@ -30,19 +29,11 @@ const radioTheme = {
 
 // ── 类型定义 ──────────────────────────────────────────────────────
 type WalletType = 'balance' | 'app';
-type OrderType = 'transfer' | 'additional_investment' | 'share_release' | 'order_deduction';
 type FlowStatus = 'success' | 'pending' | 'failed';
 
 const WALLET_TYPE_LABELS: Record<WalletType, string> = {
   balance: '余额钱包',
   app: '应用钱包',
-};
-
-const ORDER_TYPE_LABELS: Record<OrderType, string> = {
-  transfer: '划转',
-  additional_investment: '追加投资',
-  share_release: '释放股份',
-  order_deduction: '转单扣款',
 };
 
 const FLOW_STATUS_LABELS: Record<FlowStatus, string> = {
@@ -65,32 +56,18 @@ interface WalletBalance {
   peaBalance: number;
 }
 
-interface WalletFlowRecord {
+// 划转流水（页面只展示一种类型：内部划转）
+interface TransferFlowRecord {
   id: string;
   flowId: string;
   createdAt: string;
-  walletType: WalletType;
-  orderType: OrderType;
+  fromWallet: WalletType;
+  toWallet: WalletType;
   amount: number;
   currency: 'USDT' | 'PEA';
   status: FlowStatus;
-  fromWallet?: WalletType;
-  toWallet?: WalletType;
+  operator: string;
   remark?: string;
-  sourceCompanyId?: string;
-  sourceCompanyName?: string;
-  sourceOwnerId?: string;
-  sourceOwnerUsername?: string;
-  sourceOwnerNickname?: string;
-  totalInvestAmount?: number;
-  shareRatio?: number;
-  investCurrency?: string;
-  investAmount?: number;
-  releaseRatio?: number;
-  totalShareValue?: number;
-  releaseCurrency?: string;
-  releaseAmount?: number;
-  commissionOrderId?: string;
 }
 
 // ── Mock 数据 ─────────────────────────────────────────────────────
@@ -99,67 +76,32 @@ const MOCK_BALANCES: WalletBalance[] = [
   { walletType: 'app', walletName: '应用钱包', usdtBalance: 89230.00, peaBalance: 560000.00 },
 ];
 
-const MOCK_ENTERPRISES = [
-  { id: 'ENT001', name: 'CyberBot', ownerId: 'U101', ownerUsername: 'zhang_wei', ownerNickname: '张伟' },
-  { id: 'ENT002', name: 'StarLink', ownerId: 'U102', ownerUsername: 'li_na', ownerNickname: '李娜' },
-  { id: 'ENT003', name: 'QuantumPay', ownerId: 'U103', ownerUsername: 'wang_fang', ownerNickname: '王芳' },
-];
-
-const MOCK_FLOW_DATA: WalletFlowRecord[] = Array.from({ length: 20 }, (_, i) => {
-  const orderTypes: OrderType[] = ['transfer', 'additional_investment', 'share_release', 'order_deduction'];
-  const orderType = orderTypes[i % 4];
-  const walletType: WalletType = i % 2 === 0 ? 'balance' : 'app';
-  const statusPool: FlowStatus[] = ['success', 'pending', 'failed'];
-  const status = statusPool[i % 3];
+// 仅生成划转记录（页面只保留划转流水，其他业务流水不在此页展示）
+const MOCK_FLOW_DATA: TransferFlowRecord[] = Array.from({ length: 12 }, (_, i) => {
+  const fromWallet: WalletType = i % 2 === 0 ? 'balance' : 'app';
+  const toWallet: WalletType = fromWallet === 'balance' ? 'app' : 'balance';
+  const statusPool: FlowStatus[] = ['success', 'success', 'success', 'pending', 'failed'];
+  const status = statusPool[i % statusPool.length];
   const currency: 'USDT' | 'PEA' = i % 2 === 0 ? 'USDT' : 'PEA';
   const day = String(20 - i).padStart(2, '0');
-  const ent = MOCK_ENTERPRISES[i % 3];
+  const operators = ['示例用户 A', '示例用户 B', '示例用户 C'];
 
-  const base: WalletFlowRecord = {
+  return {
     id: String(i + 1),
-    flowId: `FL${String(i + 1).padStart(7, '0')}`,
-    createdAt: `2026-04-${day} ${String(9 + (i % 10)).padStart(2, '0')}:${String(i * 3 % 60).padStart(2, '0')}:00`,
-    walletType,
-    orderType,
+    flowId: `TF${String(i + 1).padStart(7, '0')}`,
+    createdAt: `2026-04-${day} ${String(9 + (i % 10)).padStart(2, '0')}:${String((i * 3) % 60).padStart(2, '0')}:00`,
+    fromWallet,
+    toWallet,
     amount: 5000 + i * 3200,
     currency,
     status,
+    operator: operators[i % 3],
+    remark: i % 3 === 0 ? '月度资金划转' : '',
   };
-
-  if (orderType === 'transfer') {
-    base.fromWallet = walletType;
-    base.toWallet = walletType === 'balance' ? 'app' : 'balance';
-    base.remark = i % 3 === 0 ? '月度资金划转' : '';
-  } else if (orderType === 'additional_investment') {
-    base.sourceCompanyId = ent.id;
-    base.sourceCompanyName = ent.name;
-    base.sourceOwnerId = ent.ownerId;
-    base.sourceOwnerUsername = ent.ownerUsername;
-    base.sourceOwnerNickname = ent.ownerNickname;
-    base.totalInvestAmount = 100000 + i * 5000;
-    base.shareRatio = 15 + (i % 20);
-    base.investCurrency = currency;
-    base.investAmount = 15000 + i * 750;
-  } else if (orderType === 'share_release') {
-    base.sourceCompanyId = ent.id;
-    base.sourceCompanyName = ent.name;
-    base.sourceOwnerId = ent.ownerId;
-    base.sourceOwnerUsername = ent.ownerUsername;
-    base.sourceOwnerNickname = ent.ownerNickname;
-    base.releaseRatio = 5 + (i % 15);
-    base.totalShareValue = 200000 + i * 10000;
-    base.releaseCurrency = currency;
-    base.releaseAmount = 10000 + i * 500;
-  } else {
-    base.commissionOrderId = `COM${String(30000 + i).padStart(8, '0')}`;
-  }
-
-  return base;
 });
 
 // ── 主组件 ────────────────────────────────────────────────────────
 const AllWalletPage: React.FC = () => {
-  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRefresh = useCallback(() => { message.success('已刷新'); }, []);
 
@@ -167,30 +109,32 @@ const AllWalletPage: React.FC = () => {
   const [balances, setBalances] = useState<WalletBalance[]>(MOCK_BALANCES);
 
   // 流水数据
-  const [flowData, setFlowData] = useState<WalletFlowRecord[]>(MOCK_FLOW_DATA);
+  const [flowData, setFlowData] = useState<TransferFlowRecord[]>(MOCK_FLOW_DATA);
 
   // 筛选
   const [walletFilter, setWalletFilter] = useState<string>('全部');
-  const [orderTypeFilter, setOrderTypeFilter] = useState<string>('全部');
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs | null, dayjs.Dayjs | null] | null>(null);
 
   const filteredData = useMemo(() => {
     return flowData.filter((r) => {
-      if (walletFilter !== '全部' && WALLET_TYPE_LABELS[r.walletType] !== walletFilter) return false;
-      if (orderTypeFilter !== '全部' && ORDER_TYPE_LABELS[r.orderType] !== orderTypeFilter) return false;
+      if (walletFilter !== '全部') {
+        // 钱包筛选：只要"从"或"到"任一端是该钱包，即命中
+        const target: WalletType = walletFilter === '余额钱包' ? 'balance' : 'app';
+        if (r.fromWallet !== target && r.toWallet !== target) return false;
+      }
       if (dateRange && dateRange[0] && dateRange[1]) {
         const day = r.createdAt.slice(0, 10);
         if (day < dateRange[0].format('YYYY-MM-DD') || day > dateRange[1].format('YYYY-MM-DD')) return false;
       }
       return true;
     });
-  }, [flowData, walletFilter, orderTypeFilter, dateRange]);
+  }, [flowData, walletFilter, dateRange]);
 
   // 详情弹窗
   const [detailOpen, setDetailOpen] = useState(false);
-  const [currentRecord, setCurrentRecord] = useState<WalletFlowRecord | null>(null);
+  const [currentRecord, setCurrentRecord] = useState<TransferFlowRecord | null>(null);
 
-  const showDetail = (record: WalletFlowRecord) => {
+  const showDetail = (record: TransferFlowRecord) => {
     setCurrentRecord(record);
     setDetailOpen(true);
   };
@@ -241,17 +185,16 @@ const AllWalletPage: React.FC = () => {
     }));
 
     const ts = Date.now();
-    const newFlow: WalletFlowRecord = {
+    const newFlow: TransferFlowRecord = {
       id: String(ts),
-      flowId: `FL${String(ts).slice(-7)}`,
+      flowId: `TF${String(ts).slice(-7)}`,
       createdAt: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-      walletType: fromWallet,
-      orderType: 'transfer' as const,
+      fromWallet,
+      toWallet,
       amount,
       currency,
-      status: 'success' as const,
-      fromWallet: fromWallet,
-      toWallet: toWallet,
+      status: 'success',
+      operator: '当前用户',
       remark,
     };
     setFlowData((prev) => [newFlow, ...prev]);
@@ -263,15 +206,21 @@ const AllWalletPage: React.FC = () => {
   };
 
   // 表格列
-  const columns: ColumnsType<WalletFlowRecord> = [
+  const columns: ColumnsType<TransferFlowRecord> = [
     {
       title: '订单时间', dataIndex: 'createdAt', width: 170,
       sorter: (a, b) => a.createdAt.localeCompare(b.createdAt),
       render: (v: string) => <span style={{ whiteSpace: 'nowrap' }}>{v}</span>,
     },
     { title: '流水号', dataIndex: 'flowId', width: 130 },
-    { title: '钱包类型', dataIndex: 'walletType', width: 100, render: (v: WalletType) => WALLET_TYPE_LABELS[v] },
-    { title: '订单类型', dataIndex: 'orderType', width: 100, render: (v: OrderType) => ORDER_TYPE_LABELS[v] },
+    {
+      title: '划转方向', width: 200,
+      render: (_: unknown, r: TransferFlowRecord) => (
+        <span style={{ whiteSpace: 'nowrap', color: '#141414' }}>
+          {WALLET_TYPE_LABELS[r.fromWallet]} → {WALLET_TYPE_LABELS[r.toWallet]}
+        </span>
+      ),
+    },
     {
       title: '金额', dataIndex: 'amount', width: 130, align: 'right',
       render: (v: number) => (
@@ -281,13 +230,14 @@ const AllWalletPage: React.FC = () => {
       ),
     },
     { title: '币种', dataIndex: 'currency', width: 80 },
+    { title: '操作人', dataIndex: 'operator', width: 120 },
     {
       title: '状态', dataIndex: 'status', width: 90,
       render: (v: FlowStatus) => <Tag color={FLOW_STATUS_COLORS[v]}>{FLOW_STATUS_LABELS[v]}</Tag>,
     },
     {
       title: '操作', width: 80, fixed: 'right' as const,
-      render: (_: unknown, record: WalletFlowRecord) => (
+      render: (_: unknown, record: TransferFlowRecord) => (
         <Button type="link" size="small" onClick={() => showDetail(record)}>详情</Button>
       ),
     },
@@ -342,21 +292,6 @@ const AllWalletPage: React.FC = () => {
                 </Radio.Group>
               </ConfigProvider>
             </FilterField>
-            <FilterField label="订单类型">
-              <ConfigProvider theme={radioTheme}>
-                <Radio.Group
-                  value={orderTypeFilter}
-                  onChange={(e) => setOrderTypeFilter(e.target.value)}
-                  buttonStyle="solid"
-                >
-                  <Radio.Button value="全部">全部</Radio.Button>
-                  <Radio.Button value="划转">划转</Radio.Button>
-                  <Radio.Button value="追加投资">追加投资</Radio.Button>
-                  <Radio.Button value="释放股份">释放股份</Radio.Button>
-                  <Radio.Button value="转单扣款">转单扣款</Radio.Button>
-                </Radio.Group>
-              </ConfigProvider>
-            </FilterField>
             <FilterField label="订单时间">
               <RangePicker placeholder={['从', '到']} onChange={(dates) => setDateRange(dates as [dayjs.Dayjs | null, dayjs.Dayjs | null] | null)} />
             </FilterField>
@@ -367,7 +302,7 @@ const AllWalletPage: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 14, fontWeight: 600 }}>流水记录</Text>
+          <Text style={{ fontSize: 14, fontWeight: 600 }}>划转流水</Text>
           <TableToolbar onRefresh={handleRefresh} containerRef={containerRef} />
         </div>
 
@@ -384,7 +319,7 @@ const AllWalletPage: React.FC = () => {
 
       {/* ── 详情弹窗 ──────────────────────────────────────────────────── */}
       <Modal
-        title={`流水详情 — ${currentRecord?.flowId}`}
+        title={`划转详情 — ${currentRecord?.flowId}`}
         open={detailOpen}
         onCancel={() => setDetailOpen(false)}
         footer={null}
@@ -394,60 +329,15 @@ const AllWalletPage: React.FC = () => {
           <Descriptions column={1} bordered size="small" style={{ marginTop: 16 }} labelStyle={{ whiteSpace: 'nowrap', width: 140 }}>
             <Descriptions.Item label="流水号">{currentRecord.flowId}</Descriptions.Item>
             <Descriptions.Item label="订单时间">{currentRecord.createdAt}</Descriptions.Item>
-            <Descriptions.Item label="钱包类型">{WALLET_TYPE_LABELS[currentRecord.walletType]}</Descriptions.Item>
-            <Descriptions.Item label="订单类型">{ORDER_TYPE_LABELS[currentRecord.orderType]}</Descriptions.Item>
+            <Descriptions.Item label="转出钱包">{WALLET_TYPE_LABELS[currentRecord.fromWallet]}</Descriptions.Item>
+            <Descriptions.Item label="转入钱包">{WALLET_TYPE_LABELS[currentRecord.toWallet]}</Descriptions.Item>
             <Descriptions.Item label="金额">{currentRecord.amount.toLocaleString('en', { minimumFractionDigits: 2 })} {currentRecord.currency}</Descriptions.Item>
             <Descriptions.Item label="币种">{currentRecord.currency}</Descriptions.Item>
+            <Descriptions.Item label="操作人">{currentRecord.operator}</Descriptions.Item>
             <Descriptions.Item label="状态">
               <Tag color={FLOW_STATUS_COLORS[currentRecord.status]}>{FLOW_STATUS_LABELS[currentRecord.status]}</Tag>
             </Descriptions.Item>
-
-            {currentRecord.orderType === 'transfer' && (
-              <>
-                <Descriptions.Item label="转出钱包">{WALLET_TYPE_LABELS[currentRecord.fromWallet!]}</Descriptions.Item>
-                <Descriptions.Item label="转入钱包">{WALLET_TYPE_LABELS[currentRecord.toWallet!]}</Descriptions.Item>
-                <Descriptions.Item label="备注">{currentRecord.remark || '—'}</Descriptions.Item>
-              </>
-            )}
-
-            {currentRecord.orderType === 'additional_investment' && (
-              <>
-                <Descriptions.Item label="企业名称">{currentRecord.sourceCompanyName}</Descriptions.Item>
-                <Descriptions.Item label="企业ID">{currentRecord.sourceCompanyId}</Descriptions.Item>
-                <Descriptions.Item label="企业主昵称">{currentRecord.sourceOwnerNickname}</Descriptions.Item>
-                <Descriptions.Item label="企业主ID">{currentRecord.sourceOwnerId}</Descriptions.Item>
-                <Descriptions.Item label="企业主用户名">{currentRecord.sourceOwnerUsername}</Descriptions.Item>
-                <Descriptions.Item label="追加投资总金额">{currentRecord.totalInvestAmount?.toLocaleString()} {currentRecord.investCurrency}</Descriptions.Item>
-                <Descriptions.Item label="本公司占股比例">{currentRecord.shareRatio}%</Descriptions.Item>
-                <Descriptions.Item label="需投资货币单位">{currentRecord.investCurrency}</Descriptions.Item>
-                <Descriptions.Item label="需投资金额">{currentRecord.investAmount?.toLocaleString()} {currentRecord.investCurrency}</Descriptions.Item>
-              </>
-            )}
-
-            {currentRecord.orderType === 'share_release' && (
-              <>
-                <Descriptions.Item label="企业名称">{currentRecord.sourceCompanyName}</Descriptions.Item>
-                <Descriptions.Item label="企业ID">{currentRecord.sourceCompanyId}</Descriptions.Item>
-                <Descriptions.Item label="企业主昵称">{currentRecord.sourceOwnerNickname}</Descriptions.Item>
-                <Descriptions.Item label="企业主ID">{currentRecord.sourceOwnerId}</Descriptions.Item>
-                <Descriptions.Item label="企业主用户名">{currentRecord.sourceOwnerUsername}</Descriptions.Item>
-                <Descriptions.Item label="释放股份比例">{currentRecord.releaseRatio}%</Descriptions.Item>
-                <Descriptions.Item label="总股本预估金额">{currentRecord.totalShareValue?.toLocaleString()} {currentRecord.releaseCurrency}</Descriptions.Item>
-                <Descriptions.Item label="释放股份货币单位">{currentRecord.releaseCurrency}</Descriptions.Item>
-                <Descriptions.Item label="释放股份金额">{currentRecord.releaseAmount?.toLocaleString()} {currentRecord.releaseCurrency}</Descriptions.Item>
-              </>
-            )}
-
-            {currentRecord.orderType === 'order_deduction' && (
-              <>
-                <Descriptions.Item label="佣金订单号">{currentRecord.commissionOrderId}</Descriptions.Item>
-                <Descriptions.Item label="佣金订单">
-                  <Button type="link" size="small" style={{ padding: 0 }} onClick={() => { setDetailOpen(false); navigate('/commission'); }}>
-                    查看佣金订单 →
-                  </Button>
-                </Descriptions.Item>
-              </>
-            )}
+            <Descriptions.Item label="备注">{currentRecord.remark || '—'}</Descriptions.Item>
           </Descriptions>
         )}
       </Modal>
